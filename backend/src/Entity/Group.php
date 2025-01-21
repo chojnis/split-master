@@ -36,8 +36,6 @@ class Group
     private ?string $description = null;
 
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'groups')]
-    #[ORM\JoinTable(name: 'user_groups')]
-    #[Assert\NotNull(message: 'Owner cannot be null.')]
     private Collection $users;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
