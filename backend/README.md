@@ -1,3 +1,5 @@
 # start
 
-`docker compose up -f docker-compose.yaml --build`
+```bash
+docker compose up -f docker-compose.yaml --build
+```
