@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:${POSTGRES_VERSION:-16-alpine}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-h", "database", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+
+volumes:
+  database_data:
