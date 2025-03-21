@@ -3,14 +3,39 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\State\GroupProvider;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            provider: GroupProvider::class
+        ),
+        new Get(),
+        new Post(),
+        new Put(
+            security: "object.getOwner() == user"
+        ),
+        new Patch(
+            security: "object.getOwner() == user"
+        ),
+        new Delete(
+            security: "object.getOwner() == user"
+        ),
+    ]
+)]
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
 class Group

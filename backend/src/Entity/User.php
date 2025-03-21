@@ -19,15 +19,39 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Controller\User\RegisterUser;
+use App\State\UserRegisterProcessor;
+use App\Dto\User\RegisterUserDto;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\RequestBody;
+use ApiPlatform\OpenApi\Model\Response;
 
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
-        new Get(),
-        new Put(processor: UserPasswordHasher::class),
-        new Patch(processor: UserPasswordHasher::class),
-        new Delete(),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Post(
+            name: 'register',
+            uriTemplate: '/register',
+            processor: UserPasswordHasher::class,
+            validationContext: ['groups' => ['Default', 'user:create']],
+        ),
+        new Get(
+            security: "object == user",
+        ),
+        new Put(
+            processor: UserPasswordHasher::class,
+            security: "object == user"
+        ),
+        new Patch(
+            processor: UserPasswordHasher::class,
+            security: "object == user",
+        ),
+        new Delete(
+            security: "is_granted('ROLE_ADMIN')"
+        ),
     ],
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:create', 'user:update']],
@@ -49,11 +73,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column]
-    private ?string $password;
+    private ?string $password = null;
 
     #[Assert\NotBlank(groups: ['user:create'])]
     #[Groups(['user:create', 'user:update'])]
     private ?string $plainPassword = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
     #[Groups(['user:read', 'user:create', 'user:update'])]
@@ -148,10 +175,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
+    // public function getUsername(): ?string
+    // {
+    //     return $this->username;
+    // }
 
     public function setUsername(string $username): static
     {
