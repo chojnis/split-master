@@ -3,7 +3,7 @@ import { RootState } from '~/store';
 import { LoginResponse, RegisterResponse, GroupsResponse } from '~/api/response';
 import { LoginRequest, RegisterRequest } from '~/api/request';
 
-const BASE_URL = 'https://57a1-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://8822-217-97-63-46.ngrok-free.app/api/';
 
 export const apiCall = createApi({
   reducerPath: 'api',

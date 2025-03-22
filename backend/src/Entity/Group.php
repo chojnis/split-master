@@ -133,7 +133,12 @@ class Group
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
-
+        $this->addUser($owner);
         return $this;
+    }
+
+    public function isMember(User $user): bool
+    {
+        return $this->users->contains($user);
     }
 }

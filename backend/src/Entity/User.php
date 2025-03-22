@@ -90,6 +90,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinTable(name: 'user_groups')]
     private Collection $groups;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Transaction::class)]
+    private Collection $transactions;
+
     public function __construct()
     {
         $this->groups = new ArrayCollection();
@@ -209,6 +212,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function isMemberOf(Group $group): bool
+    {
+        return $this->groups->contains($group);
     }
 
 }

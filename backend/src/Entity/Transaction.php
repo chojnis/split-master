@@ -7,11 +7,76 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Repository\TransactionRepository;
+use App\State\TransactionProvider;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\OpenApi\Model\Parameter;
+use ApiPlatform\OpenApi\Model\Operation;
+
 
 #[ORM\Entity(repositoryClass: 'App\Repository\TransactionRepository')]
 #[ApiResource(
+    operations: [ 
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            provider: TransactionProvider::class
+        ),
+        new Get(
+            security: "is_granted('ROLE_USER') and object.isAssociatedWith(user)"
+        ),
+        new Post(
+            security: "is_granted('ROLE_USER')",
+        ),
+        new Put(
+            security: "is_granted('ROLE_USER') and object.getPayer() == user"
+        ),
+        new Patch(
+            security: "is_granted('ROLE_USER') and object.getPayer() == user"
+        ),
+        new Delete(
+            security: "is_granted('ROLE_USER') and object.getPayer() == user"
+        ),
+    ],
     normalizationContext: ['groups' => ['transaction:read']],
     denormalizationContext: ['groups' => ['transaction:write']],
+)]
+#[ApiResource(
+    uriTemplate: '/groups/{groupId}/transactions',
+    uriVariables: [
+        'groupId' => [
+            'from_class' => Group::class,
+            'from_property' => 'id',
+            'to_property' => 'group'
+        ],
+    ],
+    operations: [ 
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            provider: TransactionProvider::class,
+            openapi: new Operation(
+                parameters: [
+                    new Parameter(
+                        name: 'payees',
+                        in: 'query',
+                        description: 'Filter transactions by payees (comma-separated user IDs)',
+                        required: false,
+                        schema: [
+                            'type' => 'string',
+                        ],
+                    ),
+                ],
+            ),
+        )
+    ]
 )]
 class Transaction
 {
@@ -61,11 +126,27 @@ class Transaction
     #[Assert\NotNull(message: 'A payer must be assigned to the transaction.')]
     private User $payer;
 
+    #[ORM\ManyToMany(targetEntity: 'App\Entity\User')]
+    #[ORM\JoinTable(name: 'transaction_user')]
+    #[Groups(['transaction:read', 'transaction:write'])]
+    #[Assert\Count(
+        min: 1,
+        minMessage: 'At least one user must be associated with the transaction.'
+    )]
+    private Collection $payees;
+
     #[ORM\ManyToOne(targetEntity: 'App\Entity\Group')]
     #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['transaction:read', 'transaction:write'])]
     #[Assert\NotNull(message: 'A group must be associated with the transaction.')]
     private Group $group;
+
+    public function __construct()
+    {
+        $this->payees = new ArrayCollection();
+        $this->created_at = new \DateTime();
+    }
+
 
     public function getId(): ?int
     {
@@ -110,12 +191,6 @@ class Transaction
         return $this->created_at;
     }
 
-    public function setCreatedAt(\DateTime $created_at): self
-    {
-        $this->created_at = $created_at;
-        return $this;
-    }
-
     public function getPayer(): User
     {
         return $this->payer;
@@ -125,6 +200,30 @@ class Transaction
     {
         $this->payer = $payer;
         return $this;
+    }
+
+    public function getPayees(): Collection
+    {
+        return $this->payees;
+    }
+
+    public function addPayee(User $payee): self
+    {
+        if (!$this->payees->contains($payee)) {
+            $this->payees->add($payee);
+        }
+        return $this;
+    }
+
+    public function removePayee(User $payee): self
+    {
+        $this->payees->removeElement($payee);
+        return $this;
+    }
+
+    public function isAssociatedWith(User $user): bool
+    {
+        return $this->payer === $user || $this->payees->contains($user);
     }
 
     public function getGroup(): Group
