@@ -32,7 +32,7 @@ use App\Entity\Group;
 use App\State\UserProvider;
 
 #[ApiResource(
-    security: "is_granted('ROLE_USER')",
+    // security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:create', 'user:update']]
 )]
@@ -45,6 +45,7 @@ use App\State\UserProvider;
             'to_property' => 'group'
         ],
     ],
+    security: "is_granted('ROLE_USER')",
     provider: UserProvider::class
 )]
 #[Get(
@@ -53,7 +54,7 @@ use App\State\UserProvider;
 #[Post(
     name: 'register',
     uriTemplate: '/register',
-    processor: UserRegisterProcessor::class,
+    processor: UserPasswordHasher::class,
     validationContext: ['groups' =>
         ['Default', 'user:create']
     ],
@@ -65,7 +66,7 @@ use App\State\UserProvider;
 )]
 #[Delete(
     security: "is_granted('ROLE_USER') and object == user",
-    securityMessage: "You can only delete your own account."
+    securityMessage: "You can only delete your own account.",
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]

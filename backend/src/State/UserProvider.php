@@ -34,7 +34,7 @@ class UserProvider implements ProviderInterface
             throw new InvalidArgumentException('Group not found');
         }
 
-        if(!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
+        if(!$this->groupMembershipService->getGroupMembership($user, $group)) {
             throw new AccessDeniedException('You are not a member of the group');
         }
 

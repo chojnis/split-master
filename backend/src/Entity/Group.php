@@ -160,11 +160,6 @@ class Group
     public function setOwner(User $owner): static
     {
         $this->owner = $owner;
-        $groupMembership = new GroupMembership();
-        $groupMembership->setUser($owner);
-        $groupMembership->setGroup($this);
-        $groupMembership->setStatus('accepted');
-        $this->addGroupMembership($groupMembership);
         return $this;
     }
 

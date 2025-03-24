@@ -16,18 +16,35 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use App\State\GroupMembershipProvider;
 use App\Repository\GroupMembershipRepository;
 use App\State\GroupMembershipProcessor;
+use ApiPlatform\Metadata\Link;
+use App\Entity\Group;
+use App\Entity\User;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')", 
     normalizationContext: ['groups' => ['group_membership:read']]
 )]
 #[GetCollection(
+    name: 'get_group_invites',
     provider: GroupMembershipProvider::class, 
     uriTemplate: '/invites'
 )]
+#[GetCollection(
+    name: 'get_group_members',
+    uriTemplate: '/groups/{groupId}/members',
+    uriVariables: [
+        'groupId' => [
+            'from_class' => Group::class, 
+            'from_property' => 'id', 
+            'to_property' => 'group'
+        ]
+    ],
+    processor: GroupMembershipProvider::class,
+    normalizationContext: ['groups' => ['group_membership:members']]
+)]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
-    uriTemplate: '/groups/{groupId}/invites', 
+    uriTemplate: '/groups/{groupId}/members', 
     uriVariables: [
         'groupId' => [
             'from_class' => Group::class, 
@@ -43,7 +60,38 @@ use App\State\GroupMembershipProcessor;
     uriTemplate: '/invites/{id}',
     processor: GroupMembershipProcessor::class
 )]
+#[Delete(
+    security: "is_granted('ROLE_USER') and is_granted('DELETE', object)", 
+    uriTemplate: '/groups/{groupId}/members/{userId}',
+    uriVariables: [
+        'groupId' => new Link(
+            fromClass: Group::class, 
+            fromProperty: 'groupMemberships'
+        ),
+        'userId' => new Link(
+            fromClass: User::class, 
+            fromProperty: 'groupMemberships'
+        )
+    ],
+    name: 'delete_group_membership_admin',
+    provider: GroupMembershipProvider::class,
+    processor: GroupMembershipProcessor::class
+)]
+#[Delete(
+    security: "is_granted('ROLE_USER') and is_granted('DELETE', object)", 
+    uriTemplate: '/groups/{groupId}/membership',
+    uriVariables: [
+        'groupId' => new Link(
+            fromClass: Group::class, 
+            fromProperty: 'groupMemberships'
+        )
+    ],
+    name: 'delete_group_membership_user',
+    provider: GroupMembershipProvider::class,
+    processor: GroupMembershipProcessor::class
+)]
 #[ORM\Entity(repositoryClass: GroupMembershipRepository::class)]
+#[ORM\UniqueConstraint(name: 'user_group_unique', columns: ['user_id', 'group_id'])]
 #[ORM\Table(name: 'group_membership')]
 class GroupMembership
 {
@@ -58,7 +106,7 @@ class GroupMembership
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'groupMemberships')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['group_membership:read', 'group_membership:create', 'group:read'])]
+    #[Groups(['group_membership:read', 'group_membership:create', 'group_membership:members', 'group:read'])]
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: Group::class, inversedBy: 'groupMemberships')]

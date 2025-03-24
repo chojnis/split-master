@@ -50,7 +50,7 @@ final class TransactionProcessor implements ProcessorInterface
             $transaction->setGroup($group);
         }
 
-        if (!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
+        if (!$this->groupMembershipService->getGroupMembership($user, $transaction->getGroup())) {
             throw new AccessDeniedException('User is not a member of the group');
         }
 
@@ -70,12 +70,12 @@ final class TransactionProcessor implements ProcessorInterface
         }
 
         $payer = $transaction->getPayer();
-        if (!$this->groupMembershipService->isUserMemberOfGroup($payer, $transaction->getGroup())) {
+        if (!$this->groupMembershipService->getGroupMembership($payer, $transaction->getGroup())) {
             throw new AccessDeniedException('Payer must be a member of the group');
         }
 
         foreach ($transaction->getPayees() as $payee) {
-            if (!$this->groupMembershipService->isUserMemberOfGroup($payee, $transaction->getGroup())) {
+            if (!$this->groupMembershipService->getGroupMembership($payee, $transaction->getGroup())) {
                 throw new AccessDeniedException('All payees must be members of the group');
             }
         }

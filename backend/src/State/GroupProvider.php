@@ -41,7 +41,7 @@ class GroupProvider implements ProviderInterface
         $groupId = $uriVariables['id'];
         $group = $this->entityManager->getRepository(Group::class)->find($groupId);
         if($group) {
-            $isMember = $this->groupMembershipService->isUserMemberOfGroup($user, $group);
+            $isMember = $this->groupMembershipService->getGroupMembership($user, $group);
             if(!$isMember) {
                 throw new AccessDeniedException('You are not a member of this group');
             }
