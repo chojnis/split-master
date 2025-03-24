@@ -4,16 +4,15 @@ namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Group;
+use App\Entity\GroupMembership;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use ApiPlatform\Metadata\GetCollection;
 use App\Service\GroupMembershipService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-class GroupProvider implements ProviderInterface
+class GroupMembershipProvider implements ProviderInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
@@ -21,30 +20,23 @@ class GroupProvider implements ProviderInterface
         private GroupMembershipService $groupMembershipService,
         private EntityManagerInterface $entityManager,
         private Security $security,
-        // add logger
-        private LoggerInterface $logger
     ) {}
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Group|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|GroupMembership|null
     {
-        $this->logger->info("GROUP PROVIDER START");
-
         $user = $this->security->getUser();
         if (!$user) {
             return [];
         }
 
         if($operation instanceof GetCollection) {
-            return $this->groupMembershipService->getUserGroups($user);
+            return $this->groupMembershipService->getUserGroupInvites($user);
         }
 
-        $groupId = $uriVariables['id'];
-        $group = $this->entityManager->getRepository(Group::class)->find($groupId);
-        if($group) {
-            $isMember = $this->groupMembershipService->isUserMemberOfGroup($user, $group);
-            if(!$isMember) {
-                throw new AccessDeniedException('You are not a member of this group');
-            }
+        $groupMembershipId = $uriVariables['id'];
+        $groupMembership = $this->entityManager->getRepository(GroupMembership::class)->find($groupMembershipId);
+        if($groupMembership->getUser() !== $user) {
+            throw new AccessDeniedException();
         }
 
         return $this->itemProvider->provide($operation, $uriVariables, $context);

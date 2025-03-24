@@ -4,8 +4,8 @@ namespace App\State;
 
 use App\Entity\Transaction;
 use App\Entity\Group;
+use App\Entity\GroupMembership;
 use Doctrine\ORM\EntityManagerInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Paginator;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Metadata\Operation;
 use Psr\Log\LoggerInterface;
@@ -17,59 +17,49 @@ class TransactionProvider implements ProviderInterface
     public function __construct(
         private EntityManagerInterface $entityManager, 
         private Security $security,
-        // add logger
         private LoggerInterface $logger
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
     {
-        $this->logger->info("TRANSACTION PROVIDER START");
-
         $user = $this->security->getUser();
         if (!$user) {
             return [];
         }
-
+    
         $queryBuilder = $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            // ->where('t.user = :user OR g.owner = :user OR g.users = :user')
-            ->where('1 = 1');
-
+            ->innerJoin('t.group', 'g')
+            ->innerJoin('g.groupMemberships', 'gm', 'WITH', 'gm.user = :user AND gm.status = :status')
+            ->setParameter('user', $user)
+            ->setParameter('status', 'accepted');
+    
+        // Filtruj po grupie (groupId)
         if (isset($uriVariables['groupId'])) {
-            $groupId = $uriVariables['groupId'];
-            $group = $this->entityManager->getRepository(Group::class)->find($groupId);
-            if (!$group) {
-                throw new AccessDeniedException('Group not found');
-            }
-
-            if (!$group->isMember($user)) {
-                throw new AccessDeniedException('User is not associated with the group');
-            }
-
-            if(isset($context['filters']['payees'])) {
-                $userIds = explode(',', $context['filters']['payees']);
-                $queryBuilder
-                    ->leftJoin('t.payees', 'u')
-                    ->andWhere(
-                        $queryBuilder->expr()->orX(
-                            't.payer IN (:payerUserIds)',
-                            'u.id IN (:payeesUserIds)'
-                        )
-                    )
-                    ->setParameter('payerUserIds', $userIds)
-                    ->setParameter('payeesUserIds', $userIds);
-            }
-
             $queryBuilder
-                ->innerJoin('t.group', 'g')
                 ->andWhere('g.id = :groupId')
                 ->setParameter('groupId', $uriVariables['groupId']);
         } else {
             $queryBuilder
-                ->andWhere('t.payer = :user OR :user MEMBER OF t.payees')
-                ->setParameter('user', $user);
+                ->leftJoin('t.payees', 'u')
+                ->orWhere('t.payer = :user')
+                ->orWhere('u.id = :user');
         }
-
+    
+        if (isset($context['filters']['payer'])) {
+            $queryBuilder
+                ->andWhere('t.payer = :payer')
+                ->setParameter('payer', $context['filters']['payer']);
+        }
+    
+        if (isset($context['filters']['payees'])) {
+            $userIds = explode(',', $context['filters']['payees']);
+            $queryBuilder
+                ->leftJoin('t.payees', 'u')
+                ->andWhere('u.id IN (:payeesUserIds)')
+                ->setParameter('payeesUserIds', $userIds);
+        }
+    
         return $queryBuilder->getQuery()->getResult();
     }
 }

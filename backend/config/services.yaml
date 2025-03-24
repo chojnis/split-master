@@ -29,3 +29,10 @@ services:
     App\EventListener\JWTAuthenticationSuccessListener:
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
+
+    App\State\TransactionProcessor:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $security: '@security.helper'
+        tags:
+            - { name: 'api_platform.processor', resource: 'App\Entity\Transaction' }

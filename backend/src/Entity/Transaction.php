@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\TransactionRepository;
 use App\State\TransactionProvider;
+use App\State\TransactionProcessor;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Patch;
@@ -22,34 +23,33 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Operation;
 
-
-#[ORM\Entity(repositoryClass: 'App\Repository\TransactionRepository')]
 #[ApiResource(
-    operations: [ 
-        new GetCollection(
-            security: "is_granted('ROLE_USER')",
-            provider: TransactionProvider::class
-        ),
-        new Get(
-            security: "is_granted('ROLE_USER') and object.isAssociatedWith(user)"
-        ),
-        new Post(
-            security: "is_granted('ROLE_USER')",
-        ),
-        new Put(
-            security: "is_granted('ROLE_USER') and object.getPayer() == user"
-        ),
-        new Patch(
-            security: "is_granted('ROLE_USER') and object.getPayer() == user"
-        ),
-        new Delete(
-            security: "is_granted('ROLE_USER') and object.getPayer() == user"
-        ),
-    ],
+    security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['transaction:read']],
-    denormalizationContext: ['groups' => ['transaction:write']],
+    denormalizationContext: ['groups' => ['transaction:write']]
 )]
-#[ApiResource(
+#[Get(provider: TransactionProvider::class)]
+#[GetCollection(
+    uriTemplate: '/transactions',
+    provider: TransactionProvider::class,
+    openapi: new Operation(
+        parameters: [
+            new Parameter(
+                name: 'payees',
+                in: 'query',
+                schema: ['type' => 'string'],
+                description: 'Filter transactions by payees IDs.'
+            ),
+            new Parameter(
+                name: 'payer',
+                in: 'query',
+                schema: ['type' => 'string'],
+                description: 'Filter transactions by payer ID.'
+            )
+        ]
+    ),
+)]
+#[GetCollection(
     uriTemplate: '/groups/{groupId}/transactions',
     uriVariables: [
         'groupId' => [
@@ -58,26 +58,51 @@ use ApiPlatform\OpenApi\Model\Operation;
             'to_property' => 'group'
         ],
     ],
-    operations: [ 
-        new GetCollection(
-            security: "is_granted('ROLE_USER')",
-            provider: TransactionProvider::class,
-            openapi: new Operation(
-                parameters: [
-                    new Parameter(
-                        name: 'payees',
-                        in: 'query',
-                        description: 'Filter transactions by payees (comma-separated user IDs)',
-                        required: false,
-                        schema: [
-                            'type' => 'string',
-                        ],
-                    ),
-                ],
+    provider: TransactionProvider::class,
+    openapi: new Operation(
+        parameters: [
+            new Parameter(
+                name: 'payees',
+                in: 'query',
+                schema: ['type' => 'string'],
+                description: 'Filter transactions by payees IDs.'
             ),
-        )
-    ]
+            new Parameter(
+                name: 'payer',
+                in: 'query',
+                schema: ['type' => 'string'],
+                description: 'Filter transactions by payer ID.'
+            )
+        ]
+    ),
 )]
+#[Post(
+    name: 'create',
+    processor: TransactionProcessor::class,
+    uriTemplate: '/groups/{groupId}/transactions',
+    uriVariables: [
+        'groupId' => [
+            'from_class' => Group::class,
+            'from_property' => 'id',
+            'to_property' => 'group'
+        ],
+    ],
+)]
+#[Patch(
+    name: 'patch',
+    processor: TransactionProcessor::class
+)]
+#[Delete(
+    name: 'delete',
+    processor: TransactionProcessor::class
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'group.id' => 'exact',
+    'payer.id' => 'exact',
+    'payees.id' => 'exact',
+])]
+#[ORM\Entity(repositoryClass: 'App\Repository\TransactionRepository')]
+#[ORM\Table(name: 'transaction')]
 class Transaction
 {
     #[ORM\Id]
@@ -120,14 +145,14 @@ class Transaction
     )]
     private \DateTime $created_at;
 
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User')]
+    #[ORM\ManyToOne(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayer')]
     #[ORM\JoinColumn(name: 'payer_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['transaction:read', 'transaction:write'])]
     #[Assert\NotNull(message: 'A payer must be assigned to the transaction.')]
     private User $payer;
 
-    #[ORM\ManyToMany(targetEntity: 'App\Entity\User')]
-    #[ORM\JoinTable(name: 'transaction_user')]
+    #[ORM\ManyToMany(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayee')]
+    #[ORM\JoinTable(name: 'transaction_payees')]
     #[Groups(['transaction:read', 'transaction:write'])]
     #[Assert\Count(
         min: 1,
@@ -136,8 +161,8 @@ class Transaction
     private Collection $payees;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\Group')]
-    #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['transaction:read', 'transaction:write'])]
+    #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[Groups(['transaction:read'])]
     #[Assert\NotNull(message: 'A group must be associated with the transaction.')]
     private Group $group;
 

@@ -10,6 +10,7 @@ use App\Entity\Group;
 use Faker\Factory;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\Currency;
+use App\Entity\GroupMembership;
 
 class AppFixtures extends Fixture
 {
@@ -37,6 +38,20 @@ class AppFixtures extends Fixture
             $group->setOwner($users[$i]);
             $manager->persist($group);
             $groups[] = $group;
+        }
+
+        // group memberships
+        foreach ($users as $user) {
+            $group = $groups[$faker->numberBetween(0, 4)];
+            $groupMembership = new GroupMembership();
+            $groupMembership->setUser($user);
+            $groupMembership->setGroup($group);
+            $groupMembership->setStatus('accepted');
+
+            $group->getGroupMemberships()->add($groupMembership);
+            $user->getGroupMemberships()->add($groupMembership);
+
+            $manager->persist($groupMembership);
         }
 
         $currency = new Currency();

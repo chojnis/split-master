@@ -4,14 +4,24 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: 'App\Repository\CurrencyRepository')]
 #[ApiResource(
+    security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['currency:read']],
-    denormalizationContext: ['groups' => ['currency:write']],
+    denormalizationContext: ['groups' => ['currency:write']]
 )]
+#[GetCollection]
+#[Get]
+#[ORM\Entity(repositoryClass: 'App\Repository\CurrencyRepository')]
+#[ORM\Table(name: 'currency')]
 class Currency
 {
     #[ORM\Id]
@@ -21,7 +31,7 @@ class Currency
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 3, unique: true)]
-    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'transaction:write'])]
+    #[Groups(['currency:read', 'currency:write'])]
     #[Assert\NotBlank(message: 'Currency code cannot be blank.')]
     #[Assert\Length(
         min: 3,
@@ -35,7 +45,7 @@ class Currency
     private string $code;
 
     #[ORM\Column(type: 'string', length: 100)]
-    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'transaction:write'])]
+    #[Groups(['currency:read', 'currency:write'])]
     #[Assert\NotBlank(message: 'Currency name cannot be blank.')]
     #[Assert\Length(
         max: 100,

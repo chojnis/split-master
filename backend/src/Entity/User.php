@@ -26,37 +26,49 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\RequestBody;
 use ApiPlatform\OpenApi\Model\Response;
+use App\Entity\GroupMembership;
+use App\Entity\Transaction;
+use App\Entity\Group;
+use App\State\UserProvider;
 
 #[ApiResource(
-    operations: [
-        new GetCollection(
-            security: "is_granted('ROLE_ADMIN')",
-        ),
-        new Post(
-            name: 'register',
-            uriTemplate: '/register',
-            processor: UserPasswordHasher::class,
-            validationContext: ['groups' => ['Default', 'user:create']],
-        ),
-        new Get(
-            security: "object == user",
-        ),
-        new Put(
-            processor: UserPasswordHasher::class,
-            security: "object == user"
-        ),
-        new Patch(
-            processor: UserPasswordHasher::class,
-            security: "object == user",
-        ),
-        new Delete(
-            security: "is_granted('ROLE_ADMIN')"
-        ),
-    ],
+    security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['user:read']],
-    denormalizationContext: ['groups' => ['user:create', 'user:update']],
+    denormalizationContext: ['groups' => ['user:create', 'user:update']]
+)]
+#[GetCollection(
+    uriTemplate: '/groups/{groupId}/users',
+    uriVariables: [
+        'groupId' => [
+            'from_class' => Group::class,
+            'from_property' => 'id',
+            'to_property' => 'group'
+        ],
+    ],
+    provider: UserProvider::class
+)]
+#[Get(
+    security: "is_granted('ROLE_USER') and object == user",
+)]
+#[Post(
+    name: 'register',
+    uriTemplate: '/register',
+    processor: UserRegisterProcessor::class,
+    validationContext: ['groups' =>
+        ['Default', 'user:create']
+    ],
+)]
+#[Patch(
+    security: "is_granted('ROLE_USER') and object == user",
+    securityMessage: "You can only edit your own account.",
+    processor: UserPasswordHasher::class
+)]
+#[Delete(
+    security: "is_granted('ROLE_USER') and object == user",
+    securityMessage: "You can only delete your own account."
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: '`user`')]
 #[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -86,16 +98,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $username = null;
 
-    #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'users')]
-    #[ORM\JoinTable(name: 'user_groups')]
-    private Collection $groups;
+    // #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'users')]
+    // #[ORM\JoinTable(name: 'user_groups')]
+    // private Collection $groups;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Transaction::class)]
-    private Collection $transactions;
+    #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $groupMemberships;
+
+    // #[ORM\OneToMany(mappedBy: 'user', targetEntity: Transaction::class)]
+    // private Collection $transactions;
+
+    #[ORM\OneToMany(mappedBy: 'payer', targetEntity: Transaction::class)]
+    private Collection $transactionsAsPayer;
+
+    #[ORM\ManyToMany(mappedBy: 'payees', targetEntity: Transaction::class)]
+    private Collection $transactionsAsPayee;
+
 
     public function __construct()
     {
-        $this->groups = new ArrayCollection();
+        // $this->groups = new ArrayCollection();
+        $this->groupMemberships = new ArrayCollection();
+        // $this->transactions = new ArrayCollection();
+        $this->transactionsAsPayer = new ArrayCollection();
+        $this->transactionsAsPayee = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -190,33 +216,57 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getGroups(): Collection
+    // public function getGroups(): Collection
+    // {
+    //     return $this->groups;
+    // }
+
+    // public function addGroup(Group $group): self
+    // {
+    //     if (!$this->groups->contains($group)) {
+    //         $this->groups->add($group);
+    //         $group->addUser($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function removeGroup(Group $group): self
+    // {
+    //     if ($this->groups->removeElement($group)) {
+    //         $group->removeUser($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function isMemberOf(Group $group): bool
+    // {
+    //     return $this->groups->contains($group);
+    // }
+
+    public function getGroupMemberships(): Collection
     {
-        return $this->groups;
+        return $this->groupMemberships;
     }
 
-    public function addGroup(Group $group): self
+    public function addGroupMembership(GroupMembership $groupMembership): self
     {
-        if (!$this->groups->contains($group)) {
-            $this->groups->add($group);
-            $group->addUser($this);
+        if (!$this->groupMemberships->contains($groupMembership)) {
+            $this->groupMemberships->add($groupMembership);
+            $groupMembership->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeGroup(Group $group): self
+    public function removeGroupMembership(GroupMembership $groupMembership): self
     {
-        if ($this->groups->removeElement($group)) {
-            $group->removeUser($this);
+        if ($this->groupMemberships->removeElement($groupMembership)) {
+            if ($groupMembership->getUser() === $this) {
+                $groupMembership->setUser(null);
+            }
         }
-
         return $this;
     }
-
-    public function isMemberOf(Group $group): bool
-    {
-        return $this->groups->contains($group);
-    }
-
 }

@@ -16,26 +16,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\State\GroupProvider;
+use App\Entity\GroupMembership;
+use App\Entity\Transaction;
+use App\Entity\User;
+use Symfony\Component\Serializer\Annotation\Groups;
+use App\State\GroupProcessor;
 
-#[ApiResource(
-    operations: [
-        new GetCollection(
-            security: "is_granted('ROLE_USER')",
-            provider: GroupProvider::class
-        ),
-        new Get(),
-        new Post(),
-        new Put(
-            security: "object.getOwner() == user"
-        ),
-        new Patch(
-            security: "object.getOwner() == user"
-        ),
-        new Delete(
-            security: "object.getOwner() == user"
-        ),
-    ]
-)]
+#[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
+#[GetCollection(provider: GroupProvider::class)]
+#[Get(provider: GroupProvider::class)]
+#[Post(processor: GroupProcessor::class)]
+#[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
+#[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
 class Group
@@ -51,6 +43,7 @@ class Group
         max: 100,
         maxMessage: 'Group name cannot exceed {{ limit }} characters.'
     )]
+    #[Groups(groups: ['group:read', 'group:write'])]
     private string $groupName;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -58,32 +51,66 @@ class Group
         max: 255,
         maxMessage: 'Description cannot exceed {{ limit }} characters.'
     )]
+    #[Groups(groups: ['group:read', 'group:write'])]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'groups')]
-    private Collection $users;
+    // #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', orphanRemoval: true, cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', cascade: ["persist"])]
+    // #[ORM\OneToMany(targetEntity: GroupMembership::class, inversedBy: 'group', orphanRemoval: true, cascade: ["persist"])]
+    #[Groups(groups: ['group:read'])]
+    private Collection $groupMemberships;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
+    #[Groups(groups: ['group:read'])]
     private User $owner;
+
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'group')]
+    private Collection $transactions;
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
+        // $this->users = new ArrayCollection();
+        $this->groupMemberships = new ArrayCollection();
+        $this->transactions = new ArrayCollection();
     }
 
-    public function getUsers(): Collection
+    // public function getUsers(): Collection
+    // {
+    //     return $this->users;
+    // }
+
+    // public function addUser(User $user): self
+    // {
+    //     if (!$this->users->contains($user)) {
+    //         $this->users->add($user);
+    //         $user->addGroup($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    public function getGroupMemberships(): Collection
     {
-        return $this->users;
+        return $this->groupMemberships;
     }
 
-    public function addUser(User $user): self
+    public function addGroupMembership(GroupMembership $groupMembership): self
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
-            $user->addGroup($this);
+        if (!$this->groupMemberships->contains($groupMembership)) {
+            $this->groupMemberships[] = $groupMembership;
+            $groupMembership->setGroup($this);
         }
+        return $this;
+    }
 
+    public function removeGroupMembership(GroupMembership $groupMembership): self
+    {
+        if ($this->groupMemberships->removeElement($groupMembership)) {
+            if ($groupMembership->getGroup() === $this) {
+                $groupMembership->setGroup(null);
+            }
+        }
         return $this;
     }
 
@@ -125,15 +152,19 @@ class Group
         return $this;
     }
 
-    public function getOwner(): ?User
+    public function getOwner(): User
     {
         return $this->owner;
     }
 
-    public function setOwner(?User $owner): static
+    public function setOwner(User $owner): static
     {
         $this->owner = $owner;
-        $this->addUser($owner);
+        $groupMembership = new GroupMembership();
+        $groupMembership->setUser($owner);
+        $groupMembership->setGroup($this);
+        $groupMembership->setStatus('accepted');
+        $this->addGroupMembership($groupMembership);
         return $this;
     }
 
