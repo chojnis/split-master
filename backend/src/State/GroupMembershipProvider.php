@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Service\GroupMembershipService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\DeleteOperationInterface;
+use ApiPlatform\Metadata\Post;
 use Psr\Log\LoggerInterface;
 use App\Entity\User;
 use App\Entity\Group;
@@ -34,11 +35,15 @@ class GroupMembershipProvider implements ProviderInterface
             throw new \InvalidArgumentException('User not found');
         }
 
+        if($operation instanceof Post) {
+            return new GroupMembership();
+        }
+
         if($operation instanceof DeleteOperationInterface) {
             $groupId = $uriVariables['groupId'];
-            $userId = $uriVariables['userId'];
 
-            if($userId) {
+            if(isset($uriVariables['userId'])) {
+                $userId = $uriVariables['userId'];
                 $user = $this->entityManager->getRepository(User::class)->find($userId);
                 if (!$user) {
                     throw new \InvalidArgumentException('User not found');
@@ -49,6 +54,8 @@ class GroupMembershipProvider implements ProviderInterface
             if (!$group) {
                 throw new \InvalidArgumentException('Group not found');
             }
+
+
 
             $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
             if (!$groupMembership) {
@@ -71,12 +78,6 @@ class GroupMembershipProvider implements ProviderInterface
                 return $this->groupMembershipService->getGroupMembers($group);
             }
             return $this->groupMembershipService->getUserGroupInvites($user);
-        }
-
-        $groupMembershipId = $uriVariables['id'];
-        $groupMembership = $this->entityManager->getRepository(GroupMembership::class)->find($groupMembershipId);
-        if($groupMembership->getUser() !== $user) {
-            throw new AccessDeniedException();
         }
 
         return $this->itemProvider->provide($operation, $uriVariables, $context);

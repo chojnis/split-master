@@ -28,8 +28,7 @@ final class GroupMembershipProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private GroupMembershipService $groupMembershipService,
         private GroupService $groupService,
-        private Security $security,
-        private LoggerInterface $logger
+        private Security $security
     ) {}
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = [])

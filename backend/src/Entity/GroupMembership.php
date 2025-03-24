@@ -39,19 +39,19 @@ use App\Entity\User;
             'to_property' => 'group'
         ]
     ],
-    processor: GroupMembershipProvider::class,
+    provider: GroupMembershipProvider::class,
     normalizationContext: ['groups' => ['group_membership:members']]
 )]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 
     uriVariables: [
-        'groupId' => [
-            'from_class' => Group::class, 
-            'from_property' => 'id', 
-            'to_property' => 'group'
-        ]
+        'groupId' => new Link(
+            fromClass: Group::class, 
+            fromProperty: 'groupMemberships'
+        )
     ],
+    provider: GroupMembershipProvider::class,
     processor: GroupMembershipProcessor::class
 )]
 #[Patch(
