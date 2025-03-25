@@ -1,4 +1,4 @@
-import { User } from "~/api/entity";
+import { User, UserReference } from "~/api/entity";
 import { Group } from "~/api/entity";
 
 export type LoginResponse = {
@@ -8,10 +8,16 @@ export type LoginResponse = {
 
 export type RegisterResponse = User;
 
-export type GroupsResponse = {
-    "@context": string;
-    "@id": string;
-    "@type": string;
-    totalItems: number;
-    member: Group[];
-}
+export type GroupsResponse = Group[];
+
+export type GroupMembersResponse = {
+    user: User;
+}[];
+
+export type GroupTransactionResponse = {
+    id: string;
+    amount: number;
+    description: string;
+    date: string;
+    user: UserReference;
+}[];

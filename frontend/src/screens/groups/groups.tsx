@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, FlatList, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, RefreshControl, Pressable } from 'react-native';
 import { useGetGroupsQuery } from '~/api';
 import { Group } from '~/api/entity';
 import { useState } from 'react';
@@ -37,15 +37,19 @@ export default function Groups() {
 
   const renderItem = ({ item }: { item: Group }) => (
     <View>
-      <Text>{item.groupName}</Text>
-      <Text>{item.description}</Text>
+      <Pressable
+        onPress={() => navigation.navigate('GroupDetails', { groupId: item.id })}
+      >
+        <Text>{item.groupName}</Text>
+        <Text>{item.description}</Text>
+      </Pressable>
     </View>
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={data?.member}
+        data={data}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

@@ -6,6 +6,7 @@ import LoginScreen from '~/screens/auth/login';
 import RegisterScreen from '~/screens/auth/register';
 import WelcomeScreen from '~/screens/auth';
 import GroupsScreen from '~/screens/groups/groups';
+import GroupDetailsScreen from '~/screens/groups/groupDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import ProfileScreen from '~/screens/profile';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
@@ -17,7 +18,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 export type GroupsStackParamList = {
   GroupsList: undefined;
-  GroupDetails: undefined;
+  GroupDetails: { groupId: string };
   TransactionDetails: undefined;
   AddTransaction: undefined;
   AddGroup: undefined;
@@ -43,18 +44,13 @@ function GroupsStack() {
   return (
     <GroupsStackNavigator.Navigator>
       <GroupsStackNavigator.Screen 
-        options={({navigation}) => ({
-          title: 'Moje grupy', 
-          // headerRight: () => (
-          //   <Button 
-          //     title="Dodaj" 
-          //     onPress={() => navigation.navigate("AddGroup")} 
-          //   />
-          // ),
-        })} 
+        options={{
+          title: 'Moje grupy'
+        }}
         name="GroupsList" 
         component={GroupsScreen} 
       />
+      <GroupsStackNavigator.Screen name="GroupDetails" component={GroupDetailsScreen} />
       <GroupsStackNavigator.Screen name="AddGroup" component={AddGroupScreen} />
     </GroupsStackNavigator.Navigator>
   );

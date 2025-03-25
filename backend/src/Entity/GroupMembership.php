@@ -19,10 +19,13 @@ use App\State\GroupMembershipProcessor;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Group;
 use App\Entity\User;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')", 
-    normalizationContext: ['groups' => ['group_membership:read']]
+    normalizationContext: [
+        'groups' => ['group_membership:read']
+    ]
 )]
 #[GetCollection(
     name: 'get_group_invites',
@@ -43,21 +46,21 @@ use App\Entity\User;
     provider: GroupMembershipProvider::class,
     normalizationContext: ['groups' => ['group_membership:members']]
 )]
-// #[Get(
-//     uriTemplate: '/groups/{groupId}/members/{userId}',
-//     uriVariables: [
-//         'groupId' => new Link(
-//             fromClass: Group::class, 
-//             fromProperty: 'groupMemberships'
-//         ),
-//         'userId' => new Link(
-//             fromClass: User::class, 
-//             fromProperty: 'groupMemberships'
-//         )
-//     ],
-//     provider: GroupMembershipProvider::class,
-//     normalizationContext: ['groups' => ['group_membership:members']]
-// )]
+#[Get(
+    uriTemplate: '/groups/{groupId}/members/{userId}',
+    uriVariables: [
+        'groupId' => new Link(
+            fromClass: Group::class, 
+            fromProperty: 'groupMemberships'
+        ),
+        'userId' => new Link(
+            fromClass: User::class, 
+            fromProperty: 'groupMemberships'
+        )
+    ],
+    provider: GroupMembershipProvider::class,
+    normalizationContext: ['groups' => ['group_membership:members']]
+)]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 

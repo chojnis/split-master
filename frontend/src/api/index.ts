@@ -1,15 +1,22 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { RootState } from '~/store';
-import { LoginResponse, RegisterResponse, GroupsResponse } from '~/api/response';
+import { 
+  LoginResponse, 
+  RegisterResponse, 
+  GroupsResponse, 
+  GroupMembersResponse,
+  GroupTransactionResponse
+} from '~/api/response';
 import { LoginRequest, RegisterRequest } from '~/api/request';
 
-const BASE_URL = 'https://3a1d-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://5c80-217-97-63-46.ngrok-free.app/api/';
 
 export const apiCall = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL,
     prepareHeaders: (headers, { getState }) => {
+      headers.set('Accept', 'application/json');
       const token = (getState() as RootState).auth.token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
@@ -35,7 +42,19 @@ export const apiCall = createApi({
     getGroups: builder.query<GroupsResponse, void>({
       query: () => 'groups',
     }),
+    getGroupMembers: builder.query<GroupMembersResponse, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}/members`,
+        method: 'GET',
+      }),
+    }),
+    getGroupTransactions: builder.query<GroupTransactionResponse, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}/transactions`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useGetGroupsQuery } = apiCall;
+export const { useLoginMutation, useRegisterMutation, useGetGroupsQuery, useGetGroupMembersQuery } = apiCall;

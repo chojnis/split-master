@@ -56,12 +56,12 @@ class Group
     private ?string $description = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', cascade: ["persist"])]
-    #[Groups(groups: ['group:read'])]
+    // #[Groups(groups: ['group:read'])]
     private Collection $groupMemberships;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(groups: ['group:read'])]
+    // #[Groups(groups: ['group:read'])]
     private User $owner;
 
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'group')]
