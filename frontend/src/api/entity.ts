@@ -3,11 +3,6 @@ export type User = {
     email: string;
     username?: string;
 }
-
-export type UserReference = {
-    user: string;
-}
-
 export type Group = {
     id: string;
     groupName: string;

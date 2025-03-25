@@ -9,7 +9,7 @@ import {
 } from '~/api/response';
 import { LoginRequest, RegisterRequest } from '~/api/request';
 
-const BASE_URL = 'https://5c80-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://0f67-217-97-63-46.ngrok-free.app/api/';
 
 export const apiCall = createApi({
   reducerPath: 'api',

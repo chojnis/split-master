@@ -48,9 +48,20 @@ class GroupMembershipService
     public function getGroupMembers(Group $group): iterable
     {
         return $this->entityManager->getRepository(GroupMembership::class)
-            ->createQueryBuilder('gm')
-            ->where('gm.group = :group')
-            ->andWhere('gm.status = :status')
+        ->createQueryBuilder('gm')
+        ->where('gm.group = :group')
+        ->andWhere('gm.status = :status')
+        ->setParameter('group', $group)
+        ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
+        ->getQuery()
+        ->getResult();
+    }
+
+    public function getGroupUsers(Group $group): iterable
+    {
+        return $this->entityManager->getRepository(User::class)
+            ->createQueryBuilder('u')
+            ->innerJoin('u.groupMemberships', 'gm', 'WITH', 'gm.group = :group AND gm.status = :status')
             ->setParameter('group', $group)
             ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
             ->getQuery()

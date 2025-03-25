@@ -30,6 +30,7 @@ use App\Entity\GroupMembership;
 use App\Entity\Transaction;
 use App\Entity\Group;
 use App\State\UserProvider;
+use ApiPlatform\Metadata\Link;
 
 #[ApiResource(
     normalizationContext: ['groups' => ['user:read']],
@@ -37,6 +38,17 @@ use App\State\UserProvider;
 )]
 #[Get(
     security: "is_granted('ROLE_USER') and is_granted('VIEW', object)"
+)]
+#[GetCollection(
+    security: "is_granted('ROLE_USER')",
+    uriTemplate: '/groups/{groupId}/members',
+    uriVariables: [
+        'groupId' => new Link(
+            fromClass: Group::class,
+            fromProperty: 'groupMemberships'
+        ),
+    ],
+    provider: UserProvider::class
 )]
 #[Post(
     name: 'register',

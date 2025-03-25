@@ -33,34 +33,34 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     uriTemplate: '/invites',
     normalizationContext: ['groups' => ['group_membership:invites']]
 )]
-#[GetCollection(
-    name: 'get_group_members',
-    uriTemplate: '/groups/{groupId}/members',
-    uriVariables: [
-        'groupId' => [
-            'from_class' => Group::class, 
-            'from_property' => 'id', 
-            'to_property' => 'group'
-        ]
-    ],
-    provider: GroupMembershipProvider::class,
-    normalizationContext: ['groups' => ['group_membership:members']]
-)]
-#[Get(
-    uriTemplate: '/groups/{groupId}/members/{userId}',
-    uriVariables: [
-        'groupId' => new Link(
-            fromClass: Group::class, 
-            fromProperty: 'groupMemberships'
-        ),
-        'userId' => new Link(
-            fromClass: User::class, 
-            fromProperty: 'groupMemberships'
-        )
-    ],
-    provider: GroupMembershipProvider::class,
-    normalizationContext: ['groups' => ['group_membership:members']]
-)]
+// #[GetCollection(
+//     name: 'get_group_members',
+//     uriTemplate: '/groups/{groupId}/members',
+//     uriVariables: [
+//         'groupId' => [
+//             'from_class' => Group::class, 
+//             'from_property' => 'id', 
+//             'to_property' => 'group'
+//         ]
+//     ],
+//     provider: GroupMembershipProvider::class,
+//     normalizationContext: ['groups' => ['group_membership:members']]
+// )]
+// #[Get(
+//     uriTemplate: '/groups/{groupId}/members/{userId}',
+//     uriVariables: [
+//         'groupId' => new Link(
+//             fromClass: Group::class, 
+//             fromProperty: 'groupMemberships'
+//         ),
+//         'userId' => new Link(
+//             fromClass: User::class, 
+//             fromProperty: 'groupMemberships'
+//         )
+//     ],
+//     provider: GroupMembershipProvider::class,
+//     normalizationContext: ['groups' => ['group_membership:members']]
+// )]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 
