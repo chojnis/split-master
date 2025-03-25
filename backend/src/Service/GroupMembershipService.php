@@ -12,23 +12,14 @@ class GroupMembershipService
 {
     public function __construct(private EntityManagerInterface $entityManager) {}
 
-    /**
-     * @deprecated Use getGroupMembership instead
-     */
-    public function isUserMemberOfGroup(User $user, Group $group): false|GroupMembership
+    public function isUserMemberOfGroup(User $user, Group $group): ?GroupMembership
     {
-        $membership = $this->entityManager->getRepository(GroupMembership::class)
+       return $this->entityManager->getRepository(GroupMembership::class)
             ->findOneBy([
                 'user' => $user,
                 'group' => $group,
                 'status' => GroupMembership::STATUS_ACCEPTED,
             ]);
-
-        if(!$membership) {
-            return false;
-        }
-
-        return $membership;
     }
 
     public function getUserGroups(User $user): iterable
@@ -71,8 +62,7 @@ class GroupMembershipService
         return $this->entityManager->getRepository(GroupMembership::class)
             ->findOneBy([
                 'user' => $user,
-                'group' => $group,
-                'status' => GroupMembership::STATUS_ACCEPTED
+                'group' => $group
             ]);
     }
 
@@ -92,5 +82,30 @@ class GroupMembershipService
         $this->entityManager->flush();
 
         return $membership;
+    }
+
+    public function areUsersMembersOfSameGroup(User $user1, User $user2): bool
+    {
+        if($user1 === $user2) {
+            return true;
+        }
+
+        $qb = $this->entityManager->getRepository(GroupMembership::class)
+        ->createQueryBuilder('gm1')
+        ->select('COUNT(gm1)')
+        ->innerJoin('gm1.group', 'g')
+        ->innerJoin(
+            GroupMembership::class, 
+            'gm2', 
+            'WITH', 
+            'gm2.group = g AND gm2.user = :user2 AND gm2.status = :status'
+        )
+        ->where('gm1.user = :user1')
+        ->andWhere('gm1.status = :status')
+        ->setParameter('user1', $user1)
+        ->setParameter('user2', $user2)
+        ->setParameter('status', GroupMembership::STATUS_ACCEPTED);
+
+        return $qb->getQuery()->getSingleScalarResult() > 0;
     }
 }

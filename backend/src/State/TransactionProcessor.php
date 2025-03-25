@@ -42,7 +42,10 @@ final class TransactionProcessor implements ProcessorInterface
             throw new AccessDeniedException('User not authenticated');
         }
 
-        if($uriVariables['groupId']){
+        // log entrance
+        $this->logger->info('Processing transaction', ['transaction' => $transaction->getId()]);
+
+        if(isset($uriVariables['groupId'])){
             $group = $this->entityManager->getRepository(Group::class)->find($uriVariables['groupId']);
             if (!$group) {
                 throw new InvalidArgumentException('Group not found');
@@ -50,7 +53,7 @@ final class TransactionProcessor implements ProcessorInterface
             $transaction->setGroup($group);
         }
 
-        if (!$this->groupMembershipService->getGroupMembership($user, $transaction->getGroup())) {
+        if (!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
             throw new AccessDeniedException('User is not a member of the group');
         }
 
@@ -70,12 +73,12 @@ final class TransactionProcessor implements ProcessorInterface
         }
 
         $payer = $transaction->getPayer();
-        if (!$this->groupMembershipService->getGroupMembership($payer, $transaction->getGroup())) {
+        if (!$this->groupMembershipService->isUserMemberOfGroup($payer, $transaction->getGroup())) {
             throw new AccessDeniedException('Payer must be a member of the group');
         }
 
         foreach ($transaction->getPayees() as $payee) {
-            if (!$this->groupMembershipService->getGroupMembership($payee, $transaction->getGroup())) {
+            if (!$this->groupMembershipService->isUserMemberOfGroup($payee, $transaction->getGroup())) {
                 throw new AccessDeniedException('All payees must be members of the group');
             }
         }

@@ -32,24 +32,11 @@ use App\Entity\Group;
 use App\State\UserProvider;
 
 #[ApiResource(
-    // security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:create', 'user:update']]
 )]
-#[GetCollection(
-    uriTemplate: '/groups/{groupId}/users',
-    uriVariables: [
-        'groupId' => [
-            'from_class' => Group::class,
-            'from_property' => 'id',
-            'to_property' => 'group'
-        ],
-    ],
-    security: "is_granted('ROLE_USER')",
-    provider: UserProvider::class
-)]
 #[Get(
-    security: "is_granted('ROLE_USER') and object == user",
+    security: "is_granted('ROLE_USER') and is_granted('VIEW', object)"
 )]
 #[Post(
     name: 'register',
@@ -73,6 +60,7 @@ use App\State\UserProvider;
 #[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    // #[Groups(['user:read', 'group_membership:members'])]
     #[Groups(['user:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -82,6 +70,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
+    // #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members'])]
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $email = null;
 
@@ -96,18 +85,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
+    // #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members'])]
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $username = null;
 
-    // #[ORM\ManyToMany(targetEntity: Group::class, inversedBy: 'users')]
-    // #[ORM\JoinTable(name: 'user_groups')]
-    // private Collection $groups;
-
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $groupMemberships;
-
-    // #[ORM\OneToMany(mappedBy: 'user', targetEntity: Transaction::class)]
-    // private Collection $transactions;
 
     #[ORM\OneToMany(mappedBy: 'payer', targetEntity: Transaction::class)]
     private Collection $transactionsAsPayer;
@@ -118,9 +101,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        // $this->groups = new ArrayCollection();
         $this->groupMemberships = new ArrayCollection();
-        // $this->transactions = new ArrayCollection();
         $this->transactionsAsPayer = new ArrayCollection();
         $this->transactionsAsPayee = new ArrayCollection();
     }
@@ -205,46 +186,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // public function getUsername(): ?string
-    // {
-    //     return $this->username;
-    // }
-
     public function setUsername(string $username): static
     {
         $this->username = $username;
 
         return $this;
     }
-
-    // public function getGroups(): Collection
-    // {
-    //     return $this->groups;
-    // }
-
-    // public function addGroup(Group $group): self
-    // {
-    //     if (!$this->groups->contains($group)) {
-    //         $this->groups->add($group);
-    //         $group->addUser($this);
-    //     }
-
-    //     return $this;
-    // }
-
-    // public function removeGroup(Group $group): self
-    // {
-    //     if ($this->groups->removeElement($group)) {
-    //         $group->removeUser($this);
-    //     }
-
-    //     return $this;
-    // }
-
-    // public function isMemberOf(Group $group): bool
-    // {
-    //     return $this->groups->contains($group);
-    // }
 
     public function getGroupMemberships(): Collection
     {

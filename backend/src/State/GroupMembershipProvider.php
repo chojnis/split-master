@@ -13,6 +13,7 @@ use App\Service\GroupMembershipService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
 use Psr\Log\LoggerInterface;
 use App\Entity\User;
 use App\Entity\Group;
@@ -55,8 +56,6 @@ class GroupMembershipProvider implements ProviderInterface
                 throw new \InvalidArgumentException('Group not found');
             }
 
-
-
             $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
             if (!$groupMembership) {
                 throw new \InvalidArgumentException('Group membership not found');
@@ -72,13 +71,43 @@ class GroupMembershipProvider implements ProviderInterface
                 if (!$group) {
                     throw new \InvalidArgumentException('Group not found');
                 }
-                if (!$this->groupMembershipService->getGroupMembership($user, $group)) {
+                if (!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
                     throw new AccessDeniedException();
                 }
                 return $this->groupMembershipService->getGroupMembers($group);
             }
             return $this->groupMembershipService->getUserGroupInvites($user);
         }
+
+        // if($operation instanceof Get) {
+        //     if(!isset($uriVariables['groupId']) || !isset($uriVariables['userId'])) {
+        //         throw new \InvalidArgumentException('Group or user not found');
+        //     }
+
+        //     $groupId = $uriVariables['groupId'];
+        //     $userId = $uriVariables['userId'];
+
+        //     $group = $this->entityManager->getRepository(Group::class)->find($groupId);
+        //     if (!$group) {
+        //         throw new \InvalidArgumentException('Group not found');
+        //     }
+
+        //     if(!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
+        //         throw new AccessDeniedException();
+        //     }
+
+        //     $user = $this->entityManager->getRepository(User::class)->find($userId);
+        //     if (!$user) {
+        //         throw new \InvalidArgumentException('User not found');
+        //     }
+
+        //     $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
+        //     if (!$groupMembership || $groupMembership->getStatus() !== GroupMembership::STATUS_ACCEPTED) {
+        //         throw new \InvalidArgumentException('User is not a member of this group');
+        //     }
+
+        //     return $groupMembership;
+        // }
 
         return $this->itemProvider->provide($operation, $uriVariables, $context);
     }

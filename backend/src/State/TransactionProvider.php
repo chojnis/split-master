@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Operation;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use ApiPlatform\Metadata\Post;
 
 class TransactionProvider implements ProviderInterface
 {
@@ -20,11 +21,27 @@ class TransactionProvider implements ProviderInterface
         private LoggerInterface $logger
     ) {}
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Transaction|null
     {
         $user = $this->security->getUser();
         if (!$user) {
             return [];
+        }
+
+        if($operation instanceof Post) {
+            $transaction = new Transaction();
+            if (isset($uriVariables['groupId'])) {
+                $group = $this->entityManager->getRepository(Group::class)
+                    ->find($uriVariables['groupId']);
+                
+                if (!$group) {
+                    throw new \InvalidArgumentException('Group not found');
+                }
+                
+                $transaction->setGroup($group);
+            }
+
+            return $transaction;
         }
     
         $queryBuilder = $this->entityManager->getRepository(Transaction::class)

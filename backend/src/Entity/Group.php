@@ -35,6 +35,7 @@ class Group
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(groups: ['group:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 100)]
@@ -54,9 +55,7 @@ class Group
     #[Groups(groups: ['group:read', 'group:write'])]
     private ?string $description = null;
 
-    // #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', orphanRemoval: true, cascade: ["persist", "remove"])]
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', cascade: ["persist"])]
-    // #[ORM\OneToMany(targetEntity: GroupMembership::class, inversedBy: 'group', orphanRemoval: true, cascade: ["persist"])]
     #[Groups(groups: ['group:read'])]
     private Collection $groupMemberships;
 
@@ -70,25 +69,9 @@ class Group
 
     public function __construct()
     {
-        // $this->users = new ArrayCollection();
         $this->groupMemberships = new ArrayCollection();
         $this->transactions = new ArrayCollection();
     }
-
-    // public function getUsers(): Collection
-    // {
-    //     return $this->users;
-    // }
-
-    // public function addUser(User $user): self
-    // {
-    //     if (!$this->users->contains($user)) {
-    //         $this->users->add($user);
-    //         $user->addGroup($this);
-    //     }
-
-    //     return $this;
-    // }
 
     public function getGroupMemberships(): Collection
     {

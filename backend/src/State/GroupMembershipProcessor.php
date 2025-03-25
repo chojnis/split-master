@@ -39,10 +39,6 @@ final class GroupMembershipProcessor implements ProcessorInterface
         }
 
         if($operation instanceof DeleteOperationInterface) {
-
-            // log data
-            $this->logger->info('Deleting group membership', ['data' => $data]);
-
             $group = $data->getGroup();
             if($group->getOwner() === $user) {
                 $groupMembers = $this->groupMembershipService->getGroupMembers($group);
@@ -73,8 +69,13 @@ final class GroupMembershipProcessor implements ProcessorInterface
                 throw new \InvalidArgumentException('You are not the owner of this group');
             }
 
-            if($this->groupMembershipService->getGroupMembership($data->getUser(), $group)) {
+            $groupMembership = $this->groupMembershipService->getGroupMembership($data->getUser(), $group);
+            if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
                 throw new \InvalidArgumentException('User is already a member of this group');
+            }
+
+            if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
+                throw new \InvalidArgumentException('User has already been invited to this group');
             }
 
             $data->setGroup($group);

@@ -27,7 +27,8 @@ use App\Entity\User;
 #[GetCollection(
     name: 'get_group_invites',
     provider: GroupMembershipProvider::class, 
-    uriTemplate: '/invites'
+    uriTemplate: '/invites',
+    normalizationContext: ['groups' => ['group_membership:invites']]
 )]
 #[GetCollection(
     name: 'get_group_members',
@@ -42,6 +43,21 @@ use App\Entity\User;
     provider: GroupMembershipProvider::class,
     normalizationContext: ['groups' => ['group_membership:members']]
 )]
+// #[Get(
+//     uriTemplate: '/groups/{groupId}/members/{userId}',
+//     uriVariables: [
+//         'groupId' => new Link(
+//             fromClass: Group::class, 
+//             fromProperty: 'groupMemberships'
+//         ),
+//         'userId' => new Link(
+//             fromClass: User::class, 
+//             fromProperty: 'groupMemberships'
+//         )
+//     ],
+//     provider: GroupMembershipProvider::class,
+//     normalizationContext: ['groups' => ['group_membership:members']]
+// )]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 
@@ -97,11 +113,12 @@ class GroupMembership
 {
     const STATUS_PENDING = 'pending';
     const STATUS_ACCEPTED = 'accepted';
-    const STATUS_REJECTED = 'rejected';
+    // const STATUS_REJECTED = 'rejected';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['group_membership:read', 'group_membership:invites'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'groupMemberships')]
@@ -111,11 +128,12 @@ class GroupMembership
 
     #[ORM\ManyToOne(targetEntity: Group::class, inversedBy: 'groupMemberships')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['group_membership:read'])]
+    #[Groups(['group_membership:read', 'group_membership:invites'])]
     private Group $group;
 
     #[ORM\Column(type: 'string', length: 20)]
-    #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_REJECTED])]
+    // #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_REJECTED])]
+    #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED])]
     #[Groups(['group_membership:read', 'group_membership:patch'])]
     private string $status = self::STATUS_PENDING;
 

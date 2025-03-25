@@ -22,6 +22,8 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\Metadata\Link;
+use App\Entity\Group;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
@@ -78,14 +80,14 @@ use ApiPlatform\OpenApi\Model\Operation;
 )]
 #[Post(
     name: 'create',
+    provider: TransactionProvider::class,
     processor: TransactionProcessor::class,
     uriTemplate: '/groups/{groupId}/transactions',
     uriVariables: [
-        'groupId' => [
-            'from_class' => Group::class,
-            'from_property' => 'id',
-            'to_property' => 'group'
-        ],
+        'groupId' => new Link(
+            fromClass: Group::class,
+            fromProperty: 'transactions'
+        ),
     ],
 )]
 #[Patch(
@@ -171,7 +173,6 @@ class Transaction
         $this->payees = new ArrayCollection();
         $this->created_at = new \DateTime();
     }
-
 
     public function getId(): ?int
     {
