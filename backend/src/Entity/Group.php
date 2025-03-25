@@ -35,7 +35,7 @@ class Group
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(groups: ['group:read'])]
+    #[Groups(groups: ['group:read', 'transaction:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 100)]
@@ -44,7 +44,7 @@ class Group
         max: 100,
         maxMessage: 'Group name cannot exceed {{ limit }} characters.'
     )]
-    #[Groups(groups: ['group:read', 'group:write'])]
+    #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
     private string $groupName;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -52,7 +52,7 @@ class Group
         max: 255,
         maxMessage: 'Description cannot exceed {{ limit }} characters.'
     )]
-    #[Groups(groups: ['group:read', 'group:write'])]
+    #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', cascade: ["persist"])]

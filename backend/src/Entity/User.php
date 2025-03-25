@@ -72,7 +72,7 @@ use ApiPlatform\Metadata\Link;
 #[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Groups(['user:read', 'group_membership:members'])]
+    #[Groups(['user:read', 'group_membership:members', 'transaction:read'])]
     // #[Groups(['user:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -82,7 +82,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read'])]
     // #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $email = null;
 
@@ -97,8 +97,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members'])]
-    // #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read'])]
     private ?string $username = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
