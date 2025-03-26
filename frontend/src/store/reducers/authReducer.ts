@@ -7,12 +7,14 @@ import store from '~/store';
 type AuthState = {
   isAuthenticated: boolean;
   token?: string;
+  refreshToken?: string;
   user: User;
 };
 
 const initialState: AuthState = {
   isAuthenticated: false,
   token: undefined,
+  refreshToken: undefined,
   user: {} as User,
 };
 
@@ -21,40 +23,67 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<LoginResponse>) => {
+      console.log('login action', action.payload);
       state.isAuthenticated = true;
       state.token = action.payload.token;
+      state.refreshToken = action.payload.refresh_token;
       state.user = action.payload.user;
-      AsyncStorage.setItem('token', action.payload.token);
-      AsyncStorage.setItem('user', JSON.stringify(action.payload.user));
+  
+      // AsyncStorage operations should be awaited
+      // (async () => {
+      //   try {
+      //     await AsyncStorage.setItem('token', action.payload.token);
+      //     await AsyncStorage.setItem('refreshToken', action.payload.refresh_token);
+      //     await AsyncStorage.setItem('user', JSON.stringify(action.payload.user));
+      //   } catch (error) {
+      //     console.error('Error saving login data to AsyncStorage:', error);
+      //   }
+      // })();
     },
-    logout: (state) => {
+    logout: (state, action: PayloadAction<void>) => {
       state.isAuthenticated = false;
+      state.token = undefined;
+      state.refreshToken = undefined;
       state.user = {} as User;
-      AsyncStorage.removeItem('token');
-      AsyncStorage.removeItem('user');
+  
+      // AsyncStorage operations should be awaited
+      // (async () => {
+      //   try {
+      //     await AsyncStorage.multiRemove(['token', 'refreshToken', 'user']);
+      //   } catch (error) {
+      //     console.error('Error removing data from AsyncStorage:', error);
+      //   }
+      // })();
     },
   },
 });
 
-const loadState = async () => {
+const loadState = async (): Promise<AuthState> => {
   try {
-    const token = (await AsyncStorage.getItem('token')) ?? undefined;
-    const userString = await AsyncStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) as User : {} as User;
-    return { isAuthenticated: !!token, token, user };
+    const [token, refreshToken, userString] = await Promise.all([
+      AsyncStorage.getItem('token'),
+      AsyncStorage.getItem('refreshToken'),
+      AsyncStorage.getItem('user')
+    ]);
+
+    return {
+      isAuthenticated: !!(token && refreshToken),
+      token: token || undefined,  // Convert null to undefined
+      refreshToken: refreshToken || undefined,
+      user: userString ? JSON.parse(userString) as User : {} as User
+    };
   } catch (error) {
-    console.error('Error loading state from AsyncStorage:', error);
+    console.error('Error loading state:', error);
     return initialState;
   }
 };
-
 loadState().then((loadedState) => {
-  if (loadedState.token !== undefined) {
+  if (loadedState.token !== undefined && loadedState.refreshToken !== undefined) {
     store.dispatch(authSlice.actions.login({
       token: loadedState.token,
+      refresh_token: loadedState.refreshToken,
       user: loadedState.user,
     }));
-    // log
     console.log('Loaded state:', loadedState);
   }
   else {
@@ -64,3 +93,8 @@ loadState().then((loadedState) => {
 
 export const { login, logout } = authSlice.actions;
 export default authSlice.reducer;
+
+export type AuthActions = ReturnType<
+  typeof authSlice.actions.login | 
+  typeof authSlice.actions.logout
+>;

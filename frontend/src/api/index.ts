@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '~/store';
+import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import { RootState, AppDispatch } from '~/store';
 import { 
   LoginResponse, 
   RegisterResponse, 
@@ -7,23 +7,82 @@ import {
   GroupMembersResponse,
   GroupTransactionResponse
 } from '~/api/response';
-import { LoginRequest, RegisterRequest } from '~/api/request';
+import { LoginRequest, RegisterRequest, RefreshTokenRequest } from '~/api/request';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://0f67-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://52ff-217-97-63-46.ngrok-free.app/api/';
+
+const baseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  prepareHeaders: (headers, { getState }) => {
+    headers.set('Accept', 'application/json');
+    const token = (getState() as RootState).auth.token;
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+type CustomBaseQueryFn = BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  unknown
+>;
+
+const baseQueryWithReauth: CustomBaseQueryFn = async (args, api, extraOptions) => {
+  const { getState, dispatch } = api as {
+    getState: () => RootState;
+    dispatch: AppDispatch;
+  };
+
+  let result = await baseQuery(args, api, extraOptions);
+  
+  // If 401 error, try to refresh token
+  if (result.error?.status === 401) {
+    console.log('401 error, trying to refresh token');
+    let refreshToken = getState().auth.refreshToken;
+
+    if(!refreshToken) {
+      refreshToken = (await AsyncStorage.getItem('refreshToken')) || undefined;
+    }
+    
+    if (refreshToken) {
+      console.log('Got refresh token, trying to refresh');
+      const refreshResult = await baseQuery({
+        url: 'login/refresh',
+        method: 'POST',
+        body: { refresh_token: refreshToken } satisfies RefreshTokenRequest,
+      }, api, extraOptions);
+      
+      if (refreshResult.data) {
+        // Update auth state with new tokens
+        console.log('Refresh successful, updating tokens');
+        dispatch({
+          type: 'auth/login',
+          payload: refreshResult.data as LoginResponse,
+        });
+        
+        // Retry the original request with new token
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        // Refresh failed - logout
+        console.log('Refresh failed, logging out');
+        dispatch({ type: 'auth/logout' });
+      }
+    } else {
+      // No refresh token - logout
+      console.log('No refresh token, logging out');
+      dispatch({ type: 'auth/logout' });
+    }
+  }
+  
+  return result;
+};
 
 export const apiCall = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      headers.set('Accept', 'application/json');
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -39,6 +98,13 @@ export const apiCall = createApi({
         body: credentials,
       }),
     }),
+    // refreshToken: builder.mutation<LoginResponse, RefreshTokenRequest>({
+    //   query: (credentials) => ({
+    //     url: 'login/refresh',
+    //     method: 'POST',
+    //     body: credentials,
+    //   }),
+    // }),
     getGroups: builder.query<GroupsResponse, void>({
       query: () => 'groups',
     }),
@@ -57,4 +123,9 @@ export const apiCall = createApi({
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useGetGroupsQuery, useGetGroupMembersQuery } = apiCall;
+export const { 
+  useLoginMutation, 
+  useRegisterMutation,
+  useGetGroupsQuery, 
+  useGetGroupMembersQuery
+} = apiCall;

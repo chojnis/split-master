@@ -3,6 +3,7 @@ import { Group } from "~/api/entity";
 
 export type LoginResponse = {
     token: string;
+    refresh_token: string;
     user: User;
 }
 

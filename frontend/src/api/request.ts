@@ -7,3 +7,7 @@ export type RegisterRequest = {
     email: string;
     plainPassword: string;
 }
+
+export type RefreshTokenRequest = {
+    refresh_token: string;
+}

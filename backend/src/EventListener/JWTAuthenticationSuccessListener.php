@@ -29,8 +29,8 @@ class JWTAuthenticationSuccessListener
             ['groups' => ['user:read']]
         );
 
-        $data['user'] = $normalizedUser;
         $data['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
+        $data['user'] = $normalizedUser;
 
         $event->setData($data);
     }

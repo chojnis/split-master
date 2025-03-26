@@ -37,15 +37,15 @@ class RefreshTokenProcessor implements ProcessorInterface
 
         $return = [];
         $return['token'] = $this->jwtTokenManager->create($user);
+
+        $this->refreshTokenService->revokeRefreshToken($refreshToken);
+        
+        $return['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
         $return['user'] = $this->serializer->normalize(
             $user, 
             null, 
             ['groups' => ['user:read']]
         );
-
-        $this->refreshTokenService->revokeRefreshToken($refreshToken);
-        
-        $return['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
 
         return $return;
     }

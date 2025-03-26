@@ -1,14 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './reducers/authReducer';
 import { apiCall } from '~/api';
-// import exampleReducer from './reducers/exampleReducer';
+import storageMiddleware from '~/store/middleware/storageMiddleware';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
     [apiCall.reducerPath]: apiCall.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiCall.middleware),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiCall.middleware, storageMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
