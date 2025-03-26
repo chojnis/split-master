@@ -38,7 +38,7 @@ export default function GroupDetails() {
     return (
         <View>
             <FlatList
-                data={data?.map(item => item.user) || []}
+                data={data}
                 renderItem={renderUser}
                 keyExtractor={(item) => item.id}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

@@ -17,23 +17,45 @@ security:
         register:
             pattern: ^/api/register
             security: false
-            
-        auth:
-            pattern: ^/api/auth
-            stateless: true
-            json_login:
-                check_path: /api/auth
-                username_path: email
-                password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
-        # Define our API firewall and configure it to use JWT for authentication
+        login_refresh:
+            pattern:  ^/api/login/refresh
+            stateless: true
+            security: false
+            
+        # auth:
+        #     pattern: ^/api/auth
+        #     stateless: true
+        #     json_login:
+        #         check_path: /api/auth
+        #         username_path: email
+        #         password_path: password
+        #         success_handler: lexik_jwt_authentication.handler.authentication_success
+        #         failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # refresh_jwt:
+        #     pattern: ^/api/token/refresh
+        #     stateless: true
+        #     security: false
+        #     refresh_jwt:
+        #         check_path: /api/token/refresh
+
         api:
             pattern: ^/api
             stateless: true
             provider: app_user_provider
+            entry_point: jwt
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
             jwt: ~
+            refresh_jwt:
+                check_path: /api/login/refresh
+                provider: app_user_provider
+            switch_user: false
         
         # main:
         #     lazy: true
@@ -49,8 +71,10 @@ security:
     access_control:
         - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
 
 when@test:
     security:

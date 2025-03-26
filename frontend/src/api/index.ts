@@ -27,7 +27,7 @@ export const apiCall = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: 'auth',
+        url: 'login',
         method: 'POST',
         body: credentials,
       }),
