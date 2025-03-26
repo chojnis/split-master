@@ -12,9 +12,3 @@ api_login:
 #     path: /api/token/refresh
 #     controller: gesdinet.jwtrefreshtoken::refresh
 #     methods: [POST]
-
-# api_login_refresh:
-gesdinet_jwt_refresh_token:
-    path: /api/login/refresh
-    controller: gesdinet.jwtrefreshtoken::refresh
-    methods: [POST]

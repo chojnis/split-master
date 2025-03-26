@@ -5,10 +5,14 @@ namespace App\EventListener;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use App\Service\RefreshTokenService;
 
 class JWTAuthenticationSuccessListener
 {
-    public function __construct(private SerializerInterface $serializer){}
+    public function __construct(
+        private SerializerInterface $serializer,
+        private RefreshTokenService $refreshTokenService
+    ){}
 
     public function onAuthenticationSuccessResponse(AuthenticationSuccessEvent $event)
     {
@@ -26,6 +30,7 @@ class JWTAuthenticationSuccessListener
         );
 
         $data['user'] = $normalizedUser;
+        $data['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
 
         $event->setData($data);
     }

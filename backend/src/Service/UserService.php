@@ -27,4 +27,11 @@ final class UserService
 
         return $user;
     }
+
+    public function getUserByEmail(string $email): ?User
+    {
+        return $this->entityManager
+            ->getRepository(User::class)
+            ->findOneBy(['email' => $email]);
+    }
 }

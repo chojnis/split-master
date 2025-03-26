@@ -18,20 +18,20 @@ security:
             pattern: ^/api/register
             security: false
 
-        login_refresh:
-            pattern:  ^/api/login/refresh
-            stateless: true
-            security: false
-            
-        # auth:
-        #     pattern: ^/api/auth
+        # login_refresh:
+        #     pattern:  ^/api/login/refresh
         #     stateless: true
-        #     json_login:
-        #         check_path: /api/auth
-        #         username_path: email
-        #         password_path: password
-        #         success_handler: lexik_jwt_authentication.handler.authentication_success
-        #         failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        #     security: false
+            
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
         # refresh_jwt:
         #     pattern: ^/api/token/refresh
@@ -44,18 +44,7 @@ security:
             pattern: ^/api
             stateless: true
             provider: app_user_provider
-            entry_point: jwt
-            json_login:
-                check_path: /api/login
-                username_path: email
-                password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
             jwt: ~
-            refresh_jwt:
-                check_path: /api/login/refresh
-                provider: app_user_provider
-            switch_user: false
         
         # main:
         #     lazy: true
@@ -69,8 +58,8 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/login/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
