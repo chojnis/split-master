@@ -8,9 +8,8 @@ import {
   GroupTransactionResponse
 } from '~/api/response';
 import { LoginRequest, RegisterRequest, RefreshTokenRequest } from '~/api/request';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://52ff-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://4dc5-217-97-63-46.ngrok-free.app/api/';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -21,7 +20,7 @@ const baseQuery = fetchBaseQuery({
       headers.set('authorization', `Bearer ${token}`);
     }
     return headers;
-  },
+  }
 });
 
 type CustomBaseQueryFn = BaseQueryFn<
@@ -40,15 +39,9 @@ const baseQueryWithReauth: CustomBaseQueryFn = async (args, api, extraOptions) =
   
   // If 401 error, try to refresh token
   if (result.error?.status === 401) {
-    console.log('401 error, trying to refresh token');
     let refreshToken = getState().auth.refreshToken;
-
-    if(!refreshToken) {
-      refreshToken = (await AsyncStorage.getItem('refreshToken')) || undefined;
-    }
     
     if (refreshToken) {
-      console.log('Got refresh token, trying to refresh');
       const refreshResult = await baseQuery({
         url: 'login/refresh',
         method: 'POST',
@@ -57,7 +50,6 @@ const baseQueryWithReauth: CustomBaseQueryFn = async (args, api, extraOptions) =
       
       if (refreshResult.data) {
         // Update auth state with new tokens
-        console.log('Refresh successful, updating tokens');
         dispatch({
           type: 'auth/login',
           payload: refreshResult.data as LoginResponse,
@@ -67,12 +59,10 @@ const baseQueryWithReauth: CustomBaseQueryFn = async (args, api, extraOptions) =
         result = await baseQuery(args, api, extraOptions);
       } else {
         // Refresh failed - logout
-        console.log('Refresh failed, logging out');
         dispatch({ type: 'auth/logout' });
       }
     } else {
       // No refresh token - logout
-      console.log('No refresh token, logging out');
       dispatch({ type: 'auth/logout' });
     }
   }
@@ -98,13 +88,6 @@ export const apiCall = createApi({
         body: credentials,
       }),
     }),
-    // refreshToken: builder.mutation<LoginResponse, RefreshTokenRequest>({
-    //   query: (credentials) => ({
-    //     url: 'login/refresh',
-    //     method: 'POST',
-    //     body: credentials,
-    //   }),
-    // }),
     getGroups: builder.query<GroupsResponse, void>({
       query: () => 'groups',
     }),

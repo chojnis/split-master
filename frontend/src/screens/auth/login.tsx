@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Text } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { login as persistLogin } from '~/store/reducers/authReducer';
 import { useNavigation } from '@react-navigation/native';
@@ -38,21 +38,22 @@ const Login = () => {
     try {
       const { data, error: apiError } = await fetchLogin({ email, password });
 
-      if (apiError) {
+      if (apiError || !data) {
         Alert.alert('Login failed', 'An unexpected error occurred.');
         return;
       }
 
-      // const responseData = await response.json();
-      // const token = responseData.token;
-      // const user = responseData.user;
+      dispatch(persistLogin({ user: data.user, token: data.token, refresh_token: data.refresh_token }));
 
-       dispatch(persistLogin({ user: data.user, token: data.token }));
     } catch (error) {
       console.error('Login failed:', error);
       Alert.alert('Error', 'An unexpected error occurred.');
     }
   };
+
+  if(isLoading) {
+    return <View><Text>Loading...</Text></View>
+  }
 
   return (
     <View style={styles.container}>
