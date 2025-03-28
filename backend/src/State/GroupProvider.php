@@ -7,7 +7,6 @@ use ApiPlatform\State\ProviderInterface;
 use App\Entity\Group;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use ApiPlatform\Metadata\GetCollection;
 use App\Service\GroupMembershipService;
@@ -20,15 +19,11 @@ class GroupProvider implements ProviderInterface
         private ProviderInterface $itemProvider,
         private GroupMembershipService $groupMembershipService,
         private EntityManagerInterface $entityManager,
-        private Security $security,
-        // add logger
-        private LoggerInterface $logger
+        private Security $security
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Group|null
     {
-        $this->logger->info("GROUP PROVIDER START");
-
         $user = $this->security->getUser();
         if (!$user) {
             return [];
@@ -41,7 +36,7 @@ class GroupProvider implements ProviderInterface
         $groupId = $uriVariables['id'];
         $group = $this->entityManager->getRepository(Group::class)->find($groupId);
         if($group && !$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
-            throw new AccessDeniedException('You are not a member of this group');
+            throw new AccessDeniedException('You are not a member of this group.');
         }
 
         return $this->itemProvider->provide($operation, $uriVariables, $context);

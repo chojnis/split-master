@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
-import { StyleSheet, View } from 'react-native';
-import { Button } from '~/components/Button';
+import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '~/navigation';
+import { AuthStackParamList } from '~/navigation/auth';
+import { Container } from '~/components/Container';
 
 type WelcomeScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
@@ -10,15 +11,18 @@ export default function Welcome() {
     const navigation = useNavigation<WelcomeScreenNavigationProps>();
 
     return (
-        <View style={styles.container}>
-            <Button onPress={() => navigation.navigate('Login')} title="Zaloguj się" />
-        </View>
+        <Container>
+            <Text
+                className={'text-2xl'}
+            >
+                Witaj w aplikacji
+            </Text>
+            <Button
+                className={'mt-4'} 
+                onPress={() => navigation.navigate('Login')}
+            >
+                <Text>Logowanie</Text>
+            </Button>
+        </Container>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 6,
-    },
-});

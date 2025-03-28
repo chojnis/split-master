@@ -1,67 +1,113 @@
-import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Button } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
+import FormField from '~/components/FormItem';
+import Loading from '~/components/Loading';
+import { ApiError } from '~/api/types';
+import { SerializedError } from '@reduxjs/toolkit';
 
-export type FormFieldType = 'text' | 'number';
-
-interface Field {
+export type FormFieldType = {
   label: string;
   name: string;
-  type: FormFieldType;
+  type: 'text' | 'number' | 'textarea' | 'password';
+  required?: boolean;
+  placeholder?: string;
 }
 
-interface FormProps {
-  fields: Field[];
+type FormProps = {
+  fields: FormFieldType[];
   onSubmit: (data: { [key: string]: string | number }) => void;
+  isLoading?: boolean;
+  error?: ApiError | SerializedError;
+  submitText?: string;
 }
 
-const Form = ({ fields, onSubmit }: FormProps) => {
-  const [formData, setFormData] = useState<{ [key: string]: string | number }>({});
+export type FormDataType = {
+  [key: string]: string | number;
+}
+
+type ErrorType = {
+  [key: string]: string | undefined;
+}
+
+const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => {
+  const [formData, setFormData] = useState<FormDataType>({});
+  const [errors, setErrors] = useState<ErrorType>({});
+  const [generalError, setGeneralError] = useState<string | null>();
+
+  useEffect(() => {
+    setGeneralError(null);
+
+    if (!error) return;
+
+    if ('status' in error) {
+      const errorMap: ErrorType = {};
+      
+      error.violations?.forEach(violation => {
+        const fieldName = violation.propertyPath;
+        errorMap[fieldName] = violation.message;
+      });
+      
+      setErrors(errorMap);
+
+      if (error.detail && !error.violations) {
+        setGeneralError(error.detail);
+      }
+    } else if ('message' in error && error.message) {
+      setGeneralError(error.message);
+    } else {
+      setGeneralError('Wystąpił nieoczekiwany błąd');
+    }
+  }, [error]);
 
   const handleChange = (name: string, value: string | number) => {
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({...prev, [name]: undefined}));
   };
 
   const handleSubmit = () => {
+    let isValid = true;
+    const newErrors: ErrorType = {};
+    for (const field of fields) {
+      if (!formData[field.name] && field.required) {
+        newErrors[field.name] = 'To pole jest wymagane';
+        isValid = false;
+      }
+    }
+    if (!isValid) {
+      setErrors(newErrors);
+      return;
+    }
     onSubmit(formData);
   };
 
   return (
-    <View style={styles.container}>
+    <View>
+      {generalError && (
+        <View className="mb-4 p-3 bg-red-100 rounded">
+          <Text className="text-red-700">{generalError}</Text>
+        </View>
+      )}
       {fields.map((field) => (
-        <View key={field.name} style={styles.fieldContainer}>
-          <Text style={styles.label}>{field.label}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={field.label}
-            keyboardType={field.type === 'number' ? 'number-pad' : 'default'}
-            onChangeText={(value) => handleChange(field.name, value)}
+        <View key={field.name}>
+          <FormField
+            field={field}
             value={formData[field.name]?.toString()}
+            onChange={handleChange}
+            error={errors[field.name]}
           />
         </View>
       ))}
-      <Button title="Submit" onPress={handleSubmit} />
+      <Button 
+        className="mt-4"
+        onPress={handleSubmit} 
+        disabled={isLoading}
+      >
+        {isLoading ? <Loading /> : <Text>{submitText || 'Prześlij'}</Text>}
+      </Button>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  fieldContainer: {
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    padding: 10,
-  },
-});
 
 export default Form;

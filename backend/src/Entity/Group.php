@@ -39,10 +39,10 @@ class Group
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 100)]
-    #[Assert\NotBlank(message: 'Group name cannot be blank.')]
+    #[Assert\NotBlank(message: 'Nazwa grupy nie może być pusta.')]
     #[Assert\Length(
         max: 100,
-        maxMessage: 'Group name cannot exceed {{ limit }} characters.'
+        maxMessage: 'Nazwa grupy nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
     #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
     private string $groupName;
@@ -50,7 +50,7 @@ class Group
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(
         max: 255,
-        maxMessage: 'Description cannot exceed {{ limit }} characters.'
+        maxMessage: 'Opis nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
     #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
     private ?string $description = null;

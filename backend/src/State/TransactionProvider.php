@@ -8,7 +8,6 @@ use App\Entity\GroupMembership;
 use Doctrine\ORM\EntityManagerInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Metadata\Operation;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Post;
@@ -17,8 +16,7 @@ class TransactionProvider implements ProviderInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager, 
-        private Security $security,
-        private LoggerInterface $logger
+        private Security $security
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Transaction|null

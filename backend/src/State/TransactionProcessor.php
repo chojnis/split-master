@@ -10,7 +10,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Service\TransactionService;
-use Psr\Log\LoggerInterface;
 use App\Service\GroupMembershipService;
 use App\Entity\User;
 use ApiPlatform\Metadata\DeleteOperationInterface;
@@ -28,8 +27,7 @@ final class TransactionProcessor implements ProcessorInterface
         private Security $security,
         private GroupMembershipService $groupMembershipService,
         private TransactionService $transactionService,
-        private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger
+        private EntityManagerInterface $entityManager
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -39,7 +37,7 @@ final class TransactionProcessor implements ProcessorInterface
 
         $user = $this->security->getUser();
         if (!$user) {
-            throw new AccessDeniedException('User not authenticated');
+            throw new AccessDeniedException('User not authenticated.');
         }
 
         // log entrance
@@ -48,13 +46,13 @@ final class TransactionProcessor implements ProcessorInterface
         if(isset($uriVariables['groupId'])){
             $group = $this->entityManager->getRepository(Group::class)->find($uriVariables['groupId']);
             if (!$group) {
-                throw new InvalidArgumentException('Group not found');
+                throw new InvalidArgumentException('Group not found.');
             }
             $transaction->setGroup($group);
         }
 
         if (!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
-            throw new AccessDeniedException('User is not a member of the group');
+            throw new AccessDeniedException('User is not a member of the group.');
         }
 
         if($operation instanceof DeleteOperationInterface) {
@@ -74,12 +72,12 @@ final class TransactionProcessor implements ProcessorInterface
 
         $payer = $transaction->getPayer();
         if (!$this->groupMembershipService->isUserMemberOfGroup($payer, $transaction->getGroup())) {
-            throw new AccessDeniedException('Payer must be a member of the group');
+            throw new AccessDeniedException('Payer must be a member of the group.');
         }
 
         foreach ($transaction->getPayees() as $payee) {
             if (!$this->groupMembershipService->isUserMemberOfGroup($payee, $transaction->getGroup())) {
-                throw new AccessDeniedException('All payees must be members of the group');
+                throw new AccessDeniedException('All payees must be members of the group.');
             }
         }
     }
@@ -87,7 +85,7 @@ final class TransactionProcessor implements ProcessorInterface
     private function validateDeleteOperation(Transaction $transaction, User $user): void
     {
         if (!$this->transactionService->isUserPayerOrOwner($transaction, $user)) {
-            throw new AccessDeniedException('Only the payer or group owner can delete the transaction');
+            throw new AccessDeniedException('Only the payer or group owner can delete the transaction.');
         }
     }
 
@@ -100,7 +98,7 @@ final class TransactionProcessor implements ProcessorInterface
         $originalTransaction->setPayer($originalData['payer']);
 
         if (!$this->transactionService->isUserPayerOrOwner($originalTransaction, $user)) {
-            throw new AccessDeniedException('Only the payer or group owner can update the transaction');
+            throw new AccessDeniedException('Only the payer or group owner can update the transaction.');
         }
     }
 }

@@ -1,23 +1,39 @@
-import { View, Text } from 'react-native';
-import Form from '~/components/Form';
-import { FormFieldType } from '~/components/Form';
+import { Alert } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import { Container } from '~/components/Container';
+import Form, { FormDataType, FormFieldType } from '~/components/Form';
+import { useAddGroupMutation } from '~/api';
+import { GroupsStackParamList } from '~/navigation/groups';
 
-function AddGroup () {
+type AddGroupScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddGroup'>;
 
-    const handleSubmit = (data: { [key: string]: string | number }) => {
-        console.log(data);
+const AddGroup = () => {
+    const navigation = useNavigation<AddGroupScreenNavigationProps>();
+    const [fetchAddGroup, {isLoading, error}] = useAddGroupMutation();
+    const handleSubmit = async (formData: FormDataType) => {
+        const { groupName, description } = formData as { groupName: string; description: string };
+
+        try{
+            const { data } = await fetchAddGroup({ groupName, description });
+
+            if(data) {
+                navigation.goBack();
+            }
+        } catch (err) {
+            Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
+        }
     };
 
     const fields = [
-        { label: 'Nazwa grupy', name: 'groupName', type: 'text' as FormFieldType },
-        { label: 'Opis', name: 'description', type: 'text' as FormFieldType },
+        { label: 'Nazwa grupy', placeholder: 'Wakacje we Włoszech', name: 'groupName', type: 'text', required: true } as FormFieldType,
+        { label: 'Opis', placeholder: 'Opłaty na życie', name: 'description', type: 'textarea' } as FormFieldType,
     ];
     
     return (
-        <View>
-            <Text>Dodaj grupę</Text>
-            <Form fields={fields} onSubmit={handleSubmit} />
-        </View>
+        <Container>
+            <Form fields={fields} onSubmit={handleSubmit} isLoading={isLoading} error={error} submitText="Dodaj grupę" />
+        </Container>
     );
 }
 

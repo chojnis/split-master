@@ -35,7 +35,7 @@ final class GroupMembershipProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
         if (!$user) {
-            throw new \InvalidArgumentException('User not found');
+            throw new \InvalidArgumentException('User not found.');
         }
 
         if($operation instanceof DeleteOperationInterface) {
@@ -43,7 +43,7 @@ final class GroupMembershipProcessor implements ProcessorInterface
             if($group->getOwner() === $user) {
                 $groupMembers = $this->groupMembershipService->getGroupMembers($group);
                 if(count($groupMembers) < 2) {
-                    throw new \InvalidArgumentException('You cannot delete the group owner');
+                    throw new \InvalidArgumentException('You cannot delete the group owner.');
                 }
 
                 foreach($groupMembers as $groupMember) {
@@ -62,20 +62,20 @@ final class GroupMembershipProcessor implements ProcessorInterface
             $group = $this->entityManager->getRepository(Group::class)->find($groupId);
 
             if (!$group) {
-                throw new \InvalidArgumentException('Group not found');
+                throw new \InvalidArgumentException('Group not found.');
             }
 
             if($group->getOwner() !== $user) {
-                throw new \InvalidArgumentException('You are not the owner of this group');
+                throw new \InvalidArgumentException('You are not the owner of this group.');
             }
 
             $groupMembership = $this->groupMembershipService->getGroupMembership($data->getUser(), $group);
             if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
-                throw new \InvalidArgumentException('User is already a member of this group');
+                throw new \InvalidArgumentException('User is already a member of this group.');
             }
 
             if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
-                throw new \InvalidArgumentException('User has already been invited to this group');
+                throw new \InvalidArgumentException('User has already been invited to this group.');
             }
 
             $data->setGroup($group);

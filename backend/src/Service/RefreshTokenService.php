@@ -22,7 +22,7 @@ class RefreshTokenService
 
         do {
             if ($attempt++ >= $maxAttempts) {
-                throw new \Exception('Could not generate a unique refresh token');
+                throw new \InvalidArgumentException('Could not generate a unique refresh token.');
             }
             $token = bin2hex(random_bytes(64));
         } while ($this->refreshTokenExists($token));

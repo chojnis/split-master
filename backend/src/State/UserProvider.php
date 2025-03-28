@@ -29,11 +29,11 @@ class UserProvider implements ProviderInterface
 
         $group = $this->entityManager->getRepository(Group::class)->find($uriVariables['groupId']);
         if (!$group) {
-            throw new InvalidArgumentException('Group not found');
+            throw new InvalidArgumentException('Group not found.');
         }
 
         if(!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
-            throw new AccessDeniedException('You are not a member of this group');
+            throw new AccessDeniedException('You are not a member of this group.');
         }
 
         return $this->groupMembershipService->getGroupUsers($group);

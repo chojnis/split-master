@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text, FlatList, RefreshControl, Pressable } from 'react-native';
 import { useGetGroupMembersQuery } from '~/api';
-import { Group, User } from '~/api/entity';
+import { Group, User } from '~/api/types/entity';
 import { useState } from 'react';
 import { useLayoutEffect } from 'react';
 import { Button } from 'react-native';

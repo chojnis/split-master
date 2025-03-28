@@ -11,3 +11,8 @@ export type RegisterRequest = {
 export type RefreshTokenRequest = {
     refresh_token: string;
 }
+
+export type AddGroupRequest = {
+    groupName: string;
+    description: string;
+}

@@ -14,7 +14,6 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
-use Psr\Log\LoggerInterface;
 use App\Entity\User;
 use App\Entity\Group;
 
@@ -25,7 +24,6 @@ class GroupMembershipProvider implements ProviderInterface
         private ProviderInterface $itemProvider,
         private GroupMembershipService $groupMembershipService,
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger,
         private Security $security,
     ) {}
 
@@ -33,7 +31,7 @@ class GroupMembershipProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (!$user) {
-            throw new \InvalidArgumentException('User not found');
+            throw new \InvalidArgumentException('User not found.');
         }
 
         if($operation instanceof Post) {
@@ -47,18 +45,18 @@ class GroupMembershipProvider implements ProviderInterface
                 $userId = $uriVariables['userId'];
                 $user = $this->entityManager->getRepository(User::class)->find($userId);
                 if (!$user) {
-                    throw new \InvalidArgumentException('User not found');
+                    throw new \InvalidArgumentException('User not found.');
                 }
             }
 
             $group = $this->entityManager->getRepository(Group::class)->find($groupId);
             if (!$group) {
-                throw new \InvalidArgumentException('Group not found');
+                throw new \InvalidArgumentException('Group not found.');
             }
 
             $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
             if (!$groupMembership) {
-                throw new \InvalidArgumentException('Group membership not found');
+                throw new \InvalidArgumentException('Group membership not found.');
             }
 
             return $groupMembership;
@@ -69,7 +67,7 @@ class GroupMembershipProvider implements ProviderInterface
                 $groupId = $uriVariables['groupId'];
                 $group = $this->entityManager->getRepository(Group::class)->find($groupId);
                 if (!$group) {
-                    throw new \InvalidArgumentException('Group not found');
+                    throw new \InvalidArgumentException('Group not found.');
                 }
                 if (!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
                     throw new AccessDeniedException();

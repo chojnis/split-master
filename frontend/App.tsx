@@ -1,18 +1,30 @@
 import './global.css';
 
-import 'react-native-gesture-handler';
-
 import { Provider } from 'react-redux';
-import store from './src/store';
+import { setupStore, AppStore } from './src/store';
 import Navigation from './src/navigation';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useEffect, useState } from 'react';
+import LoadingScreen from './src/screens/loading';
+
+let store: AppStore | undefined;
 
 export default function App() {
+  const [isAppReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    setupStore().then((newStore) => {
+      store = newStore;
+      setAppReady(true);
+    });
+  }, []);
+
+  if (!isAppReady || !store) {
+      return <LoadingScreen />;
+  }
+  
   return (
-    // <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
           <Navigation />
       </Provider>
-    // </GestureHandlerRootView>
   );
 }

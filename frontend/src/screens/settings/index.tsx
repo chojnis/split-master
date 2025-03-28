@@ -3,7 +3,8 @@ import { ScreenContent } from '~/components/ScreenContent';
 import { StyleSheet, View } from 'react-native';
 
 import { RootTabParamList } from '~/navigation';
-import { Button } from '~/components/Button';
+import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
 import { useDispatch } from 'react-redux';
 import { logout } from '~/store/reducers/authReducer';
 
@@ -17,7 +18,9 @@ export default function Profile() {
 
     return (
         <View style={styles.container}>
-            <Button onPress={handleLogout} title="Wyloguj się" />
+            <Button onPress={handleLogout}>
+              <Text>Wyloguj się</Text>
+            </Button>
         </View>
     );
 }

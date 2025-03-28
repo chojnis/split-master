@@ -73,23 +73,28 @@ use ApiPlatform\Metadata\Link;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[Groups(['user:read', 'group_membership:members', 'transaction:read'])]
-    // #[Groups(['user:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Email]
+    #[Assert\NotBlank(
+        message: 'Email nie może być pusty.',
+    )]
+    #[Assert\Email(
+        message: 'Niepoprawny adres email.',
+    )]
     #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read'])]
-    // #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $email = null;
 
     #[ORM\Column]
     private ?string $password = null;
 
-    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Assert\NotBlank(
+        groups: ['user:create'],
+        message: 'Hasło nie może być puste.'
+    )]
     #[Groups(['user:create', 'user:update'])]
     private ?string $plainPassword = null;
 

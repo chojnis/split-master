@@ -116,7 +116,6 @@ class GroupMembership
 {
     const STATUS_PENDING = 'pending';
     const STATUS_ACCEPTED = 'accepted';
-    // const STATUS_REJECTED = 'rejected';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -135,8 +134,10 @@ class GroupMembership
     private Group $group;
 
     #[ORM\Column(type: 'string', length: 20)]
-    // #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_REJECTED])]
-    #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED])]
+    #[Assert\Choice(
+        choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED],
+        message: 'Nieprawidłowy status.'
+    )]
     #[Groups(['group_membership:read', 'group_membership:patch'])]
     private string $status = self::STATUS_PENDING;
 

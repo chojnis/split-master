@@ -3,9 +3,6 @@ api_platform:
   version: 1.0.0
   defaults:
     stateless: true
-    formats:
-      # jsonld: ['application/ld+json']
-      json: ['application/json']
     cache_headers:
       vary: ["Content-Type", "Authorization", "Origin"]
   swagger:
@@ -14,3 +11,19 @@ api_platform:
         name: Authorization
         type: header
   use_symfony_listeners: true
+  formats:
+    json:
+      mime_types: ['application/json']
+  error_formats:
+    jsonproblem: 
+      mime_types: ['application/problem+json']
+
+  # The list of exceptions mapped to their HTTP status code.
+  exception_to_status:
+      # With a status code.
+      Symfony\Component\Serializer\Exception\ExceptionInterface: 400
+      # Or with a constant defined in the 'Symfony\Component\HttpFoundation\Response' class.
+      ApiPlatform\Exception\InvalidArgumentException: !php/const Symfony\Component\HttpFoundation\Response::HTTP_BAD_REQUEST
+      ApiPlatform\Exception\FilterValidationException: 400
+      Doctrine\ORM\OptimisticLockException: 409
+      

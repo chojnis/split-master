@@ -22,7 +22,7 @@ class RefreshTokenProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): array
     {
         if(!$data instanceof RefreshTokenRequest) {
-            throw new InvalidArgumentException('Invalid input');
+            throw new InvalidArgumentException('Invalid input.');
         }
 
         $refreshTokenString = $data->refresh_token;
@@ -30,7 +30,7 @@ class RefreshTokenProcessor implements ProcessorInterface
         $refreshToken = $this->refreshTokenService->getRefreshToken($refreshTokenString);
 
         if (!$refreshToken || !$this->refreshTokenService->isRefreshTokenValid($refreshToken)) {
-            throw new \InvalidArgumentException('Invalid refresh token');
+            throw new \InvalidArgumentException('Invalid refresh token.');
         }
 
         $user = $this->refreshTokenService->getUserFromRefreshToken($refreshToken);

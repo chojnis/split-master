@@ -18,12 +18,12 @@ class GroupService
     public function transferOwnership(Group $group, User $newOwner): Group
     {
         if ($group->getOwner() === $newOwner) {
-            throw new \RuntimeException('User is already the owner of this group');
+            throw new \InvalidArgumentException('User is already the owner of this group.');
         }
         
-        $groupMembers = $this->groupMembershipService->ensureMembership($newOwner, $group);
-        if($membership->getStatus() !== GroupMembership::STATUS_ACCEPTED) {
-            throw new \InvalidArgumentException('New owner must be an accepted member');
+        $groupMembership = $this->groupMembershipService->ensureMembership($newOwner, $group);
+        if($groupMembership->getStatus() !== GroupMembership::STATUS_ACCEPTED) {
+            throw new \InvalidArgumentException('New owner must be an accepted member.');
         }
 
         $group->setOwner($newOwner);

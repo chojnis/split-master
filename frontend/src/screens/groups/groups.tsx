@@ -1,12 +1,15 @@
 import { StyleSheet, View, Text, FlatList, RefreshControl, Pressable } from 'react-native';
 import { useGetGroupsQuery } from '~/api';
-import { Group } from '~/api/entity';
+import { Group } from '~/api/types/entity';
 import { useState } from 'react';
-import { useLayoutEffect } from 'react';
-import { Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { GroupsStackParamList } from '~/navigation';
+import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
+import GroupCard from '~/components/GroupCard';
+import FloatingActionButton from '~/components/FloatingActionButton';
+import { Container } from '~/components/Container';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
@@ -15,16 +18,11 @@ export default function Groups() {
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<GroupsStackNavigationProp>();
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button 
-          title="Stwórz" 
-          onPress={() => navigation.navigate('AddGroup')} 
-        />
-      ),
-    });
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -35,26 +33,32 @@ export default function Groups() {
   if (isLoading) return <Text>Loading...</Text>;
   if (error) return <Text>Error </Text>;
 
-  const renderItem = ({ item }: { item: Group }) => (
-    <View>
+  const renderItem = ({ item, index }: { item: Group, index: number }) => (
+    <View
+      className={`${index > 0 ? 'mt-4' : ''}`}
+    >
       <Pressable
         onPress={() => navigation.navigate('GroupDetails', { groupId: item.id })}
       >
-        <Text>{item.groupName}</Text>
-        <Text>{item.description}</Text>
+        <GroupCard groupName={item.groupName} description={item.description} />
       </Pressable>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    // <Container>
+    <>
       <FlatList
         data={data}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        className={'flex flex-1 p-6'}
       />
-    </View>
+
+      <FloatingActionButton onPress={() => navigation.navigate('AddGroup')} />
+    </>
+    // </Container>
   );
 }
 

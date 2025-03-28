@@ -115,42 +115,42 @@ class Transaction
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotBlank(message: 'Transaction name cannot be blank.')]
+    #[Assert\NotBlank(message: 'Nazwa transakcji nie może być pusta.')]
     #[Assert\Length(
         max: 255,
-        maxMessage: 'Transaction name cannot exceed {{ limit }} characters.'
+        maxMessage: 'Nazwa transakcji nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
     private string $name;
 
     #[ORM\Column(type: 'decimal', scale: 2)]
     #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotBlank(message: 'Amount cannot be blank.')]
-    #[Assert\Positive(message: 'Amount must be greater than 0.')]
+    #[Assert\NotBlank(message: 'Wartość nie może być pusta.')]
+    #[Assert\Positive(message: 'Wartość musi być większa od 0.')]
     #[Assert\LessThanOrEqual(
         value: 999999.99,
-        message: 'Amount cannot exceed {{ compared_value }}.'
+        message: 'Wartość nie może przekroczyć limitu: {{ compared_value }}.'
     )]
     private float $amount;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\Currency')]
     #[ORM\JoinColumn(name: 'currency_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotNull(message: 'Currency must be provided.')]
+    #[Assert\NotNull(message: 'Waluta jest obowiązkowa.')]
     private Currency $currency;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups(['transaction:read'])]
-    #[Assert\NotBlank(message: 'Created date cannot be blank.')]
+    #[Assert\NotBlank(message: 'Data utworzenia nie może być pusta.')]
     #[Assert\Type(
         type: \DateTime::class,
-        message: 'The value {{ value }} is not a valid datetime.'
+        message: 'Wartość {{ value }} nie jest poprawnym formatem daty.'
     )]
     private \DateTime $created_at;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayer')]
     #[ORM\JoinColumn(name: 'payer_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotNull(message: 'A payer must be assigned to the transaction.')]
+    #[Assert\NotNull(message: 'Do transakcji musi być przypisany płatnik.')]
     private User $payer;
 
     #[ORM\ManyToMany(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayee')]
@@ -158,14 +158,14 @@ class Transaction
     #[Groups(['transaction:read', 'transaction:write'])]
     #[Assert\Count(
         min: 1,
-        minMessage: 'At least one user must be associated with the transaction.'
+        minMessage: 'Transakcja musi mieć co najmniej jednego odbiorcę.'
     )]
     private Collection $payees;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\Group')]
     #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Groups(['transaction:read'])]
-    #[Assert\NotNull(message: 'A group must be associated with the transaction.')]
+    #[Assert\NotNull(message: 'Grupa musi być powiązana z transakcją.')]
     private Group $group;
 
     public function __construct()

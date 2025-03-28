@@ -1,6 +1,6 @@
 import { Middleware } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { apiCall } from '~/api';
 
 const storageMiddleware: Middleware = (store) => (next) => (action: any) => {
     const result = next(action);
@@ -22,6 +22,8 @@ const storageMiddleware: Middleware = (store) => (next) => (action: any) => {
     if (action.type === 'auth/logout') {
       AsyncStorage.multiRemove(['token', 'refreshToken', 'user'])
         .catch(console.error);
+
+      store.dispatch(apiCall.util.resetApiState());
     }
   
     return result;

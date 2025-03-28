@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { LoginResponse } from '~/api/response';
+import { LoginResponse } from '~/api/types/response';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '~/api/entity';
-import store from '~/store';
+import { User } from '~/api/types/entity';
+// import store from '~/store';
+import { apiCall } from '~/api';
 
-type AuthState = {
+export type AuthState = {
   isAuthenticated: boolean;
   token?: string;
   refreshToken?: string;
@@ -23,42 +24,24 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<LoginResponse>) => {
-      console.log('login action', action.payload);
       state.isAuthenticated = true;
       state.token = action.payload.token;
       state.refreshToken = action.payload.refresh_token;
       state.user = action.payload.user;
-  
-      // AsyncStorage operations should be awaited
-      // (async () => {
-      //   try {
-      //     await AsyncStorage.setItem('token', action.payload.token);
-      //     await AsyncStorage.setItem('refreshToken', action.payload.refresh_token);
-      //     await AsyncStorage.setItem('user', JSON.stringify(action.payload.user));
-      //   } catch (error) {
-      //     console.error('Error saving login data to AsyncStorage:', error);
-      //   }
-      // })();
     },
     logout: (state, action: PayloadAction<void>) => {
       state.isAuthenticated = false;
       state.token = undefined;
       state.refreshToken = undefined;
       state.user = {} as User;
-  
-      // AsyncStorage operations should be awaited
-      // (async () => {
-      //   try {
-      //     await AsyncStorage.multiRemove(['token', 'refreshToken', 'user']);
-      //   } catch (error) {
-      //     console.error('Error removing data from AsyncStorage:', error);
-      //   }
-      // })();
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(apiCall.util.resetApiState, (state, action) => {});
   },
 });
 
-const loadState = async (): Promise<AuthState> => {
+export const loadAuthState = async (): Promise<AuthState> => {
   try {
     const [token, refreshToken, userString] = await Promise.all([
       AsyncStorage.getItem('token'),
@@ -68,7 +51,7 @@ const loadState = async (): Promise<AuthState> => {
 
     return {
       isAuthenticated: !!(token && refreshToken),
-      token: token || undefined,  // Convert null to undefined
+      token: token || undefined,
       refreshToken: refreshToken || undefined,
       user: userString ? JSON.parse(userString) as User : {} as User
     };
@@ -77,19 +60,19 @@ const loadState = async (): Promise<AuthState> => {
     return initialState;
   }
 };
-loadState().then((loadedState) => {
-  if (loadedState.token !== undefined && loadedState.refreshToken !== undefined) {
-    store.dispatch(authSlice.actions.login({
-      token: loadedState.token,
-      refresh_token: loadedState.refreshToken,
-      user: loadedState.user,
-    }));
-    console.log('Loaded state:', loadedState);
-  }
-  else {
-    console.error('Invalid loaded state: Missing token');
-  }
-});
+// loadState().then((loadedState) => {
+//   if (loadedState.token !== undefined && loadedState.refreshToken !== undefined) {
+//     store.dispatch(authSlice.actions.login({
+//       token: loadedState.token,
+//       refresh_token: loadedState.refreshToken,
+//       user: loadedState.user,
+//     }));
+//     // console.log('Loaded state:', loadedState);
+//   }
+//   else {
+//     // console.error('Invalid loaded state: Missing token');
+//   }
+// });
 
 export const { login, logout } = authSlice.actions;
 export default authSlice.reducer;

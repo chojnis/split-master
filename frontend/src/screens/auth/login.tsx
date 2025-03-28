@@ -1,78 +1,50 @@
 import { useState } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { Text } from '~/components/ui/text';
 import { useDispatch } from 'react-redux';
 import { login as persistLogin } from '~/store/reducers/authReducer';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '~/navigation';
-import { Button } from '~/components/Button';
+import { AuthStackParamList } from '~/navigation/auth';
+import { Button } from '~/components/ui/button';
 import { useLoginMutation } from '~/api';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-});
+import Form, { FormFieldType, FormDataType } from '~/components/Form';
+import { Container } from '~/components/Container';
 
 type LoginScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 const Login = () => {
-
   const navigation = useNavigation<LoginScreenNavigationProps>();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [fetchLogin, {isLoading, error}] = useLoginMutation();
   const dispatch = useDispatch();
 
-  const handleLogin = async () => {
-    try {
-      const { data, error: apiError } = await fetchLogin({ email, password });
-
-      if (apiError || !data) {
-        Alert.alert('Login failed', 'An unexpected error occurred.');
-        return;
+  const handleLogin = async (formData: FormDataType) => {
+      const { email, password } = formData as { email: string; password: string };
+  
+      try {
+        const { data } = await fetchLogin({ email, password });
+  
+        if(data) {
+          dispatch(persistLogin({ user: data.user, token: data.token, refresh_token: data.refresh_token }));
+        }
+  
+      } catch (err) {
+        Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
       }
+    };
 
-      dispatch(persistLogin({ user: data.user, token: data.token, refresh_token: data.refresh_token }));
-
-    } catch (error) {
-      console.error('Login failed:', error);
-      Alert.alert('Error', 'An unexpected error occurred.');
-    }
-  };
-
-  if(isLoading) {
-    return <View><Text>Loading...</Text></View>
-  }
+  const fields = [
+      { label: 'E-mail', placeholder: 'user@example.com', name: 'email', type: 'text', required: true } as FormFieldType,
+      { label: 'Hasło', placeholder: '*****', name: 'password', type: 'password', required: true } as FormFieldType,
+  ];
 
   return (
-    <View style={styles.container}>
-        <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-        />
-        <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-        />
-      <Button title="Zaloguj się" onPress={handleLogin} />
-      <Button title="Nie masz konta?" link={true} onPress={() => navigation.navigate('Register')} />
-    </View>
+    <Container>
+      <Form fields={fields} onSubmit={handleLogin} error={error} submitText="Zaloguj się" isLoading={isLoading} />
+      <Button variant={null} onPress={() => navigation.navigate('Register')}>
+        <Text>Nie masz konta?</Text>
+      </Button>
+    </Container>
   );
 };
 
