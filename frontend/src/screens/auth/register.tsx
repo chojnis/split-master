@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '~/navigation/auth';
 import { useRegisterMutation } from '~/api';
-import Form, { FormFieldType, FormDataType } from '~/components/Form';
+import Form, { FormFieldType, FormDataType } from '~/components/form/Form';
 import { Container } from '~/components/Container';
 
 type RegisterScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Register'>;

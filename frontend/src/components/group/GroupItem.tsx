@@ -8,12 +8,12 @@ import {
 } from '~/components/ui/card';
 import { Text } from '~/components/ui/text';
 
-type GroupCardProps = {
+type GroupItemProps = {
     groupName: string;
     description: string;
 }
   
-const GroupCard = ({ groupName, description }: GroupCardProps) => {
+const GroupItem = ({ groupName, description }: GroupItemProps) => {
     return (
         <Card>
             <CardHeader>
@@ -30,4 +30,4 @@ const GroupCard = ({ groupName, description }: GroupCardProps) => {
     );
 }
 
-export default GroupCard;
+export default GroupItem;

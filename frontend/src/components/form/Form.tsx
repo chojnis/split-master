@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import FormField from '~/components/FormItem';
+import FormField from '~/components/form/FormItem';
 import Loading from '~/components/Loading';
 import { ApiError } from '~/api/types';
 import { SerializedError } from '@reduxjs/toolkit';
+import ErrorText from '~/components/ErrorText';
 
 export type FormFieldType = {
   label: string;
@@ -85,9 +86,7 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
   return (
     <View>
       {generalError && (
-        <View className="mb-4 p-3 bg-red-100 rounded">
-          <Text className="text-red-700">{generalError}</Text>
-        </View>
+        <ErrorText>{generalError}</ErrorText>
       )}
       {fields.map((field) => (
         <View key={field.name}>

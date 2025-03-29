@@ -67,12 +67,17 @@ module.exports = {
             '40%, 60%': {
                 transform: 'translate3d(4px, 0, 0)'
             }
-        }
+        },
+        'spin': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
+        'spin': 'spin 1s linear infinite',
       },
     },
   },

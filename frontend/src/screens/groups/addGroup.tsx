@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { Container } from '~/components/Container';
-import Form, { FormDataType, FormFieldType } from '~/components/Form';
+import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
 import { useAddGroupMutation } from '~/api';
 import { GroupsStackParamList } from '~/navigation/groups';
 

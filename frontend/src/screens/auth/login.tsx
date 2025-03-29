@@ -8,7 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '~/navigation/auth';
 import { Button } from '~/components/ui/button';
 import { useLoginMutation } from '~/api';
-import Form, { FormFieldType, FormDataType } from '~/components/Form';
+import Form, { FormFieldType, FormDataType } from '~/components/form/Form';
 import { Container } from '~/components/Container';
 
 type LoginScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Login'>;

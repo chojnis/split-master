@@ -1,15 +1,19 @@
-import { StyleSheet, View, Text, FlatList, RefreshControl, Pressable } from 'react-native';
+import { View, FlatList, RefreshControl, Pressable } from 'react-native';
 import { useGetGroupsQuery } from '~/api';
 import { Group } from '~/api/types/entity';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
-import GroupCard from '~/components/GroupCard';
+import GroupItem from '~/components/group/GroupItem';
 import FloatingActionButton from '~/components/FloatingActionButton';
 import { Container } from '~/components/Container';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import Loading from '~/components/Loading';
+import ErrorText from '~/components/ErrorText';
+import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
@@ -30,9 +34,20 @@ export default function Groups() {
     setRefreshing(false);
   };
 
-  if (isLoading) return <Text>Loading...</Text>;
-  if (error) return <Text>Error </Text>;
-
+  if (isLoading) return <Loading reverseColors />;
+  if (error) {
+    return (
+      <Container>
+        <ErrorText className="mb-4">Wystąpił błąd podczas ładowania grup</ErrorText>
+          <Button
+            variant="link"
+            onPress={onRefresh}
+          >
+            <Text>Spróbuj ponownie</Text>
+          </Button>
+      </Container>
+    )
+  }
   const renderItem = ({ item, index }: { item: Group, index: number }) => (
     <View
       className={`${index > 0 ? 'mt-4' : ''}`}
@@ -40,7 +55,7 @@ export default function Groups() {
       <Pressable
         onPress={() => navigation.navigate('GroupDetails', { groupId: item.id })}
       >
-        <GroupCard groupName={item.groupName} description={item.description} />
+        <GroupItem groupName={item.groupName} description={item.description} />
       </Pressable>
     </View>
   );
@@ -61,10 +76,3 @@ export default function Groups() {
     // </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 6,
-  }
-});

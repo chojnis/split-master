@@ -4,7 +4,7 @@ import { LoginResponse } from '~/api/types/response';
 import { RefreshTokenRequest } from '~/api/types/request';
 import { ErrorBaseQueryFn, ApiError, Violation } from '~/api/types';
 
-const BASE_URL = 'https://afc5-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://0078-217-97-63-46.ngrok-free.app/api/';
 
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,

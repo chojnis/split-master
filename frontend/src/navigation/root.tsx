@@ -6,6 +6,7 @@ import SettingsIcon from '~/lib/icons/Settings';
 import SquarePlusIcon from '~/lib/icons/SquarePlus';
 import HouseIcon from '~/lib/icons/House';
 import GroupsStack from './groups';
+import AddTransactionButton from '~/components/transaction/AddTransactionButton';
 
 export type RootTabParamList = {
     Groups: undefined;
@@ -34,7 +35,8 @@ const RootTab = () => {
           name="AddTransaction" 
           options = {{
             title: 'Dodaj transakcję',
-            tabBarIcon: ({color, size}) => <SquarePlusIcon color={color} size={size} />
+            // tabBarIcon: ({color, size}) => <SquarePlusIcon color={color} size={size} />,
+            tabBarButton: () => <AddTransactionButton />
           }}
           component={AddTransactionScreen} 
         />

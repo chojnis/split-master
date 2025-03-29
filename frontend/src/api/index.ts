@@ -5,7 +5,9 @@ import {
   GroupsResponse, 
   GroupMembersResponse,
   GroupTransactionResponse,
-  AddGroupResponse
+  AddGroupResponse,
+  GroupResponse,
+  UserResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
@@ -54,6 +56,18 @@ export const apiCall = createApi({
         body: data,
       }),
     }),
+    getGroup: builder.query<GroupResponse, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}`,
+        method: 'GET',
+      }),
+    }),
+    getUser: builder.query<UserResponse, string>({
+      query: (userId) => ({
+        url: `users/${userId}`,
+        method: 'GET',
+      }),
+    })
   }),
 });
 
@@ -63,5 +77,7 @@ export const {
   useGetGroupsQuery, 
   useGetGroupMembersQuery,
   useGetGroupTransactionsQuery,
-  useAddGroupMutation
+  useAddGroupMutation,
+  useGetGroupQuery,
+  useGetUserQuery
 } = apiCall;

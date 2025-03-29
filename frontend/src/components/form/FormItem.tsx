@@ -3,7 +3,7 @@ import { Textarea } from '~/components/ui/textarea';
 import { Label } from '~/components/ui/label';
 import { Text } from '~/components/ui/text';
 import { View } from 'react-native';
-import { FormFieldType } from '~/components/Form';
+import { FormFieldType } from '~/components/form/Form';
 
 type FormFieldProps = {
   field: FormFieldType;

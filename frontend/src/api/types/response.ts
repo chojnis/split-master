@@ -9,6 +9,8 @@ export type LoginResponse = {
 
 export type RegisterResponse = User;
 
+export type GroupResponse = Group;
+
 export type GroupsResponse = Group[];
 
 export type GroupMembersResponse = User[];
@@ -16,3 +18,5 @@ export type GroupMembersResponse = User[];
 export type GroupTransactionResponse = Transaction[];
 
 export type AddGroupResponse = Group;
+
+export type UserResponse = User;

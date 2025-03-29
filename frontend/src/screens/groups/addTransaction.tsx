@@ -2,7 +2,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { ScreenContent } from '~/components/ScreenContent';
 import { StyleSheet, View } from 'react-native';
 
-import { RootTabParamList } from '../../navigation';
+import { RootTabParamList } from '../../navigation/root';
 
 type AddTransactionScreenRouteProp = RouteProp<RootTabParamList, 'AddTransaction'>;
 

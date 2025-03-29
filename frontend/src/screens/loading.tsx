@@ -1,10 +1,11 @@
-import { Text, View } from 'react-native';
+import LoadingComponent from '~/components/Loading';
+import { Container } from '~/components/Container';
 
 const Loading = () => {
     return (
-        <View>
-            <Text>Loading...</Text>
-        </View>
+        <Container>
+            <LoadingComponent reverseColors />
+        </Container>
     );
 }
 
