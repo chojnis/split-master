@@ -24,11 +24,14 @@ use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Group;
+use App\Entity\Currency;
+use App\Entity\User;
+use App\Dto\TransactionRequest;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['transaction:read']],
-    denormalizationContext: ['groups' => ['transaction:write']]
+    // denormalizationContext: ['groups' => ['transaction:write']]
 )]
 #[Get(provider: TransactionProvider::class)]
 #[GetCollection(
@@ -79,9 +82,6 @@ use App\Entity\Group;
     ),
 )]
 #[Post(
-    name: 'create',
-    provider: TransactionProvider::class,
-    processor: TransactionProcessor::class,
     uriTemplate: '/groups/{groupId}/transactions',
     uriVariables: [
         'groupId' => new Link(
@@ -89,10 +89,15 @@ use App\Entity\Group;
             fromProperty: 'transactions'
         ),
     ],
+    name: 'create',
+    provider: TransactionProvider::class,
+    processor: TransactionProcessor::class,
+    input: TransactionRequest::class,
 )]
 #[Patch(
     name: 'patch',
-    processor: TransactionProcessor::class
+    processor: TransactionProcessor::class,
+    input: TransactionRequest::class,
 )]
 #[Delete(
     name: 'delete',

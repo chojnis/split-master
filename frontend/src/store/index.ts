@@ -1,4 +1,5 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { apiCall } from '~/api';
 import storageMiddleware from '~/store/middleware/storageMiddleware';
 import authReducer, { loadAuthState, authSlice } from '~/store/reducers/authReducer';
@@ -33,6 +34,8 @@ export const setupStore = async (): Promise<AppStore> => {
       auth: loadedState
     }
   });
+
+  setupListeners(store.dispatch);
 
   return store;
 };

@@ -16,6 +16,10 @@ use ApiPlatform\Metadata\DeleteOperationInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use App\Entity\Group;
+use App\Dto\TransactionRequest;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 
 final class TransactionProcessor implements ProcessorInterface
 {
@@ -32,34 +36,46 @@ final class TransactionProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        /** @var Transaction $transaction */
-        $transaction = $data;
-
         $user = $this->security->getUser();
         if (!$user) {
             throw new AccessDeniedException('User not authenticated.');
         }
-
-        // log entrance
-        $this->logger->info('Processing transaction', ['transaction' => $transaction->getId()]);
-
-        if(isset($uriVariables['groupId'])){
+    
+        // Obsługa DELETE
+        if ($operation instanceof DeleteOperationInterface) {
+            $this->validateDeleteOperation($data, $user);
+            return $this->removeProcessor->process($data, $operation, $uriVariables, $context);
+        }
+    
+        // Obsługa POST (z groupId w URI)
+        if ($data instanceof TransactionRequest && $operation instanceof Post) {
             $group = $this->entityManager->getRepository(Group::class)->find($uriVariables['groupId']);
             if (!$group) {
                 throw new InvalidArgumentException('Group not found.');
             }
-            $transaction->setGroup($group);
+    
+            $transaction = $this->transactionService->createOrUpdateTransactionFromRequest(
+                $data,
+                $group
+            );
         }
-
-        if (!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
-            throw new AccessDeniedException('User is not a member of the group.');
+        // Obsługa PATCH (bez groupId w URI)
+        elseif ($data instanceof TransactionRequest && $operation instanceof Patch) {
+            $existingTransaction = $this->entityManager->getRepository(Transaction::class)->find($uriVariables['id']);
+            if (!$existingTransaction) {
+                throw new InvalidArgumentException('Transaction not found.');
+            }
+    
+            $transaction = $this->transactionService->createOrUpdateTransactionFromRequest(
+                $data,
+                $existingTransaction->getGroup(),
+                $existingTransaction
+            );
         }
-
-        if($operation instanceof DeleteOperationInterface) {
-            $this->validateDeleteOperation($transaction, $user);
-            return $this->removeProcessor->process($transaction, $operation, $uriVariables, $context);
+        else {
+            $transaction = $data;
         }
-
+    
         $this->validatePersistOperation($transaction, $user);
         return $this->persistProcessor->process($transaction, $operation, $uriVariables, $context);
     }
@@ -84,8 +100,8 @@ final class TransactionProcessor implements ProcessorInterface
 
     private function validateDeleteOperation(Transaction $transaction, User $user): void
     {
-        if (!$this->transactionService->isUserPayerOrOwner($transaction, $user)) {
-            throw new AccessDeniedException('Only the payer or group owner can delete the transaction.');
+        if (!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
+            throw new AccessDeniedException('You are not a member of the group.');
         }
     }
 
@@ -97,8 +113,8 @@ final class TransactionProcessor implements ProcessorInterface
         $originalTransaction->setGroup($originalData['group']);
         $originalTransaction->setPayer($originalData['payer']);
 
-        if (!$this->transactionService->isUserPayerOrOwner($originalTransaction, $user)) {
-            throw new AccessDeniedException('Only the payer or group owner can update the transaction.');
+        if (!$this->groupMembershipService->isUserMemberOfGroup($user, $originalTransaction->getGroup())) {
+            throw new AccessDeniedException('You are not a member of the group.');
         }
     }
 }

@@ -17,19 +17,6 @@ use App\Dto\RefreshTokenRequest;
     openapi: new Operation(
         summary: 'Refresh JWT token',
         description: 'Generates a new JWT token using a refresh token.',
-        requestBody: new RequestBody(
-            content: new \ArrayObject([
-                'application/json' => [
-                    'schema' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'refresh_token' => ['type' => 'string']
-                        ]
-                    ],
-                    'example' => ['refresh_token' => 'string']
-                ]
-            ])
-        ),
         responses: [
             '200' => [
                 'description' => 'JWT token refreshed',
@@ -39,7 +26,15 @@ use App\Dto\RefreshTokenRequest;
                             'type' => 'object',
                             'properties' => [
                                 'token' => ['type' => 'string'],
-
+                                'refresh_token' => ['type' => 'string'],
+                                'user' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'id' => ['type' => 'integer'],
+                                        'username' => ['type' => 'string'],
+                                        'email' => ['type' => 'string']
+                                    ]
+                                ]
                             ]
                         ]
                     ]

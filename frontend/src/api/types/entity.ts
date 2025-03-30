@@ -12,7 +12,7 @@ export type Group = {
 export type Currency = {
     id: string;
     code: string;
-    symbol: string;
+    name: string;
 }
 
 export type Transaction = {

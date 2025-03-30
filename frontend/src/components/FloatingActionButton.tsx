@@ -11,10 +11,10 @@ import Plus from '~/lib/icons/Plus';
 
 type FloatingActionButtonProps = {
   onPress: () => void;
-  style?: ViewStyle;
+  className?: string;
 }
 
-const FloatingActionButton = ({ onPress, style }: FloatingActionButtonProps) => {
+const FloatingActionButton = ({ onPress, className }: FloatingActionButtonProps) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -31,11 +31,9 @@ const FloatingActionButton = ({ onPress, style }: FloatingActionButtonProps) => 
 
   return (
     <Animated.View 
-      style={[styles.container, style, animatedStyle]}
+      style={[styles.container, animatedStyle]}
     >
       <Button
-        // size="fab"
-        // variant="fab"
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}

@@ -10,7 +10,7 @@ export type GroupsStackParamList = {
     GroupsList: undefined;
     GroupDetails: { groupId: string };
     TransactionDetails: undefined;
-    AddTransaction: { groupId?: string };
+    AddTransaction: { groupId: string };
     AddGroup: undefined;
     UserDetails: { userId: string};
 };

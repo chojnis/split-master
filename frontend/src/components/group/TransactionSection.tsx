@@ -1,52 +1,58 @@
 import { useGetGroupTransactionsQuery } from '~/api';
 import { Currency, Transaction, User } from '~/api/types/entity';
 import TransactionItem from '~/components/transaction/TransactionItem';
-import { View, FlatList } from 'react-native';
+import { View, FlatList, RefreshControl } from 'react-native';
 import { Text } from '~/components/ui/text';
+import { useCallback, useState } from 'react';
+import Loading from '~/components/Loading';
+import { Container } from '~/components/Container';
+import Error from '~/components/Error';
+import { useFocusEffect } from '@react-navigation/native';
 
 const TransactionsSection = ({ groupId }: {groupId: string}) => {
-    // const { data, isLoading, error } = useGetGroupTransactionsQuery(groupId);
+    const { data, isLoading, refetch, error } = useGetGroupTransactionsQuery(groupId);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // if (isLoading) return <Text>Loading...</Text>;
-    // if (error) return <Text>Error </Text>;
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
-    const currency: Currency = {
-        id: '1',
-        code: 'PLN',
-        symbol: 'zł',
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
     };
-
-    const user: User = {
-        id: '1',
-        email: "psikuta@gmail.com",
-        username: "psikuta",
-    }
-
-    const dummyData: Transaction[] = [
-        { id: '1', name: 'Transaction 1', currency: currency, created_at: new Date(), payer: user, payees: [user], amount: 100 },
-        { id: '2', name: 'Transaction 2', currency: currency, created_at: new Date(), payer: user, payees: [user], amount: 200 },
-        { id: '3', name: 'Transaction 3', currency: currency, created_at: new Date(), payer: user, payees: [user], amount: 300 },
-    ];
 
     const renderTransaction = ({ item }: { item: Transaction }) => (
         <TransactionItem
             payerName={item.payer.username || item.payer.email}
             title={item.name}
             amount={item.amount}
-            currencySymbol={item.currency.symbol}
+            currencySymbol={item.currency.name}
         />
     );
+    
+    const showLoading = isLoading || refreshing;
+    if(showLoading && error) return <Loading reverseColors />
 
     return (
         <View className="mt-4">
             <View>
                 <Text className="text-md uppercase">Transakcje</Text>
             </View>
-            <FlatList
-                data={dummyData}
-                renderItem={renderTransaction}
-                keyExtractor={(item) => item.id}
-            />
+            {showLoading && <Loading absolute reverseColors />}
+            {error ? (
+                <Error onRefresh={onRefresh} message="Wystąpił błąd podczas ładowania grup" />
+            )  : (
+                <FlatList
+                    data={data}
+                    renderItem={renderTransaction}
+                    keyExtractor={(item) => item.id}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                />
+            )}
         </View>
     );
 }

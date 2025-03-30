@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '~/store';
 import AuthStack from './auth';
 import RootTab from './root';
+import { PortalHost } from '@rn-primitives/portal';
 
 const Navigation = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
@@ -32,6 +33,7 @@ const Navigation = () => {
       <NavigationContainer theme={theme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           {!isAuthenticated ? <AuthStack /> : <RootTab />}
+          <PortalHost />
       </NavigationContainer>
     </ThemeProvider>
   );

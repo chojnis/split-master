@@ -7,18 +7,22 @@ import {
   GroupTransactionResponse,
   AddGroupResponse,
   GroupResponse,
-  UserResponse
+  UserResponse,
+  CurrenciesResponse,
+  AddTransactionResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
   RegisterRequest,
-  AddGroupRequest
+  AddGroupRequest,
+  AddTransactionRequest
 } from '~/api/types/request';
 import baseQuery from '~/api/query';
 
 export const apiCall = createApi({
   reducerPath: 'api',
   baseQuery: baseQuery,
+  refetchOnReconnect: true,
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
@@ -67,7 +71,20 @@ export const apiCall = createApi({
         url: `users/${userId}`,
         method: 'GET',
       }),
-    })
+    }),
+    getCurrencies: builder.query<CurrenciesResponse, void>({
+      query: () => ({
+        url: 'currencies',
+        method: 'GET',
+      }),
+    }),
+    addTransaction: builder.mutation<AddTransactionResponse, AddTransactionRequest>({
+      query: ({groupId, data}) => ({
+        url: `groups/${groupId}/transactions`,
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -79,5 +96,7 @@ export const {
   useGetGroupTransactionsQuery,
   useAddGroupMutation,
   useGetGroupQuery,
-  useGetUserQuery
+  useGetUserQuery,
+  useGetCurrenciesQuery,
+  useAddTransactionMutation,
 } = apiCall;

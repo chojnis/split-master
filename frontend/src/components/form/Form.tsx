@@ -2,30 +2,35 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import FormField from '~/components/form/FormItem';
+import FormField from '~/components/form/FormField';
 import Loading from '~/components/Loading';
 import { ApiError } from '~/api/types';
 import { SerializedError } from '@reduxjs/toolkit';
 import ErrorText from '~/components/ErrorText';
+import { SelectOption } from '~/components/form/SelectField';
 
 export type FormFieldType = {
   label: string;
   name: string;
-  type: 'text' | 'number' | 'textarea' | 'password';
+  type: 'text' | 'number' | 'textarea' | 'password' | 'select';
   required?: boolean;
+  width?: number;
   placeholder?: string;
+  selectOptions?: SelectOption[];
+  defaultSelectValue?: SelectOption | SelectOption[];
+  multiple?: boolean;
 }
 
 type FormProps = {
   fields: FormFieldType[];
-  onSubmit: (data: { [key: string]: string | number }) => void;
+  onSubmit: (data: { [key: string]: string | number | string[] }) => void;
   isLoading?: boolean;
   error?: ApiError | SerializedError;
   submitText?: string;
 }
 
 export type FormDataType = {
-  [key: string]: string | number;
+  [key: string]: string | number | string[];
 }
 
 type ErrorType = {
@@ -62,7 +67,7 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
     }
   }, [error]);
 
-  const handleChange = (name: string, value: string | number) => {
+  const handleChange = (name: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({...prev, [name]: undefined}));
   };
@@ -83,19 +88,56 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
     onSubmit(formData);
   };
 
+  const groupFieldsIntoRows = () => {
+    const rows: FormFieldType[][] = [];
+    let currentRow: FormFieldType[] = [];
+    let currentRowWidth = 0;
+
+    fields.forEach((field, index) => {
+      const fieldWidth = field.width || 100;
+      
+      if (currentRowWidth + fieldWidth > 100) {
+        rows.push(currentRow);
+        currentRow = [field];
+        currentRowWidth = fieldWidth;
+      } else {
+        currentRow.push(field);
+        currentRowWidth += fieldWidth;
+      }
+
+      if (index === fields.length - 1) {
+        rows.push(currentRow);
+      }
+    });
+
+    return rows;
+  };
+
   return (
     <View>
       {generalError && (
         <ErrorText>{generalError}</ErrorText>
       )}
-      {fields.map((field) => (
-        <View key={field.name}>
-          <FormField
-            field={field}
-            value={formData[field.name]?.toString()}
-            onChange={handleChange}
-            error={errors[field.name]}
-          />
+      {groupFieldsIntoRows().map((row, rowIndex) => (
+        <View key={`row-${rowIndex}`} className="flex-row mb-4">
+          {row.map((field) => (
+            <View 
+              key={field.name} 
+              style={{
+                width: typeof field.width === 'number' 
+                  ? `${field.width}%` 
+                  : field.width || '100%',
+                paddingRight: 8,
+              }}
+            >
+              <FormField
+                field={field}
+                value={formData[field.name]}
+                onChange={handleChange}
+                error={errors[field.name]}
+              />
+            </View>
+          ))}
         </View>
       ))}
       <Button 

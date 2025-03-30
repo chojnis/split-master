@@ -1,17 +1,18 @@
 import { StyleSheet, View, FlatList, RefreshControl, Pressable } from 'react-native';
 import { useGetGroupQuery } from '~/api';
 import { Group, User } from '~/api/types/entity';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLayoutEffect } from 'react';
 import { Button } from '~/components/ui/button';	
 import { Text } from '~/components/ui/text';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Container } from '~/components/Container';
 import TransactionsSection from '~/components/group/TransactionSection';
 import Loading from '~/components/Loading';
 import ErrorText from '~/components/ErrorText';
+import FloatingActionButton from '~/components/FloatingActionButton';
 
 
 type GroupDetailsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupDetails'>;
@@ -21,7 +22,8 @@ export default function GroupDetails() {
     const router = useRoute<GroupDetailsScreenRouteProp>();
     const groupId = router.params.groupId;
 
-    const { data, isLoading, error, refetch } = useGetGroupQuery(groupId);
+    const { data, isLoading, isFetching, error, refetch } = useGetGroupQuery(groupId);
+
     const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation<GroupDetailsStackNavigationProp>();
 
@@ -46,23 +48,9 @@ export default function GroupDetails() {
       )
     }
 
-    // const renderUser = ({ item }: { item: User }) => (
-    //     <View>
-    //         <Text>{item.email}</Text>
-    //     </View>
-    // );
-
     return (
-        // <View>
-        //     <FlatList
-        //         data={data}
-        //         renderItem={renderUser}
-        //         keyExtractor={(item) => item.id}
-        //         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        //     />
-
-        // </View>
-        
+        <>
+        {isFetching && <Loading className="absolute w-full h-full opacity-70 z-10 dark:bg-black bg-white" reverseColors />}
         <Container>
             <View>
                 <Text className={"text-4xl"}>{data.groupName}</Text>
@@ -70,5 +58,7 @@ export default function GroupDetails() {
             </View>
             <TransactionsSection groupId={groupId} />
         </Container>
+        <FloatingActionButton onPress={() => navigation.navigate('AddTransaction', { groupId: data.id})} />
+        </>
     );
 }

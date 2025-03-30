@@ -7,18 +7,15 @@ import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
 import GroupItem from '~/components/group/GroupItem';
 import FloatingActionButton from '~/components/FloatingActionButton';
-import { Container } from '~/components/Container';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Loading from '~/components/Loading';
-import ErrorText from '~/components/ErrorText';
-import { Button } from '~/components/ui/button';
-import { Text } from '~/components/ui/text';
+import Error from '~/components/Error';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
 export default function Groups() {
-  const { data, isLoading, error, refetch } = useGetGroupsQuery();
+  const { data, isLoading, isFetching, error, refetch } = useGetGroupsQuery();
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<GroupsStackNavigationProp>();
 
@@ -34,20 +31,10 @@ export default function Groups() {
     setRefreshing(false);
   };
 
-  if (isLoading) return <Loading reverseColors />;
-  if (error) {
-    return (
-      <Container>
-        <ErrorText className="mb-4">Wystąpił błąd podczas ładowania grup</ErrorText>
-          <Button
-            variant="link"
-            onPress={onRefresh}
-          >
-            <Text>Spróbuj ponownie</Text>
-          </Button>
-      </Container>
-    )
-  }
+  const showLoading = isLoading || refreshing;
+
+  if(showLoading && error) return <Loading reverseColors />
+
   const renderItem = ({ item, index }: { item: Group, index: number }) => (
     <View
       className={`${index > 0 ? 'mt-4' : ''}`}
@@ -61,18 +48,22 @@ export default function Groups() {
   );
 
   return (
-    // <Container>
     <>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        className={'flex flex-1 p-6'}
-      />
+      {showLoading && <Loading absolute reverseColors />}
+
+      {error ? (
+        <Error onRefresh={onRefresh} message="Wystąpił błąd podczas ładowania grup" />
+      )  : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          className={'flex flex-1 p-6'}
+        />
+      )}
 
       <FloatingActionButton onPress={() => navigation.navigate('AddGroup')} />
     </>
-    // </Container>
   );
 }

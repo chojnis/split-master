@@ -1,3 +1,5 @@
+import { Transaction } from "./entity";
+
 export type LoginRequest = {
     email: string;
     password: string;
@@ -15,4 +17,15 @@ export type RefreshTokenRequest = {
 export type AddGroupRequest = {
     groupName: string;
     description: string;
+}
+
+export type AddTransactionRequest = {
+    groupId: string;
+    data: {
+        name: string;
+        amount: string;
+        currencyId: string;
+        payerId: string;
+        payeesIds: string[];
+    }
 }

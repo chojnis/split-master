@@ -27,11 +27,11 @@ class Currency
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['currency:read'])]
+    #[Groups(['currency:read', 'transaction:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 3, unique: true)]
-    #[Groups(['currency:read', 'currency:write'])]
+    #[Groups(['currency:read', 'currency:write', 'transaction:read'])]
     #[Assert\NotBlank(message: 'Currency code cannot be blank.')]
     #[Assert\Length(
         min: 3,
@@ -45,7 +45,7 @@ class Currency
     private string $code;
 
     #[ORM\Column(type: 'string', length: 100)]
-    #[Groups(['currency:read', 'currency:write'])]
+    #[Groups(['currency:read', 'currency:write', 'transaction:read'])]
     #[Assert\NotBlank(message: 'Currency name cannot be blank.')]
     #[Assert\Length(
         max: 100,
