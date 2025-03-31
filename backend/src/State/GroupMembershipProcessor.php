@@ -9,6 +9,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Exception\AccessDeniedException;
 use App\Entity\Group;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Exception\InvalidStatusChangeException;
@@ -17,6 +18,8 @@ use App\Service\GroupMembershipService;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use Psr\Log\LoggerInterface;
 use App\Service\GroupService;
+use App\Service\UserService;
+use App\Dto\GroupMembershipInviteDto;
 
 final class GroupMembershipProcessor implements ProcessorInterface
 {
@@ -27,6 +30,7 @@ final class GroupMembershipProcessor implements ProcessorInterface
         private ProcessorInterface $deleteProcessor,
         private EntityManagerInterface $entityManager,
         private GroupMembershipService $groupMembershipService,
+        private UserService $userService,
         private GroupService $groupService,
         private Security $security
     ) {}
@@ -35,32 +39,20 @@ final class GroupMembershipProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
         if (!$user) {
-            throw new \InvalidArgumentException('User not found.');
+            throw new \AccesDeniedException('User not authenticated.');
         }
 
         if($operation instanceof DeleteOperationInterface) {
             $group = $data->getGroup();
-            if($group->getOwner() === $user) {
-                $groupMembers = $this->groupMembershipService->getGroupMembers($group);
-                if(count($groupMembers) < 2) {
-                    throw new \InvalidArgumentException('You cannot delete the group owner.');
-                }
 
-                foreach($groupMembers as $groupMember) {
-                    if($groupMember->getUser() !== $user) {
-                        $groupService->transferOwnership($group, $groupMember->getUser());
-                        break;
-                    }
-                }
-            }
+            $this->groupService->handleOwnerLeavingGroup($group, $user);
+            
             return $this->deleteProcessor->process($data, $operation, $uriVariables, $context);
         }
 
-        if ($data instanceof GroupMembership && $operation instanceof Post) {
+        if ($data instanceof GroupMembershipInviteDto && $operation instanceof Post) {
             $groupId = $uriVariables['groupId'];
-
             $group = $this->entityManager->getRepository(Group::class)->find($groupId);
-
             if (!$group) {
                 throw new \InvalidArgumentException('Group not found.');
             }
@@ -69,17 +61,13 @@ final class GroupMembershipProcessor implements ProcessorInterface
                 throw new \InvalidArgumentException('You are not the owner of this group.');
             }
 
-            $groupMembership = $this->groupMembershipService->getGroupMembership($data->getUser(), $group);
-            if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
-                throw new \InvalidArgumentException('User is already a member of this group.');
+            $email = $data->getEmail();
+            $invitedUser = $this->userService->getUserByEmail($email);
+            if (!$invitedUser) {
+                throw new \InvalidArgumentException('User not found.');
             }
 
-            if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
-                throw new \InvalidArgumentException('User has already been invited to this group.');
-            }
-
-            $data->setGroup($group);
-            $data->setStatus(GroupMembership::STATUS_PENDING);            
+            return $this->groupMembershipService->inviteUser($invitedUser, $group);       
         }elseif ($data instanceof GroupMembership && $operation instanceof Patch) {
             $status = $data->getStatus();
             $originalData = $this->entityManager->getUnitOfWork()->getOriginalEntityData($data);

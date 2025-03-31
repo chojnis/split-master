@@ -19,9 +19,9 @@ const RootTabNavigator = createBottomTabNavigator<RootTabParamList>();
 const RootTab = () => {
     return (
       <RootTabNavigator.Navigator
-        screenOptions = {{
-          headerRight: () => <ToggleTheme />
-        }}
+        // screenOptions = {{
+        //   headerRight: () => <ToggleTheme />
+        // }}
       >
         <RootTabNavigator.Screen 
           name="Groups"

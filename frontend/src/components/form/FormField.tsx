@@ -20,28 +20,6 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
     onChange(field.name, field.type === 'number' ? Number(value) : value);
   };
 
-  // if(field.defaultSelectValue && value === undefined) {
-  //   if(Array.isArray(field.defaultSelectValue)) {
-  //     const defaultValues = field.defaultSelectValue.map((item) => item?.value);
-  //     onChange(field.name, defaultValues);
-  //     return;
-  //   }
-
-  //   onChange(field.name, field.defaultSelectValue.value);
-  //   return;
-  // }
-
-  useEffect(() => {
-    if (field.defaultSelectValue && value === undefined) {
-      if (Array.isArray(field.defaultSelectValue)) {
-        const defaultValues = field.defaultSelectValue.map((item) => item?.value);
-        onChange(field.name, defaultValues);
-      } else {
-        onChange(field.name, field.defaultSelectValue.value);
-      }
-    }
-  }, []);
-
   return (
     <View className={`${className || ''}`}>
         <Label

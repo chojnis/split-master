@@ -26,7 +26,7 @@ class GroupProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (!$user) {
-            return [];
+            return new AccessDeniedException('User not authenticated.');
         }
 
         if($operation instanceof GetCollection) {

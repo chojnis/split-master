@@ -20,6 +20,7 @@ use ApiPlatform\Metadata\Link;
 use App\Entity\Group;
 use App\Entity\User;
 use Symfony\Component\Serializer\Annotation\SerializedName;
+use App\Dto\GroupMembershipInviteDto;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')", 
@@ -33,34 +34,6 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     uriTemplate: '/invites',
     normalizationContext: ['groups' => ['group_membership:invites']]
 )]
-// #[GetCollection(
-//     name: 'get_group_members',
-//     uriTemplate: '/groups/{groupId}/members',
-//     uriVariables: [
-//         'groupId' => [
-//             'from_class' => Group::class, 
-//             'from_property' => 'id', 
-//             'to_property' => 'group'
-//         ]
-//     ],
-//     provider: GroupMembershipProvider::class,
-//     normalizationContext: ['groups' => ['group_membership:members']]
-// )]
-// #[Get(
-//     uriTemplate: '/groups/{groupId}/members/{userId}',
-//     uriVariables: [
-//         'groupId' => new Link(
-//             fromClass: Group::class, 
-//             fromProperty: 'groupMemberships'
-//         ),
-//         'userId' => new Link(
-//             fromClass: User::class, 
-//             fromProperty: 'groupMemberships'
-//         )
-//     ],
-//     provider: GroupMembershipProvider::class,
-//     normalizationContext: ['groups' => ['group_membership:members']]
-// )]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 
@@ -71,7 +44,8 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
         )
     ],
     provider: GroupMembershipProvider::class,
-    processor: GroupMembershipProcessor::class
+    processor: GroupMembershipProcessor::class,
+    input: GroupMembershipInviteDto::class,
 )]
 #[Patch(
     security: "is_granted('ROLE_USER') and is_granted('EDIT', object)", 
@@ -109,6 +83,11 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     provider: GroupMembershipProvider::class,
     processor: GroupMembershipProcessor::class
 )]
+#[Delete(
+    security: "is_granted('ROLE_USER') and is_granted('DELETE', object)", 
+    uriTemplate: '/invites/{id}',
+    processor: GroupMembershipProcessor::class
+)]
 #[ORM\Entity(repositoryClass: GroupMembershipRepository::class)]
 #[ORM\UniqueConstraint(name: 'user_group_unique', columns: ['user_id', 'group_id'])]
 #[ORM\Table(name: 'group_membership')]
@@ -142,6 +121,7 @@ class GroupMembership
     private string $status = self::STATUS_PENDING;
 
     #[ORM\Column(type: 'datetime')]
+    #[Groups(['group_membership:invites'])]
     private \DateTimeInterface $createdAt;
 
     #[ORM\Column(type: 'datetime', nullable: true)]

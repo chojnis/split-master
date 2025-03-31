@@ -29,3 +29,10 @@ export type AddTransactionRequest = {
         payeesIds: string[];
     }
 }
+
+export type sendInviteRequest = {
+    groupId: string;
+    data: {
+        email: string;
+    }
+}

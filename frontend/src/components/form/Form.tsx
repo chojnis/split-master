@@ -67,6 +67,20 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
     }
   }, [error]);
 
+  useEffect(() => {
+
+    const initialData: FormDataType = {};
+    fields.forEach(field => {
+      if (field.type === 'select' && field.defaultSelectValue !== undefined && formData[field.name] === undefined) {
+        initialData[field.name] = Array.isArray(field.defaultSelectValue)
+          ? field.defaultSelectValue.map(option => option.value)
+          : field.defaultSelectValue.value;
+      }
+    });
+
+    setFormData(prev => ({ ...prev, ...initialData }));
+  }, []);
+
   const handleChange = (name: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({...prev, [name]: undefined}));

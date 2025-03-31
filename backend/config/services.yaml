@@ -39,3 +39,8 @@ services:
             - { name: kernel.event_subscriber }
             - { name: api_platform.event_subscriber }
         autoconfigure: true
+
+    App\EventSubscriber\GroupMembershipSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+            - { name: api_platform.event_subscriber }

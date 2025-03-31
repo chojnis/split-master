@@ -48,13 +48,13 @@ class GroupMembershipService
     public function getGroupMembers(Group $group): iterable
     {
         return $this->entityManager->getRepository(GroupMembership::class)
-        ->createQueryBuilder('gm')
-        ->where('gm.group = :group')
-        ->andWhere('gm.status = :status')
-        ->setParameter('group', $group)
-        ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
-        ->getQuery()
-        ->getResult();
+            ->createQueryBuilder('gm')
+            ->where('gm.group = :group')
+            ->andWhere('gm.status = :status')
+            ->setParameter('group', $group)
+            ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
+            ->getQuery()
+            ->getResult();
     }
 
     public function getGroupUsers(Group $group): iterable
@@ -118,5 +118,27 @@ class GroupMembershipService
         ->setParameter('status', GroupMembership::STATUS_ACCEPTED);
 
         return $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    public function inviteUser(User $user, Group $group): GroupMembership
+    {
+        $groupMembership = $this->getGroupMembership($user, $group);
+        if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
+            throw new \InvalidArgumentException('User is already a member of this group.');
+        }
+
+        if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
+            throw new \InvalidArgumentException('User has already been invited to this group.');
+        }
+
+        $membership = new GroupMembership();
+        $membership->setUser($user);
+        $membership->setGroup($group);
+        $membership->setStatus(GroupMembership::STATUS_PENDING);
+
+        $this->entityManager->persist($membership);
+        $this->entityManager->flush();
+
+        return $membership;
     }
 }

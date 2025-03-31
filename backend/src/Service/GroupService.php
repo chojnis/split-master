@@ -15,7 +15,7 @@ class GroupService
         private GroupMembershipService $groupMembershipService
     ) {}
 
-    public function transferOwnership(Group $group, User $newOwner): Group
+    public function transferOwnership(Group $group, User $newOwner): void
     {
         if ($group->getOwner() === $newOwner) {
             throw new \InvalidArgumentException('User is already the owner of this group.');
@@ -28,5 +28,26 @@ class GroupService
 
         $group->setOwner($newOwner);
         $this->entityManager->flush();
+    }
+
+    public function handleOwnerLeavingGroup(Group $group, User $user): void
+    {
+        if ($group->getOwner() !== $user) {
+            return;
+        }
+
+        $groupMembers = $this->groupMembershipService->getGroupMembers($group);
+        // if (count($groupMembers) === 1) {
+        //     $this->entityManager->remove($group);
+        //     $this->entityManager->flush();
+        //     return;
+        // }
+
+        foreach ($groupMembers as $member) {
+            if ($member->getUser() !== $user) {
+                $this->transferOwnership($group, $member->getUser());
+                break;
+            }
+        }
     }
 }

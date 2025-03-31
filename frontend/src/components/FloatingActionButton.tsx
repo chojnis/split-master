@@ -1,3 +1,5 @@
+import { TypedStartListening } from '@reduxjs/toolkit';
+import { StringToBoolean } from 'class-variance-authority/dist/types';
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import Animated, { 
@@ -7,14 +9,16 @@ import Animated, {
   Easing 
 } from 'react-native-reanimated';
 import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
 import Plus from '~/lib/icons/Plus';
 
 type FloatingActionButtonProps = {
   onPress: () => void;
+  icon?: React.ReactNode;
   className?: string;
 }
 
-const FloatingActionButton = ({ onPress, className }: FloatingActionButtonProps) => {
+const FloatingActionButton = ({ onPress, icon, className }: FloatingActionButtonProps) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -38,7 +42,9 @@ const FloatingActionButton = ({ onPress, className }: FloatingActionButtonProps)
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <Plus className="dark:text-black text-white" width={24} height={24} />
+        {icon || (
+          <Plus className="dark:text-black text-white" width={24} height={24} />
+        )}
       </Button>
     </Animated.View>
   );

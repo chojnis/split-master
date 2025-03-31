@@ -3,13 +3,14 @@ import { RootState, AppDispatch } from '~/store';
 import { LoginResponse } from '~/api/types/response';
 import { RefreshTokenRequest } from '~/api/types/request';
 import { ErrorBaseQueryFn, ApiError, Violation } from '~/api/types';
+import { ArrowRightSquare } from 'lucide-react-native';
 
-const BASE_URL = 'https://b01c-217-97-63-46.ngrok-free.app/api/';
+const BASE_URL = 'https://bb78-217-97-63-46.ngrok-free.app/api/';
 
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,
     prepareHeaders: (headers, { getState }) => {
-      headers.set('Accept', 'application/json');
+      // headers.set('Accept', 'application/json');
       const token = (getState() as RootState).auth.token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
@@ -19,8 +20,18 @@ const baseQuery = fetchBaseQuery({
     timeout: 10000
 });
 
-const baseQueryWithErrorHandling: ErrorBaseQueryFn = async (args, api, extraOptions) => {
+const baseQueryWith204Handler: typeof baseQuery = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
+
+  if(result.meta?.response?.status === 204) {
+    return { data: {} };
+  }
+  
+  return result;
+}
+
+const baseQueryWithErrorHandling: ErrorBaseQueryFn = async (args, api, extraOptions) => {
+  const result = await baseQueryWith204Handler(args, api, extraOptions);
 
   if (result.data) {
     return { data: result.data };

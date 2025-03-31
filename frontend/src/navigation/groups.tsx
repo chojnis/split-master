@@ -1,10 +1,14 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 import GroupsScreen from '~/screens/groups/groups';
 import GroupDetailsScreen from '~/screens/groups/groupDetails';
+import GroupSettingsScreen from '~/screens/groups/groupSettings';
 import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
-import ToggleTheme from '~/components/ToogleTheme';
+import Settings from '~/lib/icons/Settings';
+import { Button } from '~/components/ui/button';
+import { RouteProp } from '@react-navigation/native';
 
 export type GroupsStackParamList = {
     GroupsList: undefined;
@@ -13,16 +17,21 @@ export type GroupsStackParamList = {
     AddTransaction: { groupId: string };
     AddGroup: undefined;
     UserDetails: { userId: string};
+    GroupSettings: { groupId: string };
 };
 
 const GroupsStackNavigator = createNativeStackNavigator<GroupsStackParamList>();
+type GroupStackProps = {
+    navigation: StackNavigationProp<GroupsStackParamList>;
+    route: RouteProp<GroupsStackParamList>;
+};
 
 const GroupsStack = () => {
     return (
         <GroupsStackNavigator.Navigator
-            screenOptions = {{
-                headerRight: () => <ToggleTheme />
-            }}
+            // screenOptions = {{
+            //     headerRight: () => <ToggleTheme />
+            // }}
         >
             <GroupsStackNavigator.Screen 
                 name="GroupsList" 
@@ -37,6 +46,13 @@ const GroupsStack = () => {
                     title: 'Szczegóły grupy'
                 }}
                 component={GroupDetailsScreen} 
+            />
+            <GroupsStackNavigator.Screen 
+                name="GroupSettings" 
+                options={{
+                    title: 'Ustawienia grupy'
+                }}
+                component={GroupSettingsScreen} 
             />
             <GroupsStackNavigator.Screen 
                 name="AddGroup"

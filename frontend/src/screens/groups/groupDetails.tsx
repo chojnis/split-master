@@ -13,7 +13,8 @@ import TransactionsSection from '~/components/group/TransactionSection';
 import Loading from '~/components/Loading';
 import ErrorText from '~/components/ErrorText';
 import FloatingActionButton from '~/components/FloatingActionButton';
-
+import { ListPlus } from '~/lib/icons/ListPlus';
+import Settings from '~/lib/icons/Settings';
 
 type GroupDetailsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupDetails'>;
 type GroupDetailsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupDetails'>;
@@ -26,6 +27,19 @@ export default function GroupDetails() {
 
     const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation<GroupDetailsStackNavigationProp>();
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        headerRight: () => (
+          <Button 
+            onPress={() => navigation.navigate("GroupSettings", { groupId })}
+            variant={null}
+          >
+            <Settings className="dark:text-white text-black" width={24} height={24} />
+          </Button>
+        ),
+      });
+    }, [navigation, groupId]);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -58,7 +72,10 @@ export default function GroupDetails() {
             </View>
             <TransactionsSection groupId={groupId} />
         </Container>
-        <FloatingActionButton onPress={() => navigation.navigate('AddTransaction', { groupId: data.id})} />
+        <FloatingActionButton 
+          onPress={() => navigation.navigate('AddTransaction', { groupId: data.id})} 
+          icon={<ListPlus className="dark:text-black text-white" width={24} height={24} />}
+        />
         </>
     );
 }

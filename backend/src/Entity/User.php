@@ -31,6 +31,9 @@ use App\Entity\Transaction;
 use App\Entity\Group;
 use App\State\UserProvider;
 use ApiPlatform\Metadata\Link;
+use App\Dto\UserUpdateDto;
+use App\State\UserUpdateProcessor;
+use App\State\UserDeleteProcessor;
 
 #[ApiResource(
     normalizationContext: ['groups' => ['user:read']],
@@ -54,25 +57,29 @@ use ApiPlatform\Metadata\Link;
     name: 'register',
     uriTemplate: '/register',
     processor: UserPasswordHasher::class,
-    validationContext: ['groups' =>
-        ['Default', 'user:create']
-    ],
+    validationContext: ['groups' => ['user:create']],
 )]
 #[Patch(
-    security: "is_granted('ROLE_USER') and object == user",
-    securityMessage: "You can only edit your own account.",
-    processor: UserPasswordHasher::class
+    uriTemplate: '/user',
+    security: "is_granted('ROLE_USER')",
+    processor: UserUpdateProcessor::class,
+    provider: UserProvider::class,
+    validationContext: ['groups' => ['Default', 'user:update']],
+    denormalizationContext: ['groups' => ['user:update']],
+    input: UserUpdateDto::class,
 )]
 #[Delete(
-    security: "is_granted('ROLE_USER') and object == user",
-    securityMessage: "You can only delete your own account.",
+    uriTemplate: '/user',
+    security: "is_granted('ROLE_USER')",
+    provider: UserProvider::class,
+    processor: UserDeleteProcessor::class,
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Groups(['user:read', 'group_membership:members', 'transaction:read'])]
+    #[Groups(['user:read', 'group_membership:members', 'transaction:read', 'group:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -81,18 +88,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(
         message: 'Email nie może być pusty.',
+        groups: ['user:create']
     )]
     #[Assert\Email(
         message: 'Niepoprawny adres email.',
+        groups: ['user:create']
     )]
-    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read'])]
+    #[Groups(['user:read', 'user:create', 'group_membership:members', 'transaction:read', 'group:read'])]
     private ?string $email = null;
 
     #[ORM\Column]
     private ?string $password = null;
 
     #[Assert\NotBlank(
-        groups: ['user:create'],
         message: 'Hasło nie może być puste.'
     )]
     #[Groups(['user:create', 'user:update'])]
@@ -102,7 +110,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read', 'group:read'])]
     private ?string $username = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
@@ -114,6 +122,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(mappedBy: 'payees', targetEntity: Transaction::class)]
     private Collection $transactionsAsPayee;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deletedAt = null;
 
     public function __construct()
     {
@@ -232,5 +242,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
         return $this;
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
     }
 }

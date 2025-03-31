@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 
 /**
  * @implements ProcessorInterface<User, User|void>
@@ -15,7 +16,8 @@ final readonly class UserPasswordHasher implements ProcessorInterface
 {
     public function __construct(
         private ProcessorInterface $processor,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
+        private LoggerInterface $logger,
     ) {}
 
     /**

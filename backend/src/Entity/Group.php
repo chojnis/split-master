@@ -44,7 +44,7 @@ class Group
         max: 100,
         maxMessage: 'Nazwa grupy nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
-    #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
+    #[Groups(groups: ['group:read', 'group:write', 'transaction:read', 'group_membership:invites'])]
     private string $groupName;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -52,7 +52,7 @@ class Group
         max: 255,
         maxMessage: 'Opis nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
-    #[Groups(groups: ['group:read', 'group:write', 'transaction:read'])]
+    #[Groups(groups: ['group:read', 'group:write', 'transaction:read', 'group_membership:invites'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'group', cascade: ["persist"])]
@@ -61,7 +61,7 @@ class Group
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
-    // #[Groups(groups: ['group:read'])]
+    #[Groups(groups: ['group:read'])]
     private User $owner;
 
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'group')]

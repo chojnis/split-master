@@ -9,13 +9,15 @@ import {
   GroupResponse,
   UserResponse,
   CurrenciesResponse,
-  AddTransactionResponse
+  AddTransactionResponse,
+  InvitesResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
   RegisterRequest,
   AddGroupRequest,
-  AddTransactionRequest
+  AddTransactionRequest,
+  sendInviteRequest
 } from '~/api/types/request';
 import baseQuery from '~/api/query';
 
@@ -85,6 +87,41 @@ export const apiCall = createApi({
         body: data,
       }),
     }),
+    getInvites: builder.query<InvitesResponse, void>({
+      query: () => ({
+        url: 'invites',
+        method: 'GET',
+      }),
+    }),
+    acceptInvite: builder.mutation<void, string>({
+      query: (inviteId) => ({
+        url: `invites/${inviteId}`,
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'accepted' }),
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        }
+      }),
+    }),
+    rejectInvite: builder.mutation<void, string>({
+      query: (inviteId) => ({
+        url: `invites/${inviteId}`,
+        method: 'DELETE',
+      }),
+    }),
+    sendInvite: builder.mutation<void, sendInviteRequest>({
+      query: ({ groupId, data }) => ({
+        url: `groups/${groupId}/members`,
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    leaveGroup: builder.mutation<void, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}/membership`,
+        method: 'DELETE',
+      })
+    }),
   }),
 });
 
@@ -99,4 +136,9 @@ export const {
   useGetUserQuery,
   useGetCurrenciesQuery,
   useAddTransactionMutation,
+  useGetInvitesQuery,
+  useAcceptInviteMutation,
+  useRejectInviteMutation,
+  useLeaveGroupMutation,
+  useSendInviteMutation,
 } = apiCall;
