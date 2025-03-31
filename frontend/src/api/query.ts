@@ -3,12 +3,12 @@ import { RootState, AppDispatch } from '~/store';
 import { LoginResponse } from '~/api/types/response';
 import { RefreshTokenRequest } from '~/api/types/request';
 import { ErrorBaseQueryFn, ApiError, Violation } from '~/api/types';
-import { ArrowRightSquare } from 'lucide-react-native';
 
-const BASE_URL = 'https://bb78-217-97-63-46.ngrok-free.app/api/';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+console.log('API_URL', API_URL);
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: BASE_URL,
+    baseUrl: API_URL,
     prepareHeaders: (headers, { getState }) => {
       // headers.set('Accept', 'application/json');
       const token = (getState() as RootState).auth.token;
