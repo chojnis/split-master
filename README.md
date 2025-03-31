@@ -1,4 +1,4 @@
-# split-master
+# Split Master
 
 Aplikacja do dzielenia kosztów (np. podróży) z klientem w React Native i backendem w Symfony (API Platform)
 
@@ -14,7 +14,7 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 - **Expo CLI** (dostępne bez instalacji za pomocą: `npx expo`, weryfikacja `npx expo --version`)
 - **Urządzenie mobilne iOS/Android z zainstalowaną aplikacją Expo lub emulator** na przykład Android Studio [instalacja](https://docs.expo.dev/workflow/android-studio-emulator/)
 
-# Instalacja
+## Instalacja
 
 1. Sklonuj repozytorium:
     ```bash
@@ -30,51 +30,53 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
     npm install
     ```
 
-# Uruchamianie
+## Uruchamianie
 
-1. Serwer:
-Korzystając z Symfony CLI uruchamiamy serwer:
+### Serwer
+
+1. Korzystając z Symfony CLI uruchamiamy serwer:
     ```bash
     cd backend
     symfony serve --port=8000
     ```
-Opcjonalnie z przełącznikiem `-d` w celu uruchomienia w tle:
+    Opcjonalnie z przełącznikiem `-d` w celu uruchomienia w tle:
     ```bash
     symfony serve -d --port=8000
     ```
 
-Żeby ułatwić połączenie między klientem a serwerem korzystamy z ngrok w celu stworzenia tunelu do publicznego adresu HTTPS:
+2. Żeby ułatwić połączenie między klientem a serwerem korzystamy z ngrok w celu stworzenia tunelu do publicznego adresu HTTPS:
     ```bash
     npx ngrok http 8000
     ```
 
-Ostatecznie kopiujemy wygenerowany adres, żeby umieścić go w konfiguracji klienta.
+3. Ostatecznie kopiujemy wygenerowany adres, żeby umieścić go w konfiguracji klienta.
 
-2. Klient:
+### Klient
 
-Tworzymy plik .env lub kopiujemy .env.example zmieniając jego nazwę:
+1. Tworzymy plik `.env` lub kopiujemy `.env.example` zmieniając jego nazwę:
     ```bash
     cd frontend
     cp .env.example .env
     ```
 
-Do skopiowanego adresu wygenerowanego przez ngrok dodajemy `/api`:
+2. Do skopiowanego adresu wygenerowanego przez ngrok dodajemy `/api`:
     ```bash
     https://xxx/api
     ```
 
-Zmodyfikowany adres ustawiamy w .env dla parametru `EXPO_PUBLIC_API_URL`:
+3. Zmodyfikowany adres ustawiamy w `.env` dla parametru `EXPO_PUBLIC_API_URL`:
     ```bash
     EXPO_PUBLIC_API_URL=https://xxx/api
     ```
 
-Korzystając z Expo CLI uruchamiamy serwer deweloperski
+4. Korzystając z Expo CLI uruchamiamy serwer deweloperski
     ```bash
     npx expo start --tunnel -c
     ```
 
-Ostatecznie korzystając ze z konfigurowanego emulatora uruchamiamy go klawiszami `a` lub `i` w zależności od urządzenia lub skanujemy dołączony kod QR fizycznym urządzeniem.
+5. Ostatecznie korzystając ze z konfigurowanego emulatora uruchamiamy go klawiszami `a` lub `i` w zależności od urządzenia lub skanujemy dołączony kod QR fizycznym urządzeniem.
 
-## Database structure
+## Dokumentacja
+### Struktura bazy danych (do aktualizacji)
 
 ![Untitled](https://github.com/user-attachments/assets/014bf146-b9da-49f2-91b3-af848fc816fc)
