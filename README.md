@@ -8,7 +8,7 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 - **Node.js** w wersji 22.x
 - **npm** w wersji 10.x (dołączony do Node.js)
 - **PHP-FPM** w wersji 8.2
-- **Docker (opcjonalne, ale zalecane)*** w wersji 24.x
+- **Docker (opcjonalne, ale zalecane)** w wersji 24.x
 - **Symfony CLI** ([instalacja](https://symfony.com/download))
 - **Composer** ([instalacja](https://getcomposer.org/download/))
 - **Ngrok (opcjonalne, ale zalecane)** (dostępne bez instalacji za pomocą: `npx ngrok` dzięki npm, weryfikacja `npx ngrok --version`)
@@ -17,13 +17,13 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 
 ## Instalacja
 
-1. Sklonuj repozytorium:
+1. Klonujemy repozytorium:
     ```bash
     git clone https://github.com/chojnis/split-master.git
     cd split-master
     ```
 
-2. Zainstaluj zależności:
+2. Instalujemy zależności:
     ```bash
     cd backend
     composer install
@@ -68,6 +68,13 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
     ```
 
 ### Serwer
+
+> W przypadku pierwszego uruchomienia konieczne będzie stworzenie bazy danych i jej schematu:
+>
+> ```bash
+> php backend/bin/console doctrine:database:create
+> php backend/bin/console doctrine:schema:create
+> ```
 
 1. Korzystając z Symfony CLI uruchamiamy serwer:
     ```bash
