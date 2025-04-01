@@ -36,4 +36,10 @@ class TransactionRequest
         new Assert\Type('integer', message: 'Każdy odbiorca musi być określony przez ID (liczba całkowita).')
     ])]
     public array $payeesIds;
+
+    #[Assert\Positive]
+    #[Assert\LessThanOrEqual(
+        value: 9999.999999,
+    )]
+    public ?float $exchangeRate = null;
 }

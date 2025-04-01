@@ -40,4 +40,34 @@ class TransactionRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function getTotalPaidByUserInGroup(User $user, Group $group): array
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('IDENTITY(t.currency) as currencyId, SUM(t.amount) as total, SUM(t.amount * t.exchangeRate) as convertedTotal')
+            ->where('t.payer = :user')
+            ->andWhere('t.group = :group')
+            ->groupBy('t.currency')
+            ->setParameter('user', $user)
+            ->setParameter('group', $group)
+            ->getQuery()
+            ->getResult();
+
+        return array_column($result, 'total', 'currencyId');
+    }
+
+    public function getTotalOwedByUserInGroup(User $user, Group $group): array
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('IDENTITY(t.currency) as currencyId, SUM(t.amount / SIZE(t.payees)) as total, SUM(t.amount * t.exchangeRate / SIZE(t.payees)) as convertedTotal')
+            ->where(':user MEMBER OF t.payees')
+            ->andWhere('t.group = :group')
+            ->groupBy('t.currency')
+            ->setParameter('user', $user)
+            ->setParameter('group', $group)
+            ->getQuery()
+            ->getResult();
+
+        return array_column($result, 'total', 'currencyId');
+    }
 }

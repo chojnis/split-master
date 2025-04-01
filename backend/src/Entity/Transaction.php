@@ -127,14 +127,10 @@ class Transaction
     )]
     private string $name;
 
-    #[ORM\Column(type: 'decimal', scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
     #[Groups(['transaction:read', 'transaction:write'])]
     #[Assert\NotBlank(message: 'Wartość nie może być pusta.')]
     #[Assert\Positive(message: 'Wartość musi być większa od 0.')]
-    #[Assert\LessThanOrEqual(
-        value: 999999.99,
-        message: 'Wartość nie może przekroczyć limitu: {{ compared_value }}.'
-    )]
     private float $amount;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\Currency')]
@@ -143,6 +139,12 @@ class Transaction
     #[Assert\NotNull(message: 'Waluta jest obowiązkowa.')]
     private Currency $currency;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 6)]
+    #[Groups(['transaction:read', 'transaction:write'])]
+    #[Assert\NotBlank(message: 'Wartość nie może być pusta.')]
+    #[Assert\Positive(message: 'Wartość musi być większa od 0.')]
+    private float $exchangeRate;
+
     #[ORM\Column(type: 'datetime')]
     #[Groups(['transaction:read'])]
     #[Assert\NotBlank(message: 'Data utworzenia nie może być pusta.')]
@@ -150,7 +152,7 @@ class Transaction
         type: \DateTime::class,
         message: 'Wartość {{ value }} nie jest poprawnym formatem daty.'
     )]
-    private \DateTime $created_at;
+    private \DateTime $createdAt;
 
     #[ORM\ManyToOne(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayer')]
     #[ORM\JoinColumn(name: 'payer_id', referencedColumnName: 'id', nullable: false)]
@@ -176,7 +178,7 @@ class Transaction
     public function __construct()
     {
         $this->payees = new ArrayCollection();
-        $this->created_at = new \DateTime();
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -252,11 +254,6 @@ class Transaction
         return $this;
     }
 
-    public function isAssociatedWith(User $user): bool
-    {
-        return $this->payer === $user || $this->payees->contains($user);
-    }
-
     public function getGroup(): Group
     {
         return $this->group;
@@ -266,5 +263,21 @@ class Transaction
     {
         $this->group = $group;
         return $this;
+    }
+
+    public function getExchangeRate(): float
+    {
+        return $this->exchangeRate;
+    }
+
+    public function setExchangeRate(float $exchangeRate): self
+    {
+        $this->exchangeRate = $exchangeRate;
+        return $this;
+    }
+
+    public function getConvertedAmount(): float
+    {
+        return $this->amount * $this->exchangeRate;
     }
 }

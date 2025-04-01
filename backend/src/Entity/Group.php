@@ -21,6 +21,9 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\State\GroupProcessor;
+use App\State\GroupDebtProvider;
+use App\Dto\Group\GroupDebtResponse;
+use ApiPlatform\Metadata\Link;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
 #[GetCollection(provider: GroupProvider::class)]
@@ -28,6 +31,19 @@ use App\State\GroupProcessor;
 #[Post(processor: GroupProcessor::class)]
 #[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 #[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
+
+#[Get(
+    uriTemplate: '/groups/{id}/debts',
+    // uriVariables: [
+    //     'id' => new Link(
+    //         fromClass: Group::class
+    //     ),
+    // ],
+    provider: GroupDebtProvider::class,
+    output: GroupDebtResponse::class,
+    normalizationContext: ['groups' => ['debt:read']],
+)]
+
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
 class Group
@@ -66,6 +82,11 @@ class Group
 
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'group')]
     private Collection $transactions;
+
+    #[ORM\ManyToOne(targetEntity: Currency::class)]
+    #[ORM\JoinColumn(name: 'currency_id', referencedColumnName: 'id', nullable: false)]
+    #[Groups(groups: ['group:read', 'group:write'])]
+    private Currency $currency;
 
     public function __construct()
     {
@@ -116,7 +137,7 @@ class Group
         return $this->groupName;
     }
 
-    public function setGroupName(string $groupName): static
+    public function setGroupName(string $groupName): self
     {
         $this->groupName = $groupName;
 
@@ -128,7 +149,7 @@ class Group
         return $this->description;
     }
 
-    public function setDescription(?string $description): static
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
@@ -140,7 +161,7 @@ class Group
         return $this->owner;
     }
 
-    public function setOwner(User $owner): static
+    public function setOwner(User $owner): self
     {
         $this->owner = $owner;
         return $this;
@@ -149,5 +170,16 @@ class Group
     public function isMember(User $user): bool
     {
         return $this->users->contains($user);
+    }
+
+    public function getCurrency(): Currency
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(Currency $currency): self
+    {
+        $this->currency = $currency;
+        return $this;
     }
 }
