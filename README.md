@@ -69,11 +69,12 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 
 ### Serwer
 
-> W przypadku pierwszego uruchomienia konieczne będzie stworzenie bazy danych i jej schematu:
+> W przypadku pierwszego uruchomienia konieczne będzie stworzenie bazy danych, jej schematu, a także załadowanie danych testowych:
 >
 > ```bash
 > php backend/bin/console doctrine:database:create
 > php backend/bin/console doctrine:schema:create
+> php backend/bin/console doctrine:fixtures:load
 > ```
 
 1. Korzystając z Symfony CLI uruchamiamy serwer:
