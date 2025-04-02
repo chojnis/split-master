@@ -12,7 +12,6 @@ export default function App() {
   const [isAppReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    if(isAppReady) return;
     setupStore().then((newStore) => {
       store = newStore;
       setAppReady(true);
@@ -24,8 +23,8 @@ export default function App() {
   }
   
   return (
-      <Provider store={store}>
-          <Navigation />
-      </Provider>
+    <Provider store={store}>
+        <Navigation />
+    </Provider>
   );
 }

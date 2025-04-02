@@ -25,7 +25,6 @@ const AddTransactionButton = ({groupId}: {groupId?: string}) => {
   const handlePress = () => {
     // const groupId = route.params?.groupId;
     // navigation.navigate('Groups', { screen: 'AddTransaction', params: { groupId } });
-    console.log('AddTransactionButton groupId', groupId);
   };
 
   return (

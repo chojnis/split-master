@@ -1,7 +1,6 @@
-import { StyleSheet, View, FlatList, RefreshControl, Pressable } from 'react-native';
+import { View} from 'react-native';
 import { useGetGroupQuery } from '~/api';
-import { Group, User } from '~/api/types/entity';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useLayoutEffect } from 'react';
 import { Button } from '~/components/ui/button';	
 import { Text } from '~/components/ui/text';
@@ -73,8 +72,9 @@ export default function GroupDetails() {
             <TransactionsSection groupId={groupId} />
         </Container>
         <FloatingActionButton 
-          onPress={() => navigation.navigate('AddTransaction', { groupId: data.id})} 
-          icon={<ListPlus className="dark:text-black text-white" width={24} height={24} />}
+          onPress={() => navigation.navigate('AddTransaction', { groupId: data.id, defaultCurrencyId: data.currency.id })} 
+          icon={<ListPlus className="text-white" width={24} height={24} />}
+          className={"bg-green-500"}
         />
         </>
     );

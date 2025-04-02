@@ -221,7 +221,7 @@ class Transaction
 
     public function getCreatedAt(): \DateTime
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
     public function getPayer(): User

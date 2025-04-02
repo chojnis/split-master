@@ -5,29 +5,32 @@ import { Text } from '~/components/ui/text';
 import { View } from 'react-native';
 import { FormFieldType } from '~/components/form/Form';
 import Select from '~/components/form/SelectField';
-import { useEffect } from 'react';
 
 type FormFieldProps = {
   field: FormFieldType;
-  value?: string | number | string[];
-  onChange: (name: string, value: string | number | string[]) => void;
+  value?: FormFieldValue;
+  onChange: (name: string, value: FormFieldValue) => void;
   error?: string;
   className?: string;
 }
 
+export type FormFieldValue = string | string[] | number;
+
 const FormField = ({ field, value, onChange, className, error }: FormFieldProps) => {
-  const handleChange = (value: string | number | string[]) => {
+  const handleChange = (value: FormFieldValue) => {
     onChange(field.name, field.type === 'number' ? Number(value) : value);
   };
 
   return (
     <View className={`${className || ''}`}>
         <Label
-            className="mt-2"
+            className="my-2"
             nativeID={field.name}
         >
             {field.label}
+            {field.required && <Text className="text-red-500"> *</Text>}
         </Label>
+        <View className={`border rounded-md relative flex justify-center ${error ? 'border-red-500' : 'border-stone-300'} ${field.type !== 'select' && field.type !== 'textarea' ? 'h-16' : ''}`}>
           {field.type === 'textarea' && (
             <Textarea 
               value={value !== undefined ? String(value) : undefined} 
@@ -35,7 +38,7 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               placeholder={field.placeholder} 
               keyboardType='default'
               aria-labelledby={field.name}
-              className={error ? 'border-red-500' : ''}
+              className={'border-transparent'}
             />
           )}
           {field.type === 'select' && (
@@ -43,7 +46,7 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               value={typeof value === 'number' ? String(value) : value as string | string[] | undefined}
               onChangeValue={handleChange}
               selectOptions={field.selectOptions || []}
-              className={error ? 'border-red-500' : ''}
+              className={'border-transparent'}
               defaultValue={field.defaultSelectValue}
               multiple={field.multiple}
             />
@@ -55,10 +58,11 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               keyboardType={field.type === 'number' ? 'number-pad' : 'default'}
               placeholder={field.placeholder}
               secureTextEntry={field.type === 'password'}
-              className={error ? 'border-red-500' : ''}
+              className={'border-transparent'}
               aria-labelledby={field.name}
             />
           )}
+        </View>
         {error !== undefined && <Text className="text-red-500">{error}</Text>}
     </View>
   );

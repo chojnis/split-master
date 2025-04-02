@@ -14,7 +14,7 @@ export type GroupsStackParamList = {
     GroupsList: undefined;
     GroupDetails: { groupId: string };
     TransactionDetails: undefined;
-    AddTransaction: { groupId: string };
+    AddTransaction: { groupId: string, defaultCurrencyId: string };
     AddGroup: undefined;
     UserDetails: { userId: string};
     GroupSettings: { groupId: string };

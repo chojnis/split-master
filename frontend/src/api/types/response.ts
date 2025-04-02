@@ -1,4 +1,4 @@
-import { User, Transaction, Currency } from "~/api/types/entity";
+import { User, Transaction, Currency, ExchangeRate } from "~/api/types/entity";
 import { Group, Invite } from "~/api/types/entity";
 
 export type LoginResponse = {
@@ -26,3 +26,9 @@ export type CurrenciesResponse = Currency[];
 export type AddTransactionResponse = Transaction;
 
 export type InvitesResponse = Invite[];
+
+export type PairExchangeRateResponse = ExchangeRate;
+
+export type ExchangeRatesResponse = ExchangeRate[];
+
+

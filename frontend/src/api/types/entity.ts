@@ -8,6 +8,7 @@ export type Group = {
     groupName: string;
     description: string;
     owner: User;
+    currency: Currency;
 }
 
 export type Currency = {
@@ -33,4 +34,11 @@ export type Invite = {
         groupName: string;
         description: string;
     }
+}
+
+export type ExchangeRate = {
+    fromCurrency: string;
+    toCurrency: string;
+    rate: number;
+    date: Date;
 }

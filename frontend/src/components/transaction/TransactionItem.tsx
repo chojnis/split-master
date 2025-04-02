@@ -1,8 +1,9 @@
 import { Text } from '~/components/ui/text';
-import { View } from 'react-native';
-import UserAvatar from '../user/UserAvatar';
+import { View, Pressable } from 'react-native';
+import ReceiptText from '~/lib/icons/ReceiptText';
 
 type TransactionItemProps = {
+    id: string;
     payerName: string;
     payerImageUrl?: string;
     title: string;
@@ -10,14 +11,11 @@ type TransactionItemProps = {
     currencySymbol: string;
 }
   
-const TransactionItem = ({ payerName, payerImageUrl, title, amount, currencySymbol }: TransactionItemProps) => {
+const TransactionItem = ({ id, payerName, payerImageUrl, title, amount, currencySymbol }: TransactionItemProps) => {
     return (
-        <View className="flex flex-row justify-between items-center p-3 border-b border-gray-200">
+        <Pressable className="flex flex-row justify-between items-center p-3 rounded-md bg-stone-100 dark:bg-stone-800 mb-2">
             <View className="mr-3 flex items-center justify-center"> 
-                <UserAvatar
-                    userName={payerName}
-                    imageUrl={payerImageUrl}
-                />
+                <ReceiptText className="dark:text-white text-black" width={24} height={24} />
             </View>
 
             <View className="flex-1">
@@ -36,11 +34,11 @@ const TransactionItem = ({ payerName, payerImageUrl, title, amount, currencySymb
             </View>
 
             <View className="ml-3">
-                <Text className="text-base font-medium">
+                <Text className="text-xl font-medium">
                     {amount} {currencySymbol}
                 </Text>
             </View>
-        </View>
+        </Pressable>
     );
 }
 

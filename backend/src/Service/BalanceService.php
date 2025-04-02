@@ -10,7 +10,7 @@ class BalanceService
         private TransactionRepository $transactionRepository
     ) {}
 
-    public function calculateForUserInGroup(
+    public function getUserBalanceForGroup(
         User $user, 
         Group $group
     ): float {

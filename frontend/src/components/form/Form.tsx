@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import FormField from '~/components/form/FormField';
+import FormField, { FormFieldValue } from '~/components/form/FormField';
 import Loading from '~/components/Loading';
 import { ApiError } from '~/api/types';
 import { SerializedError } from '@reduxjs/toolkit';
@@ -13,6 +13,7 @@ export type FormFieldType = {
   label: string;
   name: string;
   type: 'text' | 'number' | 'textarea' | 'password' | 'select';
+  value?: FormFieldValue;
   required?: boolean;
   width?: number;
   placeholder?: string;
@@ -23,21 +24,23 @@ export type FormFieldType = {
 
 type FormProps = {
   fields: FormFieldType[];
-  onSubmit: (data: { [key: string]: string | number | string[] }) => void;
+  onSubmit: (data: { [key: string]: FormFieldValue }) => void;
+  onChange?: (data: { [key: string]: FormFieldValue }) => void;
   isLoading?: boolean;
   error?: ApiError | SerializedError;
   submitText?: string;
+  submitClassName?: string;
 }
 
 export type FormDataType = {
-  [key: string]: string | number | string[];
+  [key: string]: FormFieldValue;
 }
 
 type ErrorType = {
   [key: string]: string | undefined;
 }
 
-const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => {
+const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submitClassName }: FormProps) => {
   const [formData, setFormData] = useState<FormDataType>({});
   const [errors, setErrors] = useState<ErrorType>({});
   const [generalError, setGeneralError] = useState<string | null>();
@@ -71,26 +74,40 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
 
     const initialData: FormDataType = {};
     fields.forEach(field => {
-      if (field.type === 'select' && field.defaultSelectValue !== undefined && formData[field.name] === undefined) {
-        initialData[field.name] = Array.isArray(field.defaultSelectValue)
-          ? field.defaultSelectValue.map(option => option.value)
-          : field.defaultSelectValue.value;
+      // if (field.type === 'select' && field.defaultSelectValue !== undefined && formData[field.name] === undefined) {
+      //   initialData[field.name] = Array.isArray(field.defaultSelectValue)
+      //     ? field.defaultSelectValue.map(option => option.value)
+      //     : field.defaultSelectValue.value;
+      // }
+
+      if (
+        field.value
+        && field.value !== undefined
+        && formData[field.name] === undefined
+      ) {
+        initialData[field.name] = field.value;
       }
     });
 
     setFormData(prev => ({ ...prev, ...initialData }));
+    onChange && onChange({ ...formData, ...initialData });
   }, []);
 
-  const handleChange = (name: string, value: string | number | string[]) => {
+  const handleChange = (name: string, value: FormFieldValue) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({...prev, [name]: undefined}));
+    if (onChange) {
+      onChange({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = () => {
     let isValid = true;
     const newErrors: ErrorType = {};
     for (const field of fields) {
-      if (!formData[field.name] && field.required) {
+      if ((!formData[field.name] || 
+          (Array.isArray(formData[field.name]) && (formData[field.name] as string[]).length === 0)) && 
+          field.required) {
         newErrors[field.name] = 'To pole jest wymagane';
         isValid = false;
       }
@@ -99,6 +116,7 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
       setErrors(newErrors);
       return;
     }
+
     onSubmit(formData);
   };
 
@@ -155,7 +173,7 @@ const Form = ({ fields, onSubmit, error, isLoading, submitText }: FormProps) => 
         </View>
       ))}
       <Button 
-        className="mt-4"
+        className={`mt-4 ${submitClassName || ''}`}
         onPress={handleSubmit} 
         disabled={isLoading}
       >

@@ -41,6 +41,7 @@ const FloatingActionButton = ({ onPress, icon, className }: FloatingActionButton
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        className={`${className || ''}`}
       >
         {icon || (
           <Plus className="dark:text-black text-white" width={24} height={24} />

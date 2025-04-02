@@ -10,14 +10,17 @@ import {
   UserResponse,
   CurrenciesResponse,
   AddTransactionResponse,
-  InvitesResponse
+  InvitesResponse,
+  PairExchangeRateResponse,
+  ExchangeRatesResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
   RegisterRequest,
   AddGroupRequest,
   AddTransactionRequest,
-  sendInviteRequest
+  sendInviteRequest,
+  PairExchangeRateRequest
 } from '~/api/types/request';
 import baseQuery from '~/api/query';
 
@@ -67,6 +70,9 @@ export const apiCall = createApi({
         url: `groups/${groupId}`,
         method: 'GET',
       }),
+      extraOptions: {
+        refetchOnMountOrArgChange: true,
+      },
     }),
     getUser: builder.query<UserResponse, string>({
       query: (userId) => ({
@@ -122,6 +128,28 @@ export const apiCall = createApi({
         method: 'DELETE',
       })
     }),
+    getPairExchangeRate: builder.query<PairExchangeRateResponse, PairExchangeRateRequest>({
+      query: ({ from, to }) => ({
+        url: `currency-exchange/${from}/${to}`,
+        method: 'GET',
+      }),
+    }),
+    getExchangeRates: builder.query<ExchangeRatesResponse, string>({
+      query: ( to ) => ({
+        url: `currency-exchange/${to}`,
+        method: 'GET',
+      }),
+    }),
+    updateGroup: builder.mutation<void, { groupId: string; data: AddGroupRequest }>({
+      query: ({ groupId, data }) => ({
+        url: `groups/${groupId}`,
+        method: 'PATCH',
+        body: data,
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+      }),
+    }),
   }),
 });
 
@@ -141,4 +169,7 @@ export const {
   useRejectInviteMutation,
   useLeaveGroupMutation,
   useSendInviteMutation,
+  useGetPairExchangeRateQuery,
+  useGetExchangeRatesQuery,
+  useUpdateGroupMutation,
 } = apiCall;

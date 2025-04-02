@@ -45,7 +45,7 @@ class GroupDebtProvider implements ProviderInterface
         }
 
         // return $this->debtService->getDetailedDebtsForGroup($group);
-        return $this->debtService->getOptimizedPaymentsForGroup($group);
+        return $this->debtService->getOptimizedDebtsForGroup($group);
 
     }
 }

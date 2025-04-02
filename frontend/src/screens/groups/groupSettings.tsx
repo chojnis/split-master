@@ -7,7 +7,7 @@ import { LogOut } from '~/lib/icons/LogOut'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useLeaveGroupMutation, useGetGroupQuery, useSendInviteMutation } from '~/api';
+import { useLeaveGroupMutation, useGetGroupQuery, useSendInviteMutation, useGetCurrenciesQuery, useUpdateGroupMutation } from '~/api';
 import { Container } from '~/components/Container';
 import Loading from '~/components/Loading';
 import { Separator } from '~/components/Separator';
@@ -26,6 +26,8 @@ import {
     DialogTrigger,
   } from '~/components/ui/dialog';
 import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
+import { useEffect, useState } from 'react';
+import { Currency } from '~/api/types/entity';
 
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
 type GroupSettingsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupSettings'>;
@@ -37,15 +39,89 @@ export default function GroupSettings() {
     const navigation = useNavigation<GroupSettingsStackNavigationProp>();
 
     const [leaveGroup, { isLoading: isLoadingLeave, error: errorLeave }] = useLeaveGroupMutation();
-    const { data: groupData, isLoading: isLoadingGroup, error: errorGroup } = useGetGroupQuery(groupId);
+    const { 
+        data: groupData, 
+        isLoading: isLoadingGroup, 
+        isFetching: isFetchingGroup,
+        isError: isErrorGroup,
+        isSuccess: isSuccessGroup,
+        error: errorGroup 
+    } = useGetGroupQuery(groupId);
+    const { 
+        data: currencies, 
+        isLoading: isLoadingCurrencies, 
+        isFetching: isFetchingCurrencies,
+        isError: isErrorCurrencies,
+        isSuccess: isSuccessCurrencies,
+        error: errorCurrencies
+    } = useGetCurrenciesQuery();
     const [sendInvite, { isLoading: isLoadingInvite, error: errorInvite }] = useSendInviteMutation();
+
+    const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate }] = useUpdateGroupMutation();
 
     const userId = useSelector((state: RootState) => state.auth.user.id);
     const isOwner = groupData?.owner.id === userId;
 
-    const fields = [
-        { label: 'E-mail użytkownika', placeholder: 'user@example.com', name: 'email', type: 'text', required: true } as FormFieldType,
-    ];
+    const [addMemberFields, setAddMemberFields] = useState<FormFieldType[]>([
+        { label: 'E-mail użytkownika', placeholder: 'user@example.com', name: 'email', type: 'text', required: true }
+    ]);
+
+    const [editGroupFields, setEditGroupFields] = useState<FormFieldType[]>([]);
+
+    useEffect(() => {
+        if (
+            isFetchingGroup
+            || isFetchingCurrencies
+        ) return;
+
+        if (
+            isErrorGroup 
+            || isErrorCurrencies
+            || !isSuccessGroup
+            || !isSuccessCurrencies
+        ) {
+            Alert.alert('Błąd', 'Nie można pobrać danych grupy. Spróbuj ponownie.');
+            navigation.goBack();
+            return;
+        }
+
+        setEditGroupFields([
+            { 
+                label: 'Nazwa grupy', 
+                placeholder: 'Pączki', 
+                name: 'name', 
+                type: 'text', 
+                required: true,
+                value: groupData.groupName,
+            },
+            { 
+                label: 'Opis grupy', 
+                placeholder: 'Grupa dla miłośników pączków', 
+                name: 'description', 
+                type: 'text',
+                value: groupData.description,
+            },
+            {
+                label: 'Waluta',
+                name: 'currencyId',
+                type: 'select',
+                required: true,
+                selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
+                // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
+                value: groupData.currency.id,
+            },
+        ]);
+
+    }, [
+        groupData, 
+        currencies,
+        isFetchingGroup,
+        isFetchingCurrencies,
+        isErrorGroup,
+        isErrorCurrencies,
+        isSuccessGroup,
+        isSuccessCurrencies
+    ]);
     
     const handleLeaveGroup = async () => {
         try {
@@ -78,8 +154,48 @@ export default function GroupSettings() {
         }
     };
 
+    const handleSaveGroupData = async (formData: FormDataType) => {
+        try {
+            const { groupName, description, currencyId } = formData as { groupName: string; description: string; currencyId: string };
+
+            await updateGroup({ groupId, data: { groupName, description, currencyId } });
+            if (errorUpdate) {
+                Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
+                return;
+            }
+
+            Alert.alert("Sukces", "Dane grupy zostały zaktualizowane.");
+        } catch (error) {
+            console.error("Error updating group data:", error);
+            Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
+        }
+    };
+
+
     return (
         <Container>
+            {isOwner && (
+                <Dialog className="mb-2">
+                    <DialogTrigger asChild>
+                        <Button variant='outline'>
+                            <Text>Edytuj dane grupy</Text>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className='sm:max-w-[425px]'>
+                        <DialogHeader>
+                            <Form fields={editGroupFields} onSubmit={handleSaveGroupData} isLoading={isLoadingUpdate} error={errorUpdate} submitText="Zapisz" />
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                            <Button>
+                                <Text>OK</Text>
+                            </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+
             {isOwner && (
                 <Dialog>
                     <DialogTrigger asChild>
@@ -89,7 +205,7 @@ export default function GroupSettings() {
                     </DialogTrigger>
                     <DialogContent className='sm:max-w-[425px]'>
                         <DialogHeader>
-                            <Form fields={fields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
+                            <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
                         </DialogHeader>
                         <DialogFooter>
                             <DialogClose asChild>

@@ -17,6 +17,7 @@ export type RefreshTokenRequest = {
 export type AddGroupRequest = {
     groupName: string;
     description: string;
+    currencyId: string;
 }
 
 export type AddTransactionRequest = {
@@ -35,4 +36,9 @@ export type sendInviteRequest = {
     data: {
         email: string;
     }
+}
+
+export type PairExchangeRateRequest = {
+    from: string;
+    to: string;
 }

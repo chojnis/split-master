@@ -12,7 +12,9 @@ import {
 import { Text } from '~/components/ui/text';
 import RNPickerSelect from 'react-native-picker-select';
 import { MultiSelect } from 'react-native-element-dropdown';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import {Picker} from '@react-native-picker/picker';
+import { useColorScheme } from '~/lib/useColorScheme';
+import CheckboxField from './CheckboxField';
 
 // export type SelectOption = Option;
 export type SelectOption = {
@@ -51,80 +53,42 @@ const SelectField = ({
     const singleSelectedOption = multiple ? undefined : selectedOption as SelectOption | undefined;
     const singleDefaultValue = multiple ? undefined : defaultValue as SelectOption | undefined;
 
-    const renderMultiSelectItem = (item: SelectOption) => {
-        return (
-          <View className="p-4 flex-row justify-between items-center">
-            <Text className="text-sm">{item.label}</Text>
-          </View>
-        );
-    };
+    const { colorScheme } = useColorScheme();
 
     return (
-        <View className={`${className || ''}`}>
+        <View className={`p-0 m-0 ${className || ''}`}>
             {!multiple ? (
-                <Select 
-                    value={singleSelectedOption}
-                    onValueChange={(option) => {
-                        if(option){
-                            onChangeValue(option.value);
+                <Picker
+                    selectedValue={singleSelectedOption}
+                    onValueChange={(itemValue, itemIndex) => {
+                        const selectedOption = selectOptions[itemIndex];
+                        if (selectedOption) {
+                            onChangeValue(selectedOption.value);
                         }
                     }}
+                    mode={"dropdown"}
                 >
-                    <SelectTrigger className={`w-full ${className}`}>
-                        <View className="flex-row items-center justify-between">
-                            <Text className="text-base">{singleSelectedOption?.label || singleDefaultValue?.label}</Text>
-                        </View>
-                    </SelectTrigger>
-                    <SelectContent className="shadow-lg rounded-lg">
-                        {selectOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value} label={option.label}>
-                                <Text className="text-base">{option.label}</Text>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            ) : (
-                <View className="flex flex-1 mb-8">
-                    <MultiSelect
+                {selectOptions.map((option) => (
+                    <Picker.Item 
+                        key={option.value} 
+                        value={option.value} 
+                        label={option.label} 
                         style={{
-                            height: 45,
-                            // backgroundColor: 'white',
-                            borderRadius: 6,
-                            padding: 12,
-                            borderWidth: 1,
-                            borderColor: '#E7E5E4'
-                        }}
-                        containerStyle={{
-                            // backgroundColor: 'white',
-                            borderRadius: 8,
-                            marginTop: 8,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.15,
-                            shadowRadius: 3,
-                            elevation: 5,
-                        }}
-                        itemContainerStyle={{
-                            padding: 8,
-                        }}
-                        placeholderStyle={{
-                            color: '#9ca3af', // Placeholder color
-                        }}
-                        selectedTextStyle={{
+                            backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+                            color: colorScheme === 'dark' ? '#fff' : '#000',
                             fontSize: 16,
                         }}
-                        data={selectOptions}
-                        onChange={(values) => {
-                            onChangeValue(values);
-                        }}
-                        value={Array.isArray(value) ? value : []}
-                        renderItem={renderMultiSelectItem}
-                        renderSelectedItem={(item, unSelect) => <></>} 
-                        labelField="label" 
-                        valueField="value"
-                        placeholder={Array.isArray(value) && value.length > 0 && `Wybrano: ${value.length}` || "Wybierz"}
                     />
-                </View>
+                ))}
+                </Picker>
+            ) : (
+                <CheckboxField
+                    values={Array.isArray(value) ? value : []}
+                    options={selectOptions}
+                    onChange={(values) => {
+                        onChangeValue(values);
+                    }}
+                />
             )}
         </View>
     );

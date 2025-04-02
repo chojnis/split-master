@@ -32,8 +32,8 @@ const Navigation = () => {
     <ThemeProvider value={theme}>
       <NavigationContainer theme={theme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          {!isAuthenticated ? <AuthStack /> : <RootTab />}
-          <PortalHost />
+        {!isAuthenticated ? <AuthStack /> : <RootTab />}
+        <PortalHost />
       </NavigationContainer>
     </ThemeProvider>
   );

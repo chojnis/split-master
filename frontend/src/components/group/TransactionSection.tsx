@@ -5,7 +5,6 @@ import { View, FlatList, RefreshControl } from 'react-native';
 import { Text } from '~/components/ui/text';
 import { useCallback, useState } from 'react';
 import Loading from '~/components/Loading';
-import { Container } from '~/components/Container';
 import Error from '~/components/Error';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -27,6 +26,7 @@ const TransactionsSection = ({ groupId }: {groupId: string}) => {
 
     const renderTransaction = ({ item }: { item: Transaction }) => (
         <TransactionItem
+            id={item.id}
             payerName={item.payer.username || item.payer.email}
             title={item.name}
             amount={item.amount}
@@ -39,8 +39,8 @@ const TransactionsSection = ({ groupId }: {groupId: string}) => {
 
     return (
         <View className="mt-4">
-            <View>
-                <Text className="text-md uppercase">Transakcje</Text>
+            <View className="flex items-center justify-start mb-4">
+                <Text className="text-lg uppercase">Transakcje</Text>
             </View>
             {showLoading && <Loading absolute reverseColors />}
             {error ? (

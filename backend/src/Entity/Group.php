@@ -24,21 +24,21 @@ use App\State\GroupProcessor;
 use App\State\GroupDebtProvider;
 use App\Dto\Group\GroupDebtResponse;
 use ApiPlatform\Metadata\Link;
+use App\Dto\Group\CreateGroupRequest;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
 #[GetCollection(provider: GroupProvider::class)]
 #[Get(provider: GroupProvider::class)]
-#[Post(processor: GroupProcessor::class)]
+#[Post(
+    denormalizationContext: ['groups' => ['group:write']],
+    input: CreateGroupRequest::class,
+    processor: GroupProcessor::class
+)]
 #[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 #[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 
 #[Get(
     uriTemplate: '/groups/{id}/debts',
-    // uriVariables: [
-    //     'id' => new Link(
-    //         fromClass: Group::class
-    //     ),
-    // ],
     provider: GroupDebtProvider::class,
     output: GroupDebtResponse::class,
     normalizationContext: ['groups' => ['debt:read']],

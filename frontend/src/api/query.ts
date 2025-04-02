@@ -5,7 +5,6 @@ import { RefreshTokenRequest } from '~/api/types/request';
 import { ErrorBaseQueryFn, ApiError, Violation } from '~/api/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-console.log('API_URL', API_URL);
 
 const baseQuery = fetchBaseQuery({
     baseUrl: API_URL,

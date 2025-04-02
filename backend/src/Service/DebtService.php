@@ -9,58 +9,44 @@ use App\Repository\TransactionRepository;
 use App\Entity\Currency;
 use App\Service\CurrencyExchangeService;
 use App\Service\GroupMembershipService;
-use Psr\Log\LoggerInterface;
 
 class DebtService
 {
     public function __construct(
         private TransactionRepository $transactionRepository,
         private CurrencyExchangeService $currencyExchange,
-        private LoggerInterface $logger,
         private GroupMembershipService $groupMembershipService,
     ) {}
 
-    public function getDetailedDebtsForGroup(Group $group): array
+    private function getDebtsMatrixForGroup(Group $group): array
     {
-        // $members = $group->getGroupMemberships()->map(fn($m) => $m->getUser());
-        $members = $this->groupMembershipService->getGroupUsers($group);
-        // $userMap = array_flip(array_map(fn(User $u) => $u->getId(), $members->toArray()));
-        $userMap = [];
-        foreach ($members as $user) {
-            if ($user instanceof User) {
-                $userMap[$user->getId()] = $user;
+        $transactions = $this->transactionRepository->findBy(['group' => $group]);
+
+        // iterate over transactions and get all user ids
+        foreach ($transactions as $transaction) {
+            $allUserIds[$transaction->getPayer()->getId()] = true;
+            foreach ($transaction->getPayees() as $payee) {
+                $allUserIds[$payee->getId()] = true;
             }
         }
-        $debtsMatrix = array_fill_keys(array_keys($userMap), array_fill_keys(array_keys($userMap), 0.0));
-        
-        foreach ($this->transactionRepository->findBy(['group' => $group]) as $transaction) {
-            $this->processTransaction($transaction, $userMap, $debtsMatrix, $group->getCurrency());
-        }
-        
-        return $this->normalizeDebts($debtsMatrix, $userMap, $group->getCurrency());
-    }
 
-    public function getOptimizedPaymentsForGroup(Group $group): array 
-    {
-        $detailedDebts = $this->getDetailedDebtsForGroup($group);
+        // initialize debts matrix with all user ids
+        $debtsMatrix = array_fill_keys(array_keys($allUserIds), array_fill_keys(array_keys($allUserIds), 0.0));
         
-        return $this->minimizeTransactions($detailedDebts);
-    }
-
-    private function processTransaction(
-        Transaction $transaction,
-        array $userMap,
-        array &$debtsMatrix,
-        Currency $targetCurrency
-    ): void {
-        $payerId = $transaction->getPayer()->getId();
-        $totalPayees = count($transaction->getPayees());
-        $transactionCurrency = $transaction->getCurrency();
-        
-        foreach ($transaction->getPayees() as $payee) {
-            $payeeId = $payee->getId();
-            if ($payeeId != $payerId && isset($userMap[$payeeId])) {
-                
+        // iterate over transactions again to calculate debts
+        foreach ($transactions as $transaction) {
+            // $this->processTransaction($transaction, $debtsMatrix);
+            $payerId = $transaction->getPayer()->getId();
+            $totalPayees = count($transaction->getPayees());
+            $transactionCurrency = $transaction->getCurrency();
+            $targetCurrency = $transaction->getGroup()->getCurrency();
+            
+            foreach ($transaction->getPayees() as $payee) {
+                $payeeId = $payee->getId();
+                if ($payeeId === $payerId) {
+                    continue;
+                }
+                    
                 if ($transactionCurrency->getId() !== $targetCurrency->getId()) {
                     $share = $transaction->getConvertedAmount();
                 } else {
@@ -72,69 +58,119 @@ class DebtService
                 $debtsMatrix[$payeeId][$payerId] += $share;
             }
         }
+
+        return $debtsMatrix;
     }
 
-    private function normalizeDebts(array $matrix, array $userMap, Currency $targetCurrency): array
+    public function getOptimizedDebtsForGroup(Group $group, bool $simple = false): array
     {
-        $normalized = [];
+        $debtsMatrix = $this->getDebtsMatrixForGroup($group);
+        
+        if ($simple) {
+            $transactions = $this->optimizeSimple($debtsMatrix);
+        } else {
+            $transactions = $this->optimizeAdvanced($debtsMatrix);
+        }
+        
+        return $this->normalizeTransactions($transactions, $group);
+    }
 
+    private function optimizeSimple(array $matrix): array
+    {
+        $transactions = [];
+        
+        // Cancel out mutual debts
         foreach ($matrix as $debtorId => $creditors) {
             foreach ($creditors as $creditorId => $amount) {
-                if ($amount > 0 && $debtorId != $creditorId) {
-                    $normalized[] = [
-                        'debtor' => $userMap[$debtorId],
-                        'creditor' => $userMap[$creditorId],
-                        'amount' => round($amount, 2),
-                        'currency' => $targetCurrency,
+                if ($amount > 0 && isset($matrix[$creditorId][$debtorId])) {
+                    $reverseAmount = $matrix[$creditorId][$debtorId];
+                    $reduction = min($amount, $reverseAmount);
+                    $matrix[$debtorId][$creditorId] -= $reduction;
+                    $matrix[$creditorId][$debtorId] -= $reduction;
+                }
+            }
+        }
+        
+        // Collect remaining debts
+        foreach ($matrix as $debtorId => $creditors) {
+            foreach ($creditors as $creditorId => $amount) {
+                if ($amount > 0.001) { // Small threshold for floating point
+                    $transactions[] = [
+                        'from' => $debtorId,
+                        'to' => $creditorId,
+                        'amount' => round($amount, 2)
                     ];
                 }
             }
         }
         
-        return $normalized;
+        return $transactions;
     }
 
-    private function getRelatedTransactions(int $debtorId, int $creditorId, Group $group): array
+    private function optimizeAdvanced(array $matrix): array
     {
-        return $this->transactionRepository->findTransactionsBetweenUsersInGroup(
-            $debtorId,
-            $creditorId,
-            $group->getId()
-        );
-    }
-
-    private function minimizeTransactions(array $debts): array
-    {
-        $transactions = [];
-
-        // log debts
-        $this->logger->info('Debts before minimization:', $debts);
-        
-        foreach ($debts as $pair1 => $amount1) {
-            list($debtor1, $creditor1) = explode('-', $pair1);
-            
-            foreach ($debts as $pair2 => $amount2) {
-                list($debtor2, $creditor2) = explode('-', $pair2);
-                
-                if ($creditor1 == $debtor2 && $debtor1 == $creditor2) {
-                    $reduction = min($amount1, $amount2);
-                    $debts[$pair1] -= $reduction;
-                    $debts[$pair2] -= $reduction;
-                }
+        $netBalances = [];
+        foreach ($matrix as $debtorId => $creditors) {
+            foreach ($creditors as $creditorId => $amount) {
+                $netBalances[$debtorId] = ($netBalances[$debtorId] ?? 0) - $amount;
+                $netBalances[$creditorId] = ($netBalances[$creditorId] ?? 0) + $amount;
             }
         }
         
-        foreach ($debts as $pair => $amount) {
-            if ($amount > 0) {
-                list($debtorId, $creditorId) = explode('-', $pair);
-                $transactions[] = [
-                    'from' => $debtorId,
-                    'to' => $creditorId,
-                    'amount' => round($amount, 2)
-                ];
-            }
+        // Separate debtors and creditors
+        $debtors = array_filter($netBalances, fn($b) => $b < -0.001);
+        $creditors = array_filter($netBalances, fn($b) => $b > 0.001);
+        
+        // Sort by absolute amount (descending)
+        arsort($debtors);
+        arsort($creditors);
+        
+        // Greedy settlement
+        $transactions = [];
+        $debtorIds = array_keys($debtors);
+        $creditorIds = array_keys($creditors);
+        
+        for ($d = 0, $c = 0; $d < count($debtorIds) && $c < count($creditorIds); ) {
+            $debtorId = $debtorIds[$d];
+            $creditorId = $creditorIds[$c];
+            $amount = min(-$debtors[$debtorId], $creditors[$creditorId]);
+            
+            $transactions[] = [
+                'from' => $debtorId,
+                'to' => $creditorId,
+                'amount' => round($amount, 2)
+            ];
+            
+            $debtors[$debtorId] += $amount;
+            $creditors[$creditorId] -= $amount;
+            
+            if (abs($debtors[$debtorId]) < 0.001) $d++;
+            if (abs($creditors[$creditorId]) < 0.001) $c++;
         }
         
         return $transactions;
     }
+
+    private function normalizeTransactions(array $transactions, Group $group): array
+    {
+        $users = $this->groupMembershipService->getGroupUsers($group);
+        $userMap = [];
+        foreach ($users as $user) {
+            $userMap[$user->getId()] = $user;
+        }
+
+        foreach ($transactions as &$transaction) {
+            $fromUser = $userMap[$transaction['from']] ?? ["id" => $transaction['from'], "username" => "Niedostępny użytkownik " . $transaction['from']];
+            $toUser = $userMap[$transaction['to']] ?? ["id" => $transaction['to'], "username" => "Niedostępny użytkownik " . $transaction['to']];
+            $amount = $transaction['amount'];
+            
+            $transaction['from'] = $fromUser;
+            $transaction['to'] = $toUser;
+            $transaction['amount'] = $amount;
+            $transaction['currency'] = $group->getCurrency();
+        }
+        
+        return $transactions;
+    }
+
 }
