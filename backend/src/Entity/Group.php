@@ -15,7 +15,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use App\State\GroupProvider;
 use App\Entity\GroupMembership;
 use App\Entity\Transaction;
 use App\Entity\User;
@@ -25,12 +24,13 @@ use App\State\GroupDebtProvider;
 use App\Dto\Group\GroupDebtResponse;
 use ApiPlatform\Metadata\Link;
 use App\Dto\Group\CreateGroupRequest;
+use App\State\Group\GroupGetProvider;
+use App\State\Group\GroupGetCollectionProvider;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
-#[GetCollection(provider: GroupProvider::class)]
-#[Get(provider: GroupProvider::class)]
+#[GetCollection(provider: GroupGetCollectionProvider::class)]
+#[Get(provider: GroupGetProvider::class)]
 #[Post(
-    denormalizationContext: ['groups' => ['group:write']],
     input: CreateGroupRequest::class,
     processor: GroupProcessor::class
 )]

@@ -43,8 +43,8 @@ export const apiCall = createApi({
         body: credentials,
       }),
     }),
-    getGroups: builder.query<GroupsResponse, void>({
-      query: () => 'groups',
+    getGroups: builder.query<GroupsResponse, number>({
+      query: (page) => 'groups?page=' + page,
     }),
     getGroupMembers: builder.query<GroupMembersResponse, string>({
       query: (groupId) => ({
@@ -157,6 +157,7 @@ export const {
   useLoginMutation, 
   useRegisterMutation,
   useGetGroupsQuery, 
+  useLazyGetGroupsQuery,
   useGetGroupMembersQuery,
   useGetGroupTransactionsQuery,
   useAddGroupMutation,

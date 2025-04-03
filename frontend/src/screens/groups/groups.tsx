@@ -1,7 +1,7 @@
 import { View, FlatList, RefreshControl, Pressable } from 'react-native';
-import { useGetGroupsQuery, useGetInvitesQuery, useAcceptInviteMutation, useRejectInviteMutation } from '~/api';
+import { useGetGroupsQuery, useLazyGetGroupsQuery, useGetInvitesQuery, useAcceptInviteMutation, useRejectInviteMutation } from '~/api';
 import { Group, Invite } from '~/api/types/entity';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -21,12 +21,16 @@ import {
   CardTitle,
   CardDescription
 } from '~/components/ui/card';
-import { Toast } from 'toastify-react-native';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
 export default function Groups() {
-  const { data, isLoading, isFetching, error, refetch } = useGetGroupsQuery();
+  // const { data, isLoading, isFetching, error, refetch } = useLazyGetGroupsQuery();
+  const [groups, setGroups ] = useState<Group[]>([]);
+  const [page, setPage ] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [trigger, { isLoading, isFetching, isError }] = useLazyGetGroupsQuery();
+
   const { data: invites, isLoading: isLoadingInvites, refetch: refetchInvites } = useGetInvitesQuery();
   const [acceptInvite, {isLoading: isLoadingAccept, error: errorAccept}] = useAcceptInviteMutation();
   const [rejectInvite, {isLoading: isLoadingReject, error: errorReject}] = useRejectInviteMutation();
@@ -34,24 +38,43 @@ export default function Groups() {
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<GroupsStackNavigationProp>();
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-      refetchInvites();
-    }, [refetch, acceptInvite, rejectInvite])
-  );
+  const loadInitPage = async () => {
+    const { data, isSuccess } = await trigger(1);
+    setGroups(isSuccess ? data : []);
+    setPage(isSuccess ? 2 : 1);
+    setHasMore(isSuccess ? data.length !== 0 : true);
+  }
+
+  const loadNextPage = async (manual?: boolean) => {
+    if(!hasMore || isFetching || (!manual && isError)) return;
+    const { data, isSuccess } = await trigger(page);
+    if(isSuccess) {
+      setGroups((prev) => [...prev, ...data]);
+      setPage((prev) => prev + 1);
+      if(data.length === 0) {
+        setHasMore(false);
+      }
+    }
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await loadInitPage();
     await refetchInvites();
     setRefreshing(false);
   };
 
-  const showLoading = isLoading || refreshing;
+  useEffect(() => {
+    loadInitPage();
+  }, []);
 
-  if(showLoading && error) return <Loading reverseColors />
-  
+  useFocusEffect(
+    useCallback(() => {
+      loadInitPage();
+      refetchInvites();
+    }, [])
+  );
+
   const renderInviteItem = ({ item }: { item: Invite }) => (
     <Card className="flex flex-1 mb-4 p-4 border-orange-500">
       <CardHeader>
@@ -87,7 +110,7 @@ export default function Groups() {
 
   const renderItem = ({ item, index }: { item: Group, index: number }) => (
     <View
-      className={`${index > 0 ? 'mt-4' : ''}`}
+      className={`${index > 0 ? 'mt-4' : 'mt-6'}`}
     >
       <Pressable
         onPress={() => navigation.navigate('GroupDetails', { groupId: item.id })}
@@ -97,34 +120,43 @@ export default function Groups() {
     </View>
   );
 
+  const showLoading = isLoading || refreshing || (groups.length === 0 && isFetching);
+
   return (
     <>
       {showLoading && <Loading absolute reverseColors />}
 
-      {error ? (
-        <Error onRefresh={onRefresh} message="Wystąpił błąd podczas ładowania grup" />
-      )  : (
-        <>
-
-          {invites && invites.length > 0 && (
-            <FlatList
-              data={invites}
-              renderItem={renderInviteItem}
-              keyExtractor={(item) => item.id}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-              className="flex flex-1 p-6"
-            />
-          )}
+        <View className="flex">
 
           <FlatList
-            data={data}
-            renderItem={renderItem}
+            data={invites}
+            renderItem={renderInviteItem}
             keyExtractor={(item) => item.id}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            className={'flex flex-1 p-6'}
+            className="flex px-6"
           />
-        </>
-      )}
+
+          <FlatList
+            data={groups}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            onEndReached={()=>loadNextPage()}
+            onEndReachedThreshold={0.5}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            className={'flex px-6'}
+            ListFooterComponent={() => (
+              <>
+                {isError && !isFetching && (
+                  <Error className="mt-4" onRefresh={()=>loadNextPage(true)} message="Wystąpił błąd podczas ładowania grup" />
+                )}
+                {/* {isFetching && !showLoading && groups.length > 0 && (
+                  <Loading className="mt-4" reverseColors />
+                )} */}
+                <View className="h-6"></View>
+              </>
+            )}
+          />
+        </View>
 
       <FloatingActionButton 
         onPress={() => navigation.navigate('AddGroup')} 

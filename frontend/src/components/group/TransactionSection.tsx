@@ -12,17 +12,17 @@ const TransactionsSection = ({ groupId }: {groupId: string}) => {
     const { data, isLoading, refetch, error } = useGetGroupTransactionsQuery(groupId);
     const [refreshing, setRefreshing] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            refetch();
-        }, [refetch])
-    );
-
     const onRefresh = async () => {
         setRefreshing(true);
         await refetch();
         setRefreshing(false);
     };
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [])
+    );
 
     const renderTransaction = ({ item }: { item: Transaction }) => (
         <TransactionItem
@@ -39,7 +39,7 @@ const TransactionsSection = ({ groupId }: {groupId: string}) => {
 
     return (
         <View className="mt-4">
-            <View className="flex items-center justify-start mb-4">
+            <View className="flex items-start justify-center mb-4">
                 <Text className="text-lg uppercase">Transakcje</Text>
             </View>
             {showLoading && <Loading absolute reverseColors />}

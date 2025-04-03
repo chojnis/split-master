@@ -20,12 +20,6 @@ const GroupItem = ({ groupName, description }: GroupItemProps) => {
                 <CardTitle>{groupName}</CardTitle>
                 <CardDescription>{description}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <Text>Card Content</Text>
-            </CardContent>
-            <CardFooter>
-                <Text>Card Footer</Text>
-            </CardFooter>
         </Card>
     );
 }

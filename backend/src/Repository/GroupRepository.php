@@ -5,6 +5,10 @@ namespace App\Repository;
 use App\Entity\Group;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\GroupMembership;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
+use Doctrine\Common\Collections\Criteria;
 
 /**
  * @extends ServiceEntityRepository<Group>
@@ -40,4 +44,19 @@ class GroupRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function getUserGroups(User $user, int $page = 1, int $itemsPerPage = 30): DoctrinePaginator
+    {
+        return new DoctrinePaginator(
+            $this->createQueryBuilder('g')
+                ->innerJoin('g.groupMemberships', 'gm', 'WITH', 'gm.user = :user AND gm.status = :status')
+                ->setParameter('user', $user)
+                ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
+                ->addCriteria(
+                    Criteria::create()
+                        ->setFirstResult(($page - 1) * $itemsPerPage)
+                        ->setMaxResults($itemsPerPage)
+                )
+        );
+    }
 }

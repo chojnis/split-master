@@ -1,6 +1,6 @@
-import { View} from 'react-native';
+import { View } from 'react-native';
 import { useGetGroupQuery } from '~/api';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLayoutEffect } from 'react';
 import { Button } from '~/components/ui/button';	
 import { Text } from '~/components/ui/text';
@@ -22,10 +22,22 @@ export default function GroupDetails() {
     const router = useRoute<GroupDetailsScreenRouteProp>();
     const groupId = router.params.groupId;
 
-    const { data, isLoading, isFetching, error, refetch } = useGetGroupQuery(groupId);
+    const { data, isLoading, isFetching, isError, refetch } = useGetGroupQuery(groupId);
 
     const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation<GroupDetailsStackNavigationProp>();
+
+    const onRefresh = async () => {
+      setRefreshing(true);
+      await refetch();
+      setRefreshing(false);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [])
+    );
 
     useLayoutEffect(() => {
       navigation.setOptions({
@@ -40,14 +52,8 @@ export default function GroupDetails() {
       });
     }, [navigation, groupId]);
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await refetch();
-        setRefreshing(false);
-    };
-
-    if (isLoading) return <Loading reverseColors />;
-    if (error || !data) {
+    if (isLoading) return <Loading absolute reverseColors />;
+    if (isError || !data) {
       return (
         <Container>
           <ErrorText className="mb-4">Wystąpił błąd podczas ładowania grupy</ErrorText>
@@ -63,19 +69,19 @@ export default function GroupDetails() {
 
     return (
         <>
-        {isFetching && <Loading className="absolute w-full h-full opacity-70 z-10 dark:bg-black bg-white" reverseColors />}
-        <Container>
-            <View>
+          {isFetching && <Loading absolute reverseColors />}
+          <Container>
+              <View>
                 <Text className={"text-4xl"}>{data.groupName}</Text>
                 <Text>{data.description}</Text>
-            </View>
-            <TransactionsSection groupId={groupId} />
-        </Container>
-        <FloatingActionButton 
-          onPress={() => navigation.navigate('AddTransaction', { groupId: data.id, defaultCurrencyId: data.currency.id })} 
-          icon={<ListPlus className="text-white" width={24} height={24} />}
-          className={"bg-green-500"}
-        />
+              </View>
+              <TransactionsSection groupId={groupId} />
+          </Container>
+          <FloatingActionButton 
+            onPress={() => navigation.navigate('AddTransaction', { groupId: data.id, defaultCurrencyId: data.currency.id })} 
+            icon={<ListPlus className="text-white" width={24} height={24} />}
+            className={"bg-green-500"}
+          />
         </>
     );
 }

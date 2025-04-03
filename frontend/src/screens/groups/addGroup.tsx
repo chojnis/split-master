@@ -54,7 +54,8 @@ const AddGroup = () => {
                 type: 'select',
                 required: true,
                 selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
-                defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
+                // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
+                value: currencies[0].id,
             }
         ]);
     }, [

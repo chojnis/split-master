@@ -103,11 +103,10 @@ export default function GroupSettings() {
             },
             {
                 label: 'Waluta',
-                name: 'currencyId',
+                name: 'currency',
                 type: 'select',
                 required: true,
                 selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
-                // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
                 value: groupData.currency.id,
             },
         ]);
@@ -156,10 +155,10 @@ export default function GroupSettings() {
 
     const handleSaveGroupData = async (formData: FormDataType) => {
         try {
-            const { groupName, description, currencyId } = formData as { groupName: string; description: string; currencyId: string };
+            const { groupName, description, currency } = formData as { groupName: string; description: string; currency: number };
 
-            await updateGroup({ groupId, data: { groupName, description, currencyId } });
-            if (errorUpdate) {
+            const { error } = await updateGroup({ groupId, data: { groupName, description, currency } });
+            if (error) {
                 Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
                 return;
             }

@@ -117,6 +117,7 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
       return;
     }
 
+    console.log('Form data:', formData);
     onSubmit(formData);
   };
 

@@ -12,10 +12,19 @@ export default function App() {
   const [isAppReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    setupStore().then((newStore) => {
+
+    // setupStore().then((newStore) => {
+    //   store = newStore;
+    //   setAppReady(true);
+    // });
+
+    const initializeApp = async () => {
+      const newStore = await setupStore();
       store = newStore;
       setAppReady(true);
-    });
+    }
+
+    initializeApp();
   }, []);
 
   if (!isAppReady || !store) {

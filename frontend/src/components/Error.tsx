@@ -1,3 +1,4 @@
+import { View } from "react-native";
 import { Container } from "~/components/Container";
 import ErrorText from "~/components/ErrorText";
 import { Button } from "~/components/ui/button";
@@ -6,22 +7,23 @@ import { Text } from "~/components/ui/text";
 type ErrorProps = {
     onRefresh: () => void;
     message?: string;
+    className?: string;
 }
 
-const Error = ({ onRefresh, message }: ErrorProps) => {
+const Error = ({ onRefresh, message, className }: ErrorProps) => {
 
-    message ||= "Wystąpił błąd podczas ładowania grup";
+    message ||= "Wystąpił błąd.";
 
     return (
-        <Container>
-        <ErrorText className="mb-4">{message}</ErrorText>
+        <View className={`${className || ''}`}>
+            <ErrorText className="mb-2">{message}</ErrorText>
             <Button
-            variant="link"
-            onPress={onRefresh}
+                variant="link"
+                onPress={onRefresh}
             >
             <Text>Spróbuj ponownie</Text>
             </Button>
-        </Container>
+        </View>
     )
 }
 

@@ -3,7 +3,7 @@ import { Container } from '~/components/Container';
 
 const Loading = () => {
     return (
-        <Container>
+        <Container className="flex justify-center items-center">
             <LoadingComponent reverseColors />
         </Container>
     );

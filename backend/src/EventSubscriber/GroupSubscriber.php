@@ -10,10 +10,13 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Symfony\Component\HttpFoundation\Request;
 
+use Psr\Log\LoggerInterface;
+
 final class GroupSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private GroupMembershipService $groupMembershipService
+        private GroupMembershipService $groupMembershipService,
+        private LoggerInterface $logger
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -28,9 +31,12 @@ final class GroupSubscriber implements EventSubscriberInterface
         $group = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();
 
-        if(!$group instanceof Group || $method !== Request::METHOD_POST) {
+        // if(!$group instanceof Group || $method !== Request::METHOD_POST) {
+        if(!$group instanceof Group) {
             return;
         }
+
+        $this->logger->info('GroupSubscriber::addOwnerMembership called');
 
         $this->groupMembershipService->ensureMembership($group->getOwner(), $group);
     }

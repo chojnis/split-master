@@ -22,17 +22,6 @@ class GroupMembershipService
             ]);
     }
 
-    public function getUserGroups(User $user): iterable
-    {
-        return $this->entityManager->getRepository(Group::class)
-            ->createQueryBuilder('g')
-            ->innerJoin('g.groupMemberships', 'gm', 'WITH', 'gm.user = :user AND gm.status = :status')
-            ->setParameter('user', $user)
-            ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
-            ->getQuery()
-            ->getResult();
-    }
-
     public function getUserGroupInvites(User $user): iterable
     {
         return $this->entityManager->getRepository(GroupMembership::class)

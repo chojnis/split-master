@@ -1,24 +1,21 @@
 <?php
 
-namespace App\State;
+namespace App\State\Group;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\Group;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use ApiPlatform\Metadata\GetCollection;
 use App\Service\GroupMembershipService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-class GroupProvider implements ProviderInterface
+class GroupGetProvider implements ProviderInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
         private ProviderInterface $itemProvider,
         private GroupMembershipService $groupMembershipService,
-        private EntityManagerInterface $entityManager,
         private Security $security
     ) {}
 
@@ -29,16 +26,16 @@ class GroupProvider implements ProviderInterface
             return new AccessDeniedException('User not authenticated.');
         }
 
-        if($operation instanceof GetCollection) {
-            return $this->groupMembershipService->getUserGroups($user);
+        $group = $this->itemProvider->provide($operation, $uriVariables, $context);
+
+        if(!$group instanceof Group) {
+            return null;
         }
 
-        $groupId = $uriVariables['id'];
-        $group = $this->entityManager->getRepository(Group::class)->find($groupId);
-        if($group && !$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
+        if(!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
             throw new AccessDeniedException('You are not a member of this group.');
         }
 
-        return $this->itemProvider->provide($operation, $uriVariables, $context);
+        return $group;
     }
 }

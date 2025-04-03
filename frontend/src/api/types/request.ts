@@ -17,7 +17,7 @@ export type RefreshTokenRequest = {
 export type AddGroupRequest = {
     groupName: string;
     description: string;
-    currencyId: string;
+    currency: number;
 }
 
 export type AddTransactionRequest = {
