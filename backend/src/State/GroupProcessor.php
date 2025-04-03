@@ -29,9 +29,12 @@ final class GroupProcessor implements ProcessorInterface
             throw new \AccessDeniedException('User not authenticated.');
         }
 
-        if ($data instanceof CreateGroupRequest && $operation instanceof Post) {
-            return $this->groupService->createGroupFromRequest($data);
+        // if ($data instanceof CreateGroupRequest && $operation instanceof Post) {
+        if (!$data instanceof Group) {
+            throw new \InvalidArgumentException('Invalid data type. Expected Group.');
         }
+
+        $data->setOwner($user);
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
     }

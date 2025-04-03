@@ -33,7 +33,9 @@ use App\Dto\TransactionRequest;
     normalizationContext: ['groups' => ['transaction:read']],
     // denormalizationContext: ['groups' => ['transaction:write']]
 )]
-#[Get(provider: TransactionProvider::class)]
+#[Get(
+    provider: TransactionProvider::class
+)]
 #[GetCollection(
     uriTemplate: '/transactions',
     provider: TransactionProvider::class,

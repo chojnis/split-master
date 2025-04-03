@@ -56,20 +56,20 @@ class GroupService
         }
     }
 
-    public function createGroupFromRequest(CreateGroupRequest $createGroupRequest): Group
-    {
-        $group = new Group();
-        $group->setGroupName($createGroupRequest->groupName);
-        $group->setDescription($createGroupRequest->description);
+    // public function createGroupFromRequest(CreateGroupRequest $createGroupRequest): Group
+    // {
+    //     $group = new Group();
+    //     $group->setGroupName($createGroupRequest->groupName);
+    //     $group->setDescription($createGroupRequest->description);
         
-        $currency = $this->entityManager->getReference(Currency::class, $createGroupRequest->currencyId);
-        $group->setCurrency($currency);
+    //     $currency = $this->entityManager->getReference(Currency::class, $createGroupRequest->currencyId);
+    //     $group->setCurrency($currency);
         
-        $group->setOwner($this->security->getUser());
+    //     $group->setOwner($this->security->getUser());
         
-        $this->entityManager->persist($group);
-        $this->entityManager->flush();
+    //     $this->entityManager->persist($group);
+    //     $this->entityManager->flush();
         
-        return $group;
-    }
+    //     return $group;
+    // }
 }

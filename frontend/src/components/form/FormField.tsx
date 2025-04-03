@@ -33,7 +33,7 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
         <View className={`border rounded-md relative flex justify-center ${error ? 'border-red-500' : 'border-stone-300'} ${field.type !== 'select' && field.type !== 'textarea' ? 'h-16' : ''}`}>
           {field.type === 'textarea' && (
             <Textarea 
-              value={value !== undefined ? String(value) : undefined} 
+              value={value as string | undefined} 
               onChangeText={handleChange} 
               placeholder={field.placeholder} 
               keyboardType='default'
@@ -43,7 +43,8 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
           )}
           {field.type === 'select' && (
             <Select
-              value={typeof value === 'number' ? String(value) : value as string | string[] | undefined}
+              // value={typeof value === 'number' ? String(value) : value as string | string[] | undefined}
+              value={value}
               onChangeValue={handleChange}
               selectOptions={field.selectOptions || []}
               className={'border-transparent'}
@@ -53,7 +54,7 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
           )}
           {field.type !== 'textarea' && field.type !== 'select' && (
             <Input
-              value={value !== undefined ? String(value) : undefined}
+              value={value as string | undefined}
               onChangeText={handleChange}
               keyboardType={field.type === 'number' ? 'number-pad' : 'default'}
               placeholder={field.placeholder}

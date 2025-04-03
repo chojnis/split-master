@@ -8,6 +8,7 @@ import { GroupsStackParamList } from '~/navigation/groups';
 import { useCallback, useEffect, useState } from 'react';
 import Loading from '~/components/Loading';
 import { Currency } from '~/api/types/entity';
+import { showMessage } from 'react-native-flash-message';
 
 type AddGroupScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddGroup'>;
 
@@ -50,7 +51,7 @@ const AddGroup = () => {
             { label: 'Opis', placeholder: 'Opłaty na życie', name: 'description', type: 'textarea' },
             {
                 label: 'Waluta rozliczeń',
-                name: 'currencyId',
+                name: 'currency',
                 type: 'select',
                 required: true,
                 selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
@@ -66,13 +67,18 @@ const AddGroup = () => {
     ]);
 
     const handleSubmit = async (formData: FormDataType) => {
-        const { groupName, description, currencyId } = formData as { groupName: string; description: string, currencyId: string };
+        const { groupName, description, currency } = formData as { groupName: string; description: string, currency: number };
 
         try{
-            const { data } = await fetchAddGroup({ groupName, description, currencyId });
+            const { data } = await fetchAddGroup({ groupName, description, currency });
 
             if(data) {
                 navigation.goBack();
+                showMessage({
+                    message: 'Grupa została dodana',
+                    type: 'success',
+                    duration: 1000,
+                });
             }
         } catch (err) {
             Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');

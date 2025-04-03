@@ -75,7 +75,7 @@ export default function GroupDetails() {
                 <Text className={"text-4xl"}>{data.groupName}</Text>
                 <Text>{data.description}</Text>
               </View>
-              <TransactionsSection groupId={groupId} />
+              <TransactionsSection groupId={groupId} defaultCurrencyId={data.currency.id} navigation={navigation} />
           </Container>
           <FloatingActionButton 
             onPress={() => navigation.navigate('AddTransaction', { groupId: data.id, defaultCurrencyId: data.currency.id })} 

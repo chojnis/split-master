@@ -3,21 +3,28 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Container } from '~/components/Container';
 import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
-import { useAddTransactionMutation, useGetCurrenciesQuery, useGetGroupMembersQuery, useGetPairExchangeRateQuery } from '~/api';
+import { 
+    useEditTransactionMutation, 
+    useGetCurrenciesQuery, 
+    useGetGroupMembersQuery, 
+    useGetPairExchangeRateQuery,
+    useGetTransactionQuery
+} from '~/api';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { Currency } from '~/api/types/entity';
 import Loading from '~/components/Loading';
 import { useCallback, useEffect, useState } from 'react';
+import { showMessage } from 'react-native-flash-message';
 
-type AddTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddTransaction'>;
-type AddTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'AddTransaction'>;
+type EditTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'EditTransaction'>;
+type EditTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'EditTransaction'>;
 
-const AddTransaction = () => {
-    const navigation = useNavigation<AddTransactionScreenNavigationProps>();
-    const route = useRoute<AddTransactionScreenRouteProps>();
-    const { groupId, defaultCurrencyId } = route.params;
+const EditTransaction = () => {
+    const navigation = useNavigation<EditTransactionScreenNavigationProps>();
+    const route = useRoute<EditTransactionScreenRouteProps>();
+    const { groupId, transactionId, defaultCurrencyId } = route.params;
 
-    const [fetchAddTransaction, { isLoading, error }] = useAddTransactionMutation();
+    const [updateTransaction, { isLoading, error }] = useEditTransactionMutation();
     const { 
         data: currencies, 
         isError: isErrorCurrencies, 
@@ -35,6 +42,15 @@ const AddTransaction = () => {
         refetch: refetchMembers 
     } = useGetGroupMembersQuery(groupId);
 
+    const { 
+        data: transactionData, 
+        isError: isErrorTransaction, 
+        isLoading: isLoadingTransaction,
+        isFetching: isFetchingTransaction,
+        isSuccess: isSuccessTransaction,
+        refetch: refetchTransaction
+    } = useGetTransactionQuery(transactionId);
+
     const [selectedCurrencyId, setSelectedCurrencyId] = useState<string>("");
 
     const { 
@@ -51,18 +67,20 @@ const AddTransaction = () => {
 
     const [fields, setFields] = useState<FormFieldType[]>([]);
 
-    const isLoadError = isErrorCurrencies || isErrorMembers;
-    const isLoadDataReady = isSuccessCurrencies && isSuccessMembers;
+    const isInitFetching = isFetchingCurrencies || isFetchingMembers || isFetchingTransaction;
+    const isLoadError = isErrorCurrencies || isErrorMembers || isErrorTransaction;
+    const isLoadDataReady = isSuccessCurrencies && isSuccessMembers && isSuccessTransaction;
 
     useFocusEffect(
         useCallback(() => {
             refetchCurrencies();
             refetchMembers();
+            refetchTransaction();
         }, [])
     );
 
     useEffect(() => {
-        if (isFetchingCurrencies || isFetchingMembers) return;
+        if (isInitFetching) return;
 
         if (
             isLoadError
@@ -75,12 +93,29 @@ const AddTransaction = () => {
             return;
         }
 
+        console.log('transactionData', transactionData);
+
         
         if(fields.length === 0) {
 
             setFields([
-                { label: 'Nazwa transakcji', placeholder: 'Pączki', name: 'name', type: 'text', required: true },
-                { label: 'Wartość transakcji', placeholder: '0.00', name: 'amount', type: 'number', width: 70, required: true },
+                { 
+                    label: 'Nazwa transakcji', 
+                    placeholder: 'Pączki', 
+                    name: 'name', 
+                    type: 'text', 
+                    required: true,
+                    value: transactionData.name, 
+                },
+                { 
+                    label: 'Wartość transakcji', 
+                    placeholder: '0.00', 
+                    name: 'amount', 
+                    type: 'number', 
+                    width: 70, 
+                    required: true,
+                    value: transactionData.amount.toString(),
+                },
                 {
                     label: 'Waluta',
                     name: 'currencyId',
@@ -88,8 +123,7 @@ const AddTransaction = () => {
                     width: 30,
                     required: true,
                     selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
-                    // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
-                    value: currencies[0].id,
+                    value: transactionData.currency.id,
                 },
                 {
                     label: 'Płatnik',
@@ -97,8 +131,7 @@ const AddTransaction = () => {
                     type: 'select',
                     required: true,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
-                    // defaultSelectValue: {label: members[0].username || members[0].email, value: members[0].id},
-                    value: members[0].id,
+                    value: transactionData.payer.id,
                 },
                 {
                     label: 'Odbiorcy',
@@ -107,12 +140,11 @@ const AddTransaction = () => {
                     required: true,
                     multiple: true,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
-                    // defaultSelectValue: [{label: members[0].username || members[0].email, value: members[0].id}],
-                    value: [members[0].id],
+                    value: transactionData.payees.map((payee) => payee.id),
                 },
             ]);
 
-            setSelectedCurrencyId(currencies[0].id);
+            setSelectedCurrencyId(transactionData.currency.id);
         } else {
 
             setFields((prevFields) => 
@@ -180,9 +212,14 @@ const AddTransaction = () => {
     const handleSubmit = async (formData: FormDataType) => {
         const { name, amount, currencyId, payerId, payeesIds } = formData as { name: string; amount: string; currencyId: string; payerId: string; payeesIds: string[] };
         try {
-            const { data } = await fetchAddTransaction({ groupId, data: { name, amount, currencyId, payerId, payeesIds } });
+            const { data } = await updateTransaction({ transactionId, data: { name, amount, currencyId, payerId, payeesIds } });
             if (data) {
                 navigation.goBack();
+                showMessage({
+                    message: 'Transakcja została zaktualizowana.',
+                    type: 'success',
+                    duration: 1000,
+                })
             }
         } catch (err) {
             Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
@@ -224,9 +261,9 @@ const AddTransaction = () => {
 
     return (
         <Container>
-            <Form fields={fields} onSubmit={handleSubmit} onChange={onChange} isLoading={isLoading} error={error} submitText="Dodaj transakcję" submitClassName="bg-green-500" />
+            <Form fields={fields} onSubmit={handleSubmit} onChange={onChange} isLoading={isLoading} error={error} submitText="Zapisz transakcję" submitClassName="bg-green-500" />
         </Container>
     );
 };
 
-export default AddTransaction;
+export default EditTransaction;

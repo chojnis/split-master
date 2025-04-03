@@ -5,6 +5,7 @@ import { AuthStackParamList } from '~/navigation/auth';
 import { useRegisterMutation } from '~/api';
 import Form, { FormFieldType, FormDataType } from '~/components/form/Form';
 import { Container } from '~/components/Container';
+import { showMessage } from 'react-native-flash-message';
 
 type RegisterScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -20,6 +21,12 @@ const Register = () => {
 
       if(data){
         navigation.goBack();
+        showMessage({
+          message: 'Rejestracja zakończona sukcesem',
+          description: 'Możesz się teraz zalogować',
+          type: 'success',
+          duration: 2000,
+        });
       }
     } catch (err) {
       Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');

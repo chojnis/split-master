@@ -32,8 +32,8 @@ export default function Groups() {
   const [trigger, { isLoading, isFetching, isError }] = useLazyGetGroupsQuery();
 
   const { data: invites, isLoading: isLoadingInvites, refetch: refetchInvites } = useGetInvitesQuery();
-  const [acceptInvite, {isLoading: isLoadingAccept, error: errorAccept}] = useAcceptInviteMutation();
-  const [rejectInvite, {isLoading: isLoadingReject, error: errorReject}] = useRejectInviteMutation();
+  const [acceptInvite, {isLoading: isLoadingAccept, error: errorAccept, isSuccess: isSuccessAccept}] = useAcceptInviteMutation();
+  const [rejectInvite, {isLoading: isLoadingReject, error: errorReject, isSuccess: isSuccessReject}] = useRejectInviteMutation();
 
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<GroupsStackNavigationProp>();
@@ -72,11 +72,11 @@ export default function Groups() {
     useCallback(() => {
       loadInitPage();
       refetchInvites();
-    }, [])
+    }, [isSuccessAccept, isSuccessReject])
   );
 
-  const renderInviteItem = ({ item }: { item: Invite }) => (
-    <Card className="flex flex-1 mb-4 p-4 border-orange-500">
+  const renderInviteItem = ({ item, index }: { item: Invite, index: number }) => (
+    <Card className={`flex p-4 mb-16 border-orange-500 ${index > 0 ? 'mt-4' : 'mt-6'}`}>
       <CardHeader>
         <CardDescription className="mb-2">Otrzymałeś zaproszenie do grupy</CardDescription>
         <CardTitle>{item.group.groupName}</CardTitle>

@@ -5,18 +5,24 @@ namespace App\State;
 use App\Entity\Transaction;
 use App\Entity\Group;
 use App\Entity\GroupMembership;
+use App\Service\GroupMembershipService;
 use Doctrine\ORM\EntityManagerInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Metadata\Operation;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class TransactionProvider implements ProviderInterface
 {
     public function __construct(
+        #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
+        private ProviderInterface $itemProvider,
         private EntityManagerInterface $entityManager, 
-        private Security $security
+        private Security $security,
+        private GroupMembershipService $groupMembershipService,
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Transaction|null
@@ -39,6 +45,19 @@ class TransactionProvider implements ProviderInterface
                 $transaction->setGroup($group);
             }
 
+            return $transaction;
+        }
+
+        if($operation instanceof Get) {
+            $transaction = $this->itemProvider->provide($operation, $uriVariables, $context);
+            if (!$transaction) {
+                return null;
+            }
+
+            if(!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
+                throw new AccessDeniedException('You are not a member of this group.');
+            }
+            
             return $transaction;
         }
     

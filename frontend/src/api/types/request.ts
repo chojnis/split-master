@@ -21,14 +21,11 @@ export type AddGroupRequest = {
 }
 
 export type AddTransactionRequest = {
-    groupId: string;
-    data: {
-        name: string;
-        amount: string;
-        currencyId: string;
-        payerId: string;
-        payeesIds: string[];
-    }
+    name: string;
+    amount: string;
+    currencyId: string;
+    payerId: string;
+    payeesIds: string[];
 }
 
 export type sendInviteRequest = {

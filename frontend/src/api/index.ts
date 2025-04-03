@@ -93,6 +93,22 @@ export const apiCall = createApi({
         body: data,
       }),
     }),
+    editTransaction: builder.mutation<void, { transactionId: string, data: AddTransactionRequest }>({
+      query: ({transactionId, data}) => ({
+        url: `transactions/${transactionId}`,
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+      }),
+    }),
+    getTransaction: builder.query<AddTransactionResponse, string>({
+      query: (transactionId) => ({
+        url: `transactions/${transactionId}`,
+        method: 'GET',
+      }),
+    }),
     getInvites: builder.query<InvitesResponse, void>({
       query: () => ({
         url: 'invites',
@@ -144,7 +160,7 @@ export const apiCall = createApi({
       query: ({ groupId, data }) => ({
         url: `groups/${groupId}`,
         method: 'PATCH',
-        body: data,
+        body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/merge-patch+json',
         },
@@ -165,6 +181,8 @@ export const {
   useGetUserQuery,
   useGetCurrenciesQuery,
   useAddTransactionMutation,
+  useEditTransactionMutation,
+  useGetTransactionQuery,
   useGetInvitesQuery,
   useAcceptInviteMutation,
   useRejectInviteMutation,

@@ -32,7 +32,6 @@ class RequestLoggerListener
         // Zapis do logów
         $this->logger->info('📩 API REQUEST:', [
             'method' => $method,
-            'path' => $path,
             'headers' => $headers,
             'body' => $body
         ]);

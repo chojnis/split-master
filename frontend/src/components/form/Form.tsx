@@ -30,6 +30,7 @@ type FormProps = {
   error?: ApiError | SerializedError;
   submitText?: string;
   submitClassName?: string;
+  submitTextClassName?: string;
 }
 
 export type FormDataType = {
@@ -40,8 +41,9 @@ type ErrorType = {
   [key: string]: string | undefined;
 }
 
-const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submitClassName }: FormProps) => {
+const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submitClassName, submitTextClassName }: FormProps) => {
   const [formData, setFormData] = useState<FormDataType>({});
+  const [isReady, setIsReady] = useState<boolean>(false);
   const [errors, setErrors] = useState<ErrorType>({});
   const [generalError, setGeneralError] = useState<string | null>();
 
@@ -74,12 +76,6 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
 
     const initialData: FormDataType = {};
     fields.forEach(field => {
-      // if (field.type === 'select' && field.defaultSelectValue !== undefined && formData[field.name] === undefined) {
-      //   initialData[field.name] = Array.isArray(field.defaultSelectValue)
-      //     ? field.defaultSelectValue.map(option => option.value)
-      //     : field.defaultSelectValue.value;
-      // }
-
       if (
         field.value
         && field.value !== undefined
@@ -91,6 +87,8 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
 
     setFormData(prev => ({ ...prev, ...initialData }));
     onChange && onChange({ ...formData, ...initialData });
+
+    setIsReady(true);
   }, []);
 
   const handleChange = (name: string, value: FormFieldValue) => {
@@ -117,7 +115,6 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
       return;
     }
 
-    console.log('Form data:', formData);
     onSubmit(formData);
   };
 
@@ -145,6 +142,10 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
 
     return rows;
   };
+
+  if(!isReady) {
+    return <Loading absolute reverseColors />;
+  }
 
   return (
     <View>
@@ -178,7 +179,7 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
         onPress={handleSubmit} 
         disabled={isLoading}
       >
-        {isLoading ? <Loading /> : <Text>{submitText || 'Prześlij'}</Text>}
+        {isLoading ? <Loading /> : <Text className={`${submitTextClassName || ''}`}>{submitText || 'Prześlij'}</Text>}
       </Button>
     </View>
   );

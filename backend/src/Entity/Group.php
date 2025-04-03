@@ -31,7 +31,7 @@ use App\State\Group\GroupGetCollectionProvider;
 #[GetCollection(provider: GroupGetCollectionProvider::class)]
 #[Get(provider: GroupGetProvider::class)]
 #[Post(
-    input: CreateGroupRequest::class,
+    // input: CreateGroupRequest::class,
     processor: GroupProcessor::class
 )]
 #[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]

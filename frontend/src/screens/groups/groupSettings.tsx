@@ -14,6 +14,9 @@ import { Separator } from '~/components/Separator';
 
 import { RootState } from '~/store';
 import { useSelector } from 'react-redux';
+import { Toast } from 'toastify-react-native'
+import { showMessage, hideMessage } from "react-native-flash-message";
+
 
 import {
     Dialog,
@@ -45,7 +48,8 @@ export default function GroupSettings() {
         isFetching: isFetchingGroup,
         isError: isErrorGroup,
         isSuccess: isSuccessGroup,
-        error: errorGroup 
+        error: errorGroup,
+        refetch: refetchGroup
     } = useGetGroupQuery(groupId);
     const { 
         data: currencies, 
@@ -57,7 +61,7 @@ export default function GroupSettings() {
     } = useGetCurrenciesQuery();
     const [sendInvite, { isLoading: isLoadingInvite, error: errorInvite }] = useSendInviteMutation();
 
-    const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate }] = useUpdateGroupMutation();
+    const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate, isSuccess: isSuccessUpdateGroup }] = useUpdateGroupMutation();
 
     const userId = useSelector((state: RootState) => state.auth.user.id);
     const isOwner = groupData?.owner.id === userId;
@@ -67,6 +71,12 @@ export default function GroupSettings() {
     ]);
 
     const [editGroupFields, setEditGroupFields] = useState<FormFieldType[]>([]);
+
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+
+    useEffect(() => {
+        refetchGroup();
+    }, [isSuccessUpdateGroup]);
 
     useEffect(() => {
         if (
@@ -89,7 +99,7 @@ export default function GroupSettings() {
             { 
                 label: 'Nazwa grupy', 
                 placeholder: 'Pączki', 
-                name: 'name', 
+                name: 'groupName', 
                 type: 'text', 
                 required: true,
                 value: groupData.groupName,
@@ -163,7 +173,16 @@ export default function GroupSettings() {
                 return;
             }
 
-            Alert.alert("Sukces", "Dane grupy zostały zaktualizowane.");
+            showMessage({
+                message: "Dane grupy zostały zaktualizowane.",
+                type: "success",
+                duration: 1000,
+                // floating: true,
+                animated: true,
+                style: {opacity: .95},
+
+            });
+            setOpenDialog(false);
         } catch (error) {
             console.error("Error updating group data:", error);
             Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
@@ -174,7 +193,7 @@ export default function GroupSettings() {
     return (
         <Container>
             {isOwner && (
-                <Dialog className="mb-2">
+                <Dialog className="mb-2" open={openDialog} onOpenChange={setOpenDialog}>
                     <DialogTrigger asChild>
                         <Button variant='outline'>
                             <Text>Edytuj dane grupy</Text>
@@ -182,15 +201,16 @@ export default function GroupSettings() {
                     </DialogTrigger>
                     <DialogContent className='sm:max-w-[425px]'>
                         <DialogHeader>
-                            <Form fields={editGroupFields} onSubmit={handleSaveGroupData} isLoading={isLoadingUpdate} error={errorUpdate} submitText="Zapisz" />
+                            <Form 
+                                fields={editGroupFields} 
+                                onSubmit={handleSaveGroupData} 
+                                isLoading={isLoadingUpdate} 
+                                error={errorUpdate} 
+                                submitClassName="bg-green-500" 
+                                submitText="Zapisz" 
+                                submitTextClassName="text-white" 
+                            />
                         </DialogHeader>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                            <Button>
-                                <Text>OK</Text>
-                            </Button>
-                            </DialogClose>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             )}

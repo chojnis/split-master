@@ -6,6 +6,7 @@ import GroupSettingsScreen from '~/screens/groups/groupSettings';
 import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
+import EditTransactionScreen from '~/screens/groups/editTransaction';
 import Settings from '~/lib/icons/Settings';
 import { Button } from '~/components/ui/button';
 import { RouteProp } from '@react-navigation/native';
@@ -15,6 +16,7 @@ export type GroupsStackParamList = {
     GroupDetails: { groupId: string };
     TransactionDetails: undefined;
     AddTransaction: { groupId: string, defaultCurrencyId: string };
+    EditTransaction: { groupId: string, transactionId: string, defaultCurrencyId: string };
     AddGroup: undefined;
     UserDetails: { userId: string};
     GroupSettings: { groupId: string };
@@ -67,6 +69,13 @@ const GroupsStack = () => {
                     title: 'Dodaj transakcję'
                 }}
                 component={AddTransactionScreen} 
+            />
+            <GroupsStackNavigator.Screen 
+                name="EditTransaction"
+                options={{
+                    title: 'Dodaj transakcję'
+                }}
+                component={EditTransactionScreen} 
             />
             <GroupsStackNavigator.Screen
                 name="UserDetails"

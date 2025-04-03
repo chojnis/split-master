@@ -13,7 +13,7 @@ type TransactionItemProps = {
   
 const TransactionItem = ({ id, payerName, payerImageUrl, title, amount, currencySymbol }: TransactionItemProps) => {
     return (
-        <Pressable className="flex flex-row justify-between items-center p-3 rounded-md bg-stone-100 dark:bg-stone-800 mb-2">
+        <View className="flex flex-row justify-between items-center p-3 rounded-md bg-stone-100 dark:bg-stone-800 mb-2">
             <View className="mr-3 flex items-center justify-center"> 
                 <ReceiptText className="dark:text-white text-black" width={24} height={24} />
             </View>
@@ -38,7 +38,7 @@ const TransactionItem = ({ id, payerName, payerImageUrl, title, amount, currency
                     {amount} {currencySymbol}
                 </Text>
             </View>
-        </Pressable>
+        </View>
     );
 }
 

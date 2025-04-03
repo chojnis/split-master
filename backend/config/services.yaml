@@ -45,7 +45,7 @@ services:
             - { name: kernel.event_subscriber }
             - { name: api_platform.event_subscriber }
 
-    App\Serializer\PlainIdentifierDenormalizer:
+    App\Serializer\GroupCurrencyIdentifierDenormalizer:
         arguments:
             $iriConverter: '@api_platform.iri_converter'
             $entityManager: '@doctrine.orm.entity_manager'

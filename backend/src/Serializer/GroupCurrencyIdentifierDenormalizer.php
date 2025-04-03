@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Group;
 use App\Entity\Currency;
 
-class PlainIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
+class GroupCurrencyIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 

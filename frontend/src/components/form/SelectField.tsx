@@ -1,20 +1,8 @@
-import { useEffect } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Option
-} from '~/components/ui/select';
-import { Text } from '~/components/ui/text';
-import RNPickerSelect from 'react-native-picker-select';
-import { MultiSelect } from 'react-native-element-dropdown';
+import { View } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import { useColorScheme } from '~/lib/useColorScheme';
 import CheckboxField from './CheckboxField';
+import { FormFieldValue } from './FormField';
 
 // export type SelectOption = Option;
 export type SelectOption = {
@@ -23,15 +11,15 @@ export type SelectOption = {
 };
 
 type SelectProps = {
-    value?: string | string[];
-    onChangeValue: (value: string | string[]) => void;
+    value?: FormFieldValue;
+    onChangeValue: (value: FormFieldValue) => void;
     selectOptions: SelectOption[];
     defaultValue?: SelectOption | SelectOption[];
     className?: string;
     multiple?: boolean;
 }
 
-const findOptionByValue = (options: SelectOption[], value?: string) => {
+const findOptionByValue = (options: SelectOption[], value?: string | number) => {
     return options.find(option => option.value == value);
 }
 
@@ -47,19 +35,13 @@ const SelectField = ({
     defaultValue,
     multiple
 }: SelectProps) => {
-    const selectedOption = multiple 
-        ? findOptionsByValue(selectOptions, Array.isArray(value) ? value : [])
-        : findOptionByValue(selectOptions, typeof value === 'string' ? value : undefined);
-    const singleSelectedOption = multiple ? undefined : selectedOption as SelectOption | undefined;
-    const singleDefaultValue = multiple ? undefined : defaultValue as SelectOption | undefined;
-
     const { colorScheme } = useColorScheme();
 
     return (
         <View className={`p-0 m-0 ${className || ''}`}>
             {!multiple ? (
                 <Picker
-                    selectedValue={singleSelectedOption}
+                    selectedValue={value}
                     onValueChange={(itemValue, itemIndex) => {
                         const selectedOption = selectOptions[itemIndex];
                         if (selectedOption) {
