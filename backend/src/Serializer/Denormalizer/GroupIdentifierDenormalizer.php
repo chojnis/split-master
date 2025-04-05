@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Serializer;
+namespace App\Serializer\Denormalizer;
 
 use ApiPlatform\Symfony\Routing\IriConverter;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Group;
 use App\Entity\Currency;
 
-class GroupCurrencyIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
+class GroupIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 
@@ -29,7 +29,11 @@ class GroupCurrencyIdentifierDenormalizer implements DenormalizerInterface, Deno
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return \in_array($format, ['json', 'jsonld'], true) && is_a($type, Group::class, true) && !empty($data['currency']) && !isset($context[__CLASS__]);
+        return 
+            \in_array($format, ['json', 'jsonld'], true) 
+            && is_a($type, Group::class, true)
+            && !empty($data['currency'])
+            && !isset($context[__CLASS__]);
     }
 
     public function getSupportedTypes(?string $format): array

@@ -23,38 +23,22 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\Metadata\Link;
+use App\Dto\TransactionRequest;
 use App\Entity\Group;
 use App\Entity\Currency;
 use App\Entity\User;
-use App\Dto\TransactionRequest;
+use App\Entity\TransactionEntry;
+use App\State\Transaction\TransactionPostProcessor;
+use App\Dto\Transaction\TransactionResponse;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
+    denormalizationContext: ['groups' => ['transaction:write']],
     normalizationContext: ['groups' => ['transaction:read']],
-    // denormalizationContext: ['groups' => ['transaction:write']]
 )]
 #[Get(
-    provider: TransactionProvider::class
-)]
-#[GetCollection(
-    uriTemplate: '/transactions',
     provider: TransactionProvider::class,
-    openapi: new Operation(
-        parameters: [
-            new Parameter(
-                name: 'payees',
-                in: 'query',
-                schema: ['type' => 'string'],
-                description: 'Filter transactions by payees IDs.'
-            ),
-            new Parameter(
-                name: 'payer',
-                in: 'query',
-                schema: ['type' => 'string'],
-                description: 'Filter transactions by payer ID.'
-            )
-        ]
-    ),
+    output: TransactionResponse::class,
 )]
 #[GetCollection(
     uriTemplate: '/groups/{groupId}/transactions',
@@ -91,10 +75,13 @@ use App\Dto\TransactionRequest;
             fromProperty: 'transactions'
         ),
     ],
-    name: 'create',
+    // name: 'create',
+    // provider: TransactionProvider::class,
+    // processor: TransactionProcessor::class,
     provider: TransactionProvider::class,
-    processor: TransactionProcessor::class,
+    processor: TransactionPostProcessor::class,
     input: TransactionRequest::class,
+    output: TransactionResponse::class
 )]
 #[Patch(
     name: 'patch',
@@ -105,12 +92,7 @@ use App\Dto\TransactionRequest;
     name: 'delete',
     processor: TransactionProcessor::class
 )]
-#[ApiFilter(SearchFilter::class, properties: [
-    'group.id' => 'exact',
-    'payer.id' => 'exact',
-    'payees.id' => 'exact',
-])]
-#[ORM\Entity(repositoryClass: 'App\Repository\TransactionRepository')]
+#[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'transaction')]
 class Transaction
 {
@@ -121,65 +103,38 @@ class Transaction
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotBlank(message: 'Nazwa transakcji nie może być pusta.')]
-    #[Assert\Length(
-        max: 255,
-        maxMessage: 'Nazwa transakcji nie może przekroczyć ilości znaków: {{ limit }}.'
-    )]
-    private string $name;
+    #[Groups(['transaction:read'])]
+    private ?string $name = null;
 
-    #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotBlank(message: 'Wartość nie może być pusta.')]
-    #[Assert\Positive(message: 'Wartość musi być większa od 0.')]
-    private float $amount;
-
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Currency')]
+    #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[ORM\JoinColumn(name: 'currency_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotNull(message: 'Waluta jest obowiązkowa.')]
-    private Currency $currency;
+    #[Groups(['transaction:read'])]
+    private ?Currency $currency = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 6)]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotBlank(message: 'Wartość nie może być pusta.')]
-    #[Assert\Positive(message: 'Wartość musi być większa od 0.')]
-    private float $exchangeRate;
+    #[Groups(['transaction:read'])]
+    private ?float $exchangeRate = null;
+
+    #[ORM\ManyToOne(targetEntity: Group::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private ?Group $group = null;
+
+    #[ORM\OneToMany(mappedBy: 'transaction', targetEntity: TransactionEntry::class, cascade: ['persist', 'remove'])]
+    // #[Groups(['transaction:read'])]
+    private Collection $entries;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups(['transaction:read'])]
-    #[Assert\NotBlank(message: 'Data utworzenia nie może być pusta.')]
-    #[Assert\Type(
-        type: \DateTime::class,
-        message: 'Wartość {{ value }} nie jest poprawnym formatem daty.'
-    )]
-    private \DateTime $createdAt;
+    private ?\DateTime $transactionDate = null;
 
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayer')]
-    #[ORM\JoinColumn(name: 'payer_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\NotNull(message: 'Do transakcji musi być przypisany płatnik.')]
-    private User $payer;
-
-    #[ORM\ManyToMany(targetEntity: 'App\Entity\User', inversedBy: 'transactionsAsPayee')]
-    #[ORM\JoinTable(name: 'transaction_payees')]
-    #[Groups(['transaction:read', 'transaction:write'])]
-    #[Assert\Count(
-        min: 1,
-        minMessage: 'Transakcja musi mieć co najmniej jednego odbiorcę.'
-    )]
-    private Collection $payees;
-
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\Group')]
-    #[ORM\JoinColumn(name: 'group_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\Column(type: 'datetime')]
     #[Groups(['transaction:read'])]
-    #[Assert\NotNull(message: 'Grupa musi być powiązana z transakcją.')]
-    private Group $group;
+    private ?\DateTime $createdAt = null;
 
     public function __construct()
     {
-        $this->payees = new ArrayCollection();
+        $this->entries = new ArrayCollection();
+        $this->transactionDate = new \DateTime();
         $this->createdAt = new \DateTime();
     }
 
@@ -199,17 +154,6 @@ class Transaction
         return $this;
     }
 
-    public function getAmount(): float
-    {
-        return $this->amount;
-    }
-
-    public function setAmount(float $amount): self
-    {
-        $this->amount = $amount;
-        return $this;
-    }
-
     public function getCurrency(): Currency
     {
         return $this->currency;
@@ -226,35 +170,17 @@ class Transaction
         return $this->createdAt;
     }
 
-    public function getPayer(): User
+    public function getTransactionDate(): \DateTime
     {
-        return $this->payer;
+        return $this->transactionDate;
     }
 
-    public function setPayer(User $payer): self
+    public function setTransactionDate(\DateTime $transactionDate): self
     {
-        $this->payer = $payer;
+        $this->transactionDate = $transactionDate;
         return $this;
     }
 
-    public function getPayees(): Collection
-    {
-        return $this->payees;
-    }
-
-    public function addPayee(User $payee): self
-    {
-        if (!$this->payees->contains($payee)) {
-            $this->payees->add($payee);
-        }
-        return $this;
-    }
-
-    public function removePayee(User $payee): self
-    {
-        $this->payees->removeElement($payee);
-        return $this;
-    }
 
     public function getGroup(): Group
     {
@@ -278,8 +204,9 @@ class Transaction
         return $this;
     }
 
-    public function getConvertedAmount(): float
+    public function getEntries(): Collection
     {
-        return $this->amount * $this->exchangeRate;
+        return $this->entries;
     }
 }
+

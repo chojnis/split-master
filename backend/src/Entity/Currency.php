@@ -15,8 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
-    normalizationContext: ['groups' => ['currency:read']],
-    denormalizationContext: ['groups' => ['currency:write']]
+    normalizationContext: ['groups' => ['currency:read']]
 )]
 #[GetCollection]
 #[Get]
@@ -32,25 +31,10 @@ class Currency
 
     #[ORM\Column(type: 'string', length: 3, unique: true)]
     #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read'])]
-    #[Assert\NotBlank(message: 'Currency code cannot be blank.')]
-    #[Assert\Length(
-        min: 3,
-        max: 3,
-        exactMessage: 'Currency code must be exactly {{ limit }} characters long.'
-    )]
-    #[Assert\Regex(
-        pattern: '/^[A-Z]{3}$/',
-        message: 'Currency code must consist of three uppercase letters (e.g., USD).'
-    )]
     private string $code;
 
     #[ORM\Column(type: 'string', length: 100)]
     #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read'])]
-    #[Assert\NotBlank(message: 'Currency name cannot be blank.')]
-    #[Assert\Length(
-        max: 100,
-        maxMessage: 'Currency name cannot exceed {{ limit }} characters.'
-    )]
     private string $name;
 
     public function getId(): ?int

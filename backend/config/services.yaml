@@ -44,16 +44,16 @@ services:
         tags:
             - { name: kernel.event_subscriber }
             - { name: api_platform.event_subscriber }
-
-    App\Serializer\GroupCurrencyIdentifierDenormalizer:
-        arguments:
-            $iriConverter: '@api_platform.iri_converter'
-            $entityManager: '@doctrine.orm.entity_manager'
-        tags:
-            - { name: serializer.normalizer }
-
+    
     App\EventListener\RequestLoggerListener:
         arguments:
             $logger: '@logger'
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 100 }
+
+    App\Serializer\Denormalizer\GroupIdentifierDenormalizer:
+        arguments:
+            $iriConverter: '@api_platform.iri_converter'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: serializer.normalizer }

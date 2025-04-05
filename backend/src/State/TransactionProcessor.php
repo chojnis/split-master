@@ -36,6 +36,8 @@ final class TransactionProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
+        $this->logger->info('TransactionProcessor: process method called');
+
         $user = $this->security->getUser();
         if (!$user) {
             throw new AccessDeniedException('User not authenticated.');

@@ -8,7 +8,7 @@ use App\Service\RefreshTokenService;
 use App\Entity\RefreshToken;
 use App\Dto\RefreshTokenRequest;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Component\Serializer\SerializerInterface;
+// use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 
 class RefreshTokenProcessor implements ProcessorInterface
@@ -16,7 +16,7 @@ class RefreshTokenProcessor implements ProcessorInterface
     public function __construct(
         private RefreshTokenService $refreshTokenService,
         private JWTTokenManagerInterface $jwtTokenManager,
-        private SerializerInterface $serializer
+        // private SerializerInterface $serializer
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): array
@@ -41,11 +41,11 @@ class RefreshTokenProcessor implements ProcessorInterface
         $this->refreshTokenService->revokeRefreshToken($refreshToken);
         
         $return['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
-        $return['user'] = $this->serializer->normalize(
-            $user, 
-            null, 
-            ['groups' => ['user:read']]
-        );
+        // $return['user'] = $this->serializer->normalize(
+        //     $user, 
+        //     null, 
+        //     ['groups' => ['user:read']]
+        // );
 
         return $return;
     }
