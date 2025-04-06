@@ -86,7 +86,7 @@ export const apiCall = createApi({
         method: 'GET',
       }),
     }),
-    addTransaction: builder.mutation<AddTransactionResponse, AddTransactionRequest>({
+    addTransaction: builder.mutation<AddTransactionResponse, { groupId: string, data: AddTransactionRequest}>({
       query: ({groupId, data}) => ({
         url: `groups/${groupId}/transactions`,
         method: 'POST',

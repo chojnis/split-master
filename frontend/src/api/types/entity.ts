@@ -25,6 +25,8 @@ export type Transaction = {
     created_at: Date;
     payer: User;
     payees: User[];
+    exchangeRate: number;
+    transactionDate: Date;
 }
 
 export type Invite = {

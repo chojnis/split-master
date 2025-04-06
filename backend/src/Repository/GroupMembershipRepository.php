@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\GroupMembership;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Group;
+use App\Entity\User;
 
 /**
  * @extends ServiceEntityRepository<Group>

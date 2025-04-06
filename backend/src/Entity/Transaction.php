@@ -51,6 +51,7 @@ use App\Dto\Transaction\TransactionResponse;
         ],
     ],
     provider: TransactionProvider::class,
+    output: TransactionResponse::class,
     openapi: new Operation(
         parameters: [
             new Parameter(

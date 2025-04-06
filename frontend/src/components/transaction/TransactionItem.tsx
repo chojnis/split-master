@@ -35,7 +35,7 @@ const TransactionItem = ({ id, payerName, payerImageUrl, title, amount, currency
 
             <View className="ml-3">
                 <Text className="text-xl font-medium">
-                    {amount} {currencySymbol}
+                    {amount.toFixed(2).replace('.', ',')} {currencySymbol}
                 </Text>
             </View>
         </View>

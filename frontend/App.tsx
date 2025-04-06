@@ -5,8 +5,6 @@ import { setupStore, AppStore } from './src/store';
 import Navigation from './src/navigation';
 import { useEffect, useState } from 'react';
 import LoadingScreen from './src/screens/loading';
-import FlashMessage from "react-native-flash-message";
-
 
 let store: AppStore | undefined;
 
@@ -36,7 +34,6 @@ export default function App() {
   return (
       <Provider store={store}>
           <Navigation />
-          <FlashMessage position="top" />
       </Provider>
   );
 }

@@ -37,7 +37,6 @@ const TransactionsSection = ({ groupId, defaultCurrencyId, navigation }: Transac
     const renderTransaction = ({ item }: { item: Transaction }) => (
         <Pressable
             onPress={() => {
-                console.log('click');
                 navigation.navigate("EditTransaction", {
                     transactionId: item.id,
                     groupId: groupId,

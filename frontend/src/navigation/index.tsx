@@ -8,6 +8,7 @@ import { RootState } from '~/store';
 import AuthStack from './auth';
 import RootTab from './root';
 import { PortalHost } from '@rn-primitives/portal';
+import FlashMessage from "react-native-flash-message";
 
 const Navigation = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
@@ -34,6 +35,22 @@ const Navigation = () => {
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         {!isAuthenticated ? <AuthStack /> : <RootTab />}
         <PortalHost />
+        <FlashMessage
+          position="bottom"
+          floating={true}
+          animated={true}
+          icon="auto"
+          duration={1000}
+          hideOnPress={true}
+          style={{
+            marginBottom: 50,
+            zIndex: 1000,
+            borderRadius: 10,
+            padding: 10,
+            width: '90%',
+            alignSelf: 'center',
+          }}
+        />
       </NavigationContainer>
     </ThemeProvider>
   );

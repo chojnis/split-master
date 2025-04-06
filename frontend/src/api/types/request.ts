@@ -22,10 +22,12 @@ export type AddGroupRequest = {
 
 export type AddTransactionRequest = {
     name: string;
-    amount: string;
+    amount: number;
     currencyId: string;
     payerId: string;
     payeesIds: string[];
+    exchangeRate: number | undefined;
+    transactionDate: Date | undefined;
 }
 
 export type sendInviteRequest = {

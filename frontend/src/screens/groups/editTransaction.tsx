@@ -15,6 +15,7 @@ import { Currency } from '~/api/types/entity';
 import Loading from '~/components/Loading';
 import { useCallback, useEffect, useState } from 'react';
 import { showMessage } from 'react-native-flash-message';
+import { AddTransactionRequest } from '~/api/types/request';
 
 type EditTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'EditTransaction'>;
 type EditTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'EditTransaction'>;
@@ -88,13 +89,13 @@ const EditTransaction = () => {
             || currencies.length === 0
             || members.length === 0
         ) {
-            Alert.alert('Błąd', 'Nie można pobrać walut lub członków grupy. Spróbuj ponownie.');
+            showMessage({
+                message: 'Nie można pobrać walut lub członków grupy. Spróbuj ponownie.',
+                type: 'danger',
+            });
             navigation.goBack();
             return;
         }
-
-        console.log('transactionData', transactionData);
-
         
         if(fields.length === 0) {
 
@@ -168,6 +169,8 @@ const EditTransaction = () => {
                     : field
                 )
             );
+
+
         }
 
 
@@ -193,11 +196,20 @@ const EditTransaction = () => {
         ) {
             placeholder = '1 ' + exchangeRateData.fromCurrency + ' = ' + exchangeRateData.rate.toString() + ' ' + exchangeRateData.toCurrency;
         }
+
+        let value = '';
+        if (
+            !isFetchingTransaction
+            && !isErrorTransaction
+            && isSuccessTransaction
+        ) {
+            value = transactionData.exchangeRate.toString();
+        }
     
         setFields((prevFields) => 
             prevFields.map((field) => 
                 field.name === 'exchangeRate' 
-                ? { ...field, placeholder: placeholder }
+                ? { ...field, placeholder: placeholder, value: value }
                 : field
             )
         );
@@ -210,19 +222,32 @@ const EditTransaction = () => {
     ]);
 
     const handleSubmit = async (formData: FormDataType) => {
-        const { name, amount, currencyId, payerId, payeesIds } = formData as { name: string; amount: string; currencyId: string; payerId: string; payeesIds: string[] };
+        const formDataWithNumberAmount = {
+            ...formData,
+            amount: parseFloat(formData.amount as string)
+        };
+        const requestData = formDataWithNumberAmount as AddTransactionRequest;
         try {
-            const { data } = await updateTransaction({ transactionId, data: { name, amount, currencyId, payerId, payeesIds } });
-            if (data) {
-                navigation.goBack();
+            const { data, error: errorUpdate } = await updateTransaction({ transactionId, data: requestData });
+            if(errorUpdate) {
                 showMessage({
-                    message: 'Transakcja została zaktualizowana.',
-                    type: 'success',
-                    duration: 1000,
-                })
+                    message: 'Nie udało się zaktualizować transakcji. Spróbuj ponownie.',
+                    type: 'danger'
+                });
+                return;
             }
+            
+            navigation.goBack();
+            showMessage({
+                message: 'Transakcja została zaktualizowana.',
+                type: 'success',
+                duration: 1000,
+            })
         } catch (err) {
-            Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
+            showMessage({
+                message: 'Nie udało się zaktualizować transakcji. Spróbuj ponownie.',
+                type: 'danger'
+            });
         }
     };
 

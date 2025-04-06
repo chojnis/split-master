@@ -14,7 +14,6 @@ import { Separator } from '~/components/Separator';
 
 import { RootState } from '~/store';
 import { useSelector } from 'react-redux';
-import { Toast } from 'toastify-react-native'
 import { showMessage, hideMessage } from "react-native-flash-message";
 
 
@@ -22,10 +21,8 @@ import {
     Dialog,
     DialogClose,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
-    DialogTitle,
     DialogTrigger,
   } from '~/components/ui/dialog';
 import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
@@ -41,7 +38,7 @@ export default function GroupSettings() {
     const groupId = router.params.groupId;
     const navigation = useNavigation<GroupSettingsStackNavigationProp>();
 
-    const [leaveGroup, { isLoading: isLoadingLeave, error: errorLeave }] = useLeaveGroupMutation();
+    const [leaveGroup, { isLoading: isLoadingLeave }] = useLeaveGroupMutation();
     const { 
         data: groupData, 
         isLoading: isLoadingGroup, 
@@ -72,7 +69,8 @@ export default function GroupSettings() {
 
     const [editGroupFields, setEditGroupFields] = useState<FormFieldType[]>([]);
 
-    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [openGroupDialog, setOpenGroupDialog] = useState<boolean>(false);
+    const [openMemberDialog, setOpenMemberDialog] = useState<boolean>(false);
 
     useEffect(() => {
         refetchGroup();
@@ -134,16 +132,29 @@ export default function GroupSettings() {
     
     const handleLeaveGroup = async () => {
         try {
-            await leaveGroup(groupId);
+            const {error: errorLeave} = await leaveGroup(groupId);
 
             if (errorLeave) {
-                Alert.alert("Błąd", "Nie udało się opuścić grupy. Spróbuj ponownie.");
+                showMessage({
+                    message: "Nie udało się opuścić grupy. Spróbuj ponownie.",
+                    type: "danger"
+                })
                 return;
             }
 
-            navigation.navigate("GroupsList");
+            showMessage({
+                message: "Opuściłeś grupę.",
+                type: "success",
+            });
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "GroupsList" }],
+            });
         } catch (error) {
-            console.error("Error leaving group:", error);
+            showMessage({
+                message: "Nie udało się opuścić grupy. Spróbuj ponownie.",
+                type: "danger"
+            });
         }
     };
 
@@ -153,13 +164,23 @@ export default function GroupSettings() {
 
             await sendInvite({ groupId, data: { email } });
             if (errorInvite) {
-                Alert.alert("Błąd", "Nie udało się wysłać zaproszenia. Sprawdź adres e-mail i spróbuj ponownie.");
+                showMessage({
+                    message: "Nie udało się wysłać zaproszenia. Spróbuj ponownie.",
+                    type: "danger"
+                })
                 return;
             }
-            Alert.alert("Sukces", "Zaproszenie zostało wysłane.");
+
+            showMessage({
+                message: "Zaproszenie zostało wysłane.",
+                type: "success",
+            });
+            setOpenMemberDialog(false);
         } catch (error) {
-            console.error("Error sending invite:", error);
-            Alert.alert("Błąd", "Nie udało się wysłać zaproszenia. Spróbuj ponownie.");
+            showMessage({
+                message: "Nie udało się wysłać zaproszenia. Spróbuj ponownie.",
+                type: "danger"
+            })
         }
     };
 
@@ -182,7 +203,7 @@ export default function GroupSettings() {
                 style: {opacity: .95},
 
             });
-            setOpenDialog(false);
+            setOpenGroupDialog(false);
         } catch (error) {
             console.error("Error updating group data:", error);
             Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
@@ -193,7 +214,7 @@ export default function GroupSettings() {
     return (
         <Container>
             {isOwner && (
-                <Dialog className="mb-2" open={openDialog} onOpenChange={setOpenDialog}>
+                <Dialog className="mb-2" open={openGroupDialog} onOpenChange={setOpenGroupDialog}>
                     <DialogTrigger asChild>
                         <Button variant='outline'>
                             <Text>Edytuj dane grupy</Text>
@@ -216,7 +237,7 @@ export default function GroupSettings() {
             )}
 
             {isOwner && (
-                <Dialog>
+                <Dialog open={openMemberDialog} onOpenChange={setOpenMemberDialog}>
                     <DialogTrigger asChild>
                         <Button variant='outline'>
                             <Text>Dodaj członka</Text>
@@ -226,13 +247,6 @@ export default function GroupSettings() {
                         <DialogHeader>
                             <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
                         </DialogHeader>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                            <Button>
-                                <Text>OK</Text>
-                            </Button>
-                            </DialogClose>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             )}

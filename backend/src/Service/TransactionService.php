@@ -226,15 +226,17 @@ class TransactionService
         );
         $transaction->setCurrency($currency);
 
-        if($request->exchangeRate === null && $group->getCurrency() !== $currency) {
+        if($request->exchangeRate === null && $transaction->getGroup()->getCurrency() !== $currency) {
             $exchangeRate = $this->currencyExchangeService->getExchangeRate(
                 $currency->getCode(),
-                $group->getCurrency()->getCode(),
+                $transaction->getGroup()->getCurrency()->getCode(),
                 new \DateTime()
             );
 
         } elseif($request->exchangeRate !== null) {
             $exchangeRate = $request->exchangeRate;
+        } else {
+            $exchangeRate = $transaction->getExchangeRate();
         }
 
         $this->addTransactionHistory(
@@ -294,7 +296,9 @@ class TransactionService
             $toUpdateAmount = true;
         }
 
-        if (count($oldPayees) !== count($payees) || array_diff($oldPayees, $payees)) {
+        $oldPayeeIds = array_map(fn($user) => $user->getId(), $oldPayees);
+        $newPayeeIds = array_map(fn($user) => $user->getId(), $payees);
+        if (count($oldPayeeIds) !== count($newPayeeIds) || array_diff($oldPayeeIds, $newPayeeIds)) {
             $this->addTransactionHistory(
                 $transaction,
                 $user,

@@ -14,7 +14,7 @@ type FormFieldProps = {
   className?: string;
 }
 
-export type FormFieldValue = string | string[] | number;
+export type FormFieldValue = string | string[] | number | Date;
 
 const FormField = ({ field, value, onChange, className, error }: FormFieldProps) => {
   const handleChange = (value: FormFieldValue) => {

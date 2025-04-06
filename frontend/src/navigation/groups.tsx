@@ -7,9 +7,6 @@ import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
 import EditTransactionScreen from '~/screens/groups/editTransaction';
-import Settings from '~/lib/icons/Settings';
-import { Button } from '~/components/ui/button';
-import { RouteProp } from '@react-navigation/native';
 
 export type GroupsStackParamList = {
     GroupsList: undefined;
@@ -23,10 +20,6 @@ export type GroupsStackParamList = {
 };
 
 const GroupsStackNavigator = createNativeStackNavigator<GroupsStackParamList>();
-type GroupStackProps = {
-    navigation: StackNavigationProp<GroupsStackParamList>;
-    route: RouteProp<GroupsStackParamList>;
-};
 
 const GroupsStack = () => {
     return (
@@ -73,7 +66,7 @@ const GroupsStack = () => {
             <GroupsStackNavigator.Screen 
                 name="EditTransaction"
                 options={{
-                    title: 'Dodaj transakcję'
+                    title: 'Edytuj transakcję'
                 }}
                 component={EditTransactionScreen} 
             />
