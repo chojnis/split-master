@@ -9,21 +9,21 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use ApiPlatform\Metadata\GetCollection;
-use App\Service\GroupMembershipService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use App\Entity\User;
 use App\Entity\Group;
+use App\Repository\GroupMembershipRepository;
 
 class GroupMembershipProvider implements ProviderInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
         private ProviderInterface $itemProvider,
-        private GroupMembershipService $groupMembershipService,
         private EntityManagerInterface $entityManager,
+        private GroupMembershipRepository $groupMembershipRepository,
         private Security $security,
     ) {}
 
@@ -54,7 +54,7 @@ class GroupMembershipProvider implements ProviderInterface
                 throw new \InvalidArgumentException('Group not found.');
             }
 
-            $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
+            $groupMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
             if (!$groupMembership) {
                 throw new \InvalidArgumentException('Group membership not found.');
             }
@@ -69,12 +69,12 @@ class GroupMembershipProvider implements ProviderInterface
                 if (!$group) {
                     throw new \InvalidArgumentException('Group not found.');
                 }
-                if (!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
+                if (!$this->groupMembershipRepository->isUserMemberOfGroup($user, $group)) {
                     throw new AccessDeniedException();
                 }
-                return $this->groupMembershipService->getGroupMembers($group);
+                return $this->groupMembershipRepository->getGroupMembers($group);
             }
-            return $this->groupMembershipService->getUserGroupInvites($user);
+            return $this->groupMembershipRepository->getUserGroupInvites($user);
         }
 
         // if($operation instanceof Get) {
@@ -90,7 +90,7 @@ class GroupMembershipProvider implements ProviderInterface
         //         throw new \InvalidArgumentException('Group not found');
         //     }
 
-        //     if(!$this->groupMembershipService->isUserMemberOfGroup($user, $group)) {
+        //     if(!$this->groupMembershipRepository->isUserMemberOfGroup($user, $group)) {
         //         throw new AccessDeniedException();
         //     }
 
@@ -99,7 +99,7 @@ class GroupMembershipProvider implements ProviderInterface
         //         throw new \InvalidArgumentException('User not found');
         //     }
 
-        //     $groupMembership = $this->groupMembershipService->getGroupMembership($user, $group);
+        //     $groupMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
         //     if (!$groupMembership || $groupMembership->getStatus() !== GroupMembership::STATUS_ACCEPTED) {
         //         throw new \InvalidArgumentException('User is not a member of this group');
         //     }

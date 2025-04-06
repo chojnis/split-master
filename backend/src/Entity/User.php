@@ -116,11 +116,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $groupMemberships;
 
-    #[ORM\OneToMany(mappedBy: 'payer', targetEntity: Transaction::class)]
-    private Collection $transactionsAsPayer;
+    // #[ORM\OneToMany(mappedBy: 'payer', targetEntity: Transaction::class)]
+    // private Collection $transactionsAsPayer;
 
-    #[ORM\ManyToMany(mappedBy: 'payees', targetEntity: Transaction::class)]
-    private Collection $transactionsAsPayee;
+    // #[ORM\ManyToMany(mappedBy: 'payees', targetEntity: Transaction::class)]
+    // private Collection $transactionsAsPayee;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deletedAt = null;
@@ -217,6 +217,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->username = $username;
 
         return $this;
+    }
+
+    public function getCustomUsername(): ?string
+    {
+        return $this->username;
     }
 
     public function getGroupMemberships(): Collection

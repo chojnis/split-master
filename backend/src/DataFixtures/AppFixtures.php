@@ -11,14 +11,14 @@ use Faker\Factory;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\Currency;
 use App\Entity\GroupMembership;
-use App\Service\GroupMembershipService;
+use App\Service\GroupService;
 
 
 class AppFixtures extends Fixture
 {
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher,
-        private GroupMembershipService $groupMembershipService,
+        private GroupService $groupService,
     ) {}
 
     public function load(ObjectManager $manager): void
@@ -46,7 +46,7 @@ class AppFixtures extends Fixture
             $group->setDescription($faker->sentence);
             $group->setCurrency($currency);
             $manager->persist($group);
-            $this->groupMembershipService->ensureMembership($user, $group);
+            $this->groupService->ensureMembership($user, $group);
         }
         
         $manager->flush();

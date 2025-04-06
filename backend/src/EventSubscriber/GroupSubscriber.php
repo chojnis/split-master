@@ -3,7 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Group;
-use App\Service\GroupMembershipService;
+use App\Service\GroupService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
 final class GroupSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private GroupMembershipService $groupMembershipService,
+        private GroupService $groupService,
         private LoggerInterface $logger
     ) {}
 
@@ -31,13 +31,10 @@ final class GroupSubscriber implements EventSubscriberInterface
         $group = $event->getControllerResult();
         $method = $event->getRequest()->getMethod();
 
-        // if(!$group instanceof Group || $method !== Request::METHOD_POST) {
         if(!$group instanceof Group) {
             return;
         }
 
-        $this->logger->info('GroupSubscriber::addOwnerMembership called');
-
-        $this->groupMembershipService->ensureMembership($group->getOwner(), $group);
+        $this->groupService->ensureMembership($group->getOwner(), $group);
     }
 }

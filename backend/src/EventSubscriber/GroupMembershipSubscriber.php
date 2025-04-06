@@ -9,13 +9,13 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use App\Service\GroupMembershipService;
 use App\Entity\Group;
+use App\Repository\GroupMembershipRepository;
 
 class GroupMembershipSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private GroupMembershipService $groupMembershipService,
+        private GroupMembershipRepository $groupMembershipRepository,
         private EntityManagerInterface $entityManager
     ) {}
 
@@ -62,7 +62,7 @@ class GroupMembershipSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $members = $this->groupMembershipService->getGroupMembers($group);
+        $members = $this->groupMembershipRepository->getGroupMembers($group);
 
         // Delete group if no members left
         if (empty($members)) {

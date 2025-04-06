@@ -7,14 +7,16 @@ use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Bundle\SecurityBundle\Security;
-use Psr\Log\LoggerInterface;
-use App\Service\GroupMembershipService;
+use App\Repository\GroupMembershipRepository;
 
 class UserVoter extends Voter
 {
     const VIEW = 'VIEW';
 
-    public function __construct(private Security $security, private GroupMembershipService $groupMembershipService, private LoggerInterface $logger) {}
+    public function __construct(
+        private Security $security, 
+        private GroupMembershipRepository $groupMembershipRepository
+    ) {}
 
     protected function supports(string $attribute, $subject): bool
     {
@@ -31,7 +33,7 @@ class UserVoter extends Voter
 
         switch ($attribute) {
             case self::VIEW:
-                return $this->groupMembershipService->areUsersMembersOfSameGroup($user, $subject);
+                return $this->groupMembershipRepository->areUsersMembersOfSameGroup($user, $subject);
         }
 
         return false;

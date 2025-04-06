@@ -8,14 +8,12 @@ use App\Entity\Transaction;
 use App\Repository\TransactionRepository;
 use App\Entity\Currency;
 use App\Service\CurrencyExchangeService;
-use App\Service\GroupMembershipService;
 
 class DebtService
 {
     public function __construct(
         private TransactionRepository $transactionRepository,
-        private CurrencyExchangeService $currencyExchange,
-        private GroupMembershipService $groupMembershipService,
+        private CurrencyExchangeService $currencyExchange
     ) {}
 
     private function getDebtsMatrixForGroup(Group $group): array

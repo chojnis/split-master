@@ -2,17 +2,18 @@
 
 namespace App\Repository;
 
-use App\Entity\Transaction;
+use App\Entity\TransactionHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Transaction>
+ * @extends ServiceEntityRepository<TransactionHistory>
  */
-class TransactionRepository extends ServiceEntityRepository
+class TransactionHistoryRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Transaction::class);
+        parent::__construct($registry, TransactionHistory::class);
     }
+
 }

@@ -6,8 +6,6 @@ use App\Entity\GroupMembership;
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
-use Symfony\Bundle\SecurityBundle\Security;
-use Psr\Log\LoggerInterface;
 
 class GroupMembershipVoter extends Voter
 {
@@ -15,8 +13,6 @@ class GroupMembershipVoter extends Voter
     const VIEW = 'VIEW';
     const EDIT = 'EDIT';
     const DELETE = 'DELETE';
-
-    public function __construct(private Security $security, private LoggerInterface $logger) {}
 
     protected function supports(string $attribute, $subject): bool
     {

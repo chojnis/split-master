@@ -9,67 +9,135 @@ use App\Entity\User;
 use App\Entity\GroupMembership;
 use App\Dto\Group\CreateGroupRequest;
 use App\Entity\Currency;
-use Symfony\Bundle\SecurityBundle\Security;
-use App\Service\GroupMembershipService;
+use App\Entity\TransactionEntry;
+use App\Repository\GroupMembershipRepository;
 
 class GroupService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private GroupMembershipService $groupMembershipService,
-        private Security $security
+        private GroupMembershipRepository $groupMembershipRepository
     ) {}
 
-    public function transferOwnership(Group $group, User $newOwner): void
+    public function removeUserFromGroup(User $user, Group $group): void
     {
-        if ($group->getOwner() === $newOwner) {
-            throw new \InvalidArgumentException('User is already the owner of this group.');
-        }
-        
-        $groupMembership = $this->groupMembershipService->ensureMembership($newOwner, $group);
-        if($groupMembership->getStatus() !== GroupMembership::STATUS_ACCEPTED) {
-            throw new \InvalidArgumentException('New owner must be an accepted member.');
-        }
-
-        $group->setOwner($newOwner);
-        $this->entityManager->flush();
-    }
-
-    public function handleOwnerLeavingGroup(Group $group, User $user): void
-    {
-        if ($group->getOwner() !== $user) {
+        $groupMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
+        if (!$groupMembership) {
             return;
         }
 
-        $groupMembers = $this->groupMembershipService->getGroupMembers($group);
-        // if (count($groupMembers) === 1) {
-        //     $this->entityManager->remove($group);
-        //     $this->entityManager->flush();
-        //     return;
-        // }
-
-        foreach ($groupMembers as $member) {
-            if ($member->getUser() !== $user) {
-                $this->transferOwnership($group, $member->getUser());
-                break;
+        if($group->getOwner() === $user) {
+            $newOwner = null;
+            foreach($this->groupMembershipRepository->getGroupMembers($group) as $member) {
+                if ($member->getUser() !== $newOwner) {
+                    $newOwner = $member->getUser();
+                    break;
+                }
+            }
+            
+            if ($newOwner) {
+                $group->setOwner($newOwner);
+            } else {
+                $this->entityManager->remove($group);
             }
         }
+
+
+        $this->entityManager->remove($groupMembership);
+        $this->entityManager->flush();
     }
 
-    // public function createGroupFromRequest(CreateGroupRequest $createGroupRequest): Group
-    // {
-    //     $group = new Group();
-    //     $group->setGroupName($createGroupRequest->groupName);
-    //     $group->setDescription($createGroupRequest->description);
+    public function calculateSettlements(Group $group)
+    {
+        $balances = $this->getBalances($group);
+
+        $debtors = [];
+        $creditors = [];
+
+        foreach ($balances as $userId => $balance) {
+            if ($balance < 0) {
+                $debtors[$userId] = -$balance;
+            } elseif ($balance > 0) {
+                $creditors[$userId] = $balance;
+            }
+        }
+
+        $settlements = [];
+
+        foreach ($debtors as $debtorId => $debtAmount) {
+            foreach ($creditors as $creditorId => &$creditAmount) {
+                if ($debtAmount === 0) break;
+
+                $amountToPay = min($debtAmount, $creditAmount);
+
+                $settlements[] = [
+                    'from' => $debtorId,
+                    'to' => $creditorId,
+                    'amount' => $amountToPay,
+                ];
+
+                $debtAmount -= $amountToPay;
+                $creditAmount -= $amountToPay;
+            }
+        }
+
+        return $settlements;
+    }
+
+    public function getBalances(Group $group): array
+    {
+        $balances = [];
+        foreach ($group->getTransactions() as $transaction) {
+            foreach ($transaction->getEntries() as $entry) {
+                $userId = $entry->getUser()->getId();
+                if (!isset($balances[$userId])) {
+                    $balances[$userId] = 0;
+                }
+                $balances[$userId] += $entry->getType() === TransactionEntry::TYPE_CREDIT
+                    ? $entry->getAmount()
+                    : -$entry->getAmount();
+            }
+        }
+        return $balances;
+    }
+
+    public function ensureMembership(User $user, Group $group): GroupMembership
+    {
+        $existingMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
+        if($existingMembership) {
+            return $existingMembership;
+        }
         
-    //     $currency = $this->entityManager->getReference(Currency::class, $createGroupRequest->currencyId);
-    //     $group->setCurrency($currency);
-        
-    //     $group->setOwner($this->security->getUser());
-        
-    //     $this->entityManager->persist($group);
-    //     $this->entityManager->flush();
-        
-    //     return $group;
-    // }
+        $membership = new GroupMembership();
+        $membership->setUser($user);
+        $membership->setGroup($group);
+        $membership->setStatus(GroupMembership::STATUS_ACCEPTED);
+
+        $this->entityManager->persist($membership);
+        $this->entityManager->flush();
+
+        return $membership;
+    }
+
+    public function inviteUser(User $user, Group $group): GroupMembership
+    {
+        $groupMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
+        if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
+            throw new \InvalidArgumentException('User is already a member of this group.');
+        }
+
+        if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
+            throw new \InvalidArgumentException('User has already been invited to this group.');
+        }
+
+        $membership = new GroupMembership();
+        $membership->setUser($user);
+        $membership->setGroup($group);
+        $membership->setStatus(GroupMembership::STATUS_PENDING);
+
+        $this->entityManager->persist($membership);
+        $this->entityManager->flush();
+
+        return $membership;
+    }
 }

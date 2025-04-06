@@ -14,12 +14,11 @@ use App\Entity\Group;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Exception\InvalidStatusChangeException;
 use ApiPlatform\Metadata\Patch;
-use App\Service\GroupMembershipService;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use Psr\Log\LoggerInterface;
 use App\Service\GroupService;
-use App\Service\UserService;
 use App\Dto\GroupMembershipInviteDto;
+use App\Repository\UserRepository;
 
 final class GroupMembershipProcessor implements ProcessorInterface
 {
@@ -29,9 +28,8 @@ final class GroupMembershipProcessor implements ProcessorInterface
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
         private ProcessorInterface $deleteProcessor,
         private EntityManagerInterface $entityManager,
-        private GroupMembershipService $groupMembershipService,
-        private UserService $userService,
         private GroupService $groupService,
+        private UserRepository $userRepository,
         private Security $security
     ) {}
 
@@ -45,7 +43,7 @@ final class GroupMembershipProcessor implements ProcessorInterface
         if($operation instanceof DeleteOperationInterface) {
             $group = $data->getGroup();
 
-            $this->groupService->handleOwnerLeavingGroup($group, $user);
+            $this->groupService->removeUserFromGroup($user, $group);
             
             return $this->deleteProcessor->process($data, $operation, $uriVariables, $context);
         }
@@ -62,12 +60,12 @@ final class GroupMembershipProcessor implements ProcessorInterface
             }
 
             $email = $data->getEmail();
-            $invitedUser = $this->userService->getUserByEmail($email);
+            $invitedUser = $this->userRepository->findOneByEmail($email);
             if (!$invitedUser) {
                 throw new \InvalidArgumentException('User not found.');
             }
 
-            return $this->groupMembershipService->inviteUser($invitedUser, $group);       
+            return $this->groupService->inviteUser($invitedUser, $group);       
         }elseif ($data instanceof GroupMembership && $operation instanceof Patch) {
             $status = $data->getStatus();
             $originalData = $this->entityManager->getUnitOfWork()->getOriginalEntityData($data);

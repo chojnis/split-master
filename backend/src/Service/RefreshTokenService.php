@@ -5,11 +5,13 @@ namespace App\Service;
 use App\Entity\RefreshToken;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\RefreshTokenRepository;
 
 class RefreshTokenService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private RefreshTokenRepository $refreshTokenRepository
     ) {}
 
     public function generateRefreshToken(User $user): RefreshToken
@@ -25,7 +27,7 @@ class RefreshTokenService
                 throw new \InvalidArgumentException('Could not generate a unique refresh token.');
             }
             $token = bin2hex(random_bytes(64));
-        } while ($this->refreshTokenExists($token));
+        } while ($this->refreshTokenRepository->findOneByToken($token));
     
         $refreshToken->setRefreshToken($token);
         $refreshToken->setValid(new \DateTime('+1 month'));
@@ -40,29 +42,5 @@ class RefreshTokenService
     {
         $refreshToken->setValid(new \DateTime());
         $this->entityManager->flush();
-    }
-
-    public function isRefreshTokenValid(RefreshToken $refreshToken): bool
-    {
-        return $refreshToken->getValid() > new \DateTime();
-    }
-
-    public function refreshTokenExists(string $refreshToken): bool
-    {
-        return (bool) $this->entityManager
-            ->getRepository(RefreshToken::class)
-            ->findOneBy(['refreshToken' => $refreshToken]);
-    }
-
-    public function getUserFromRefreshToken(RefreshToken $refreshToken): ?User
-    {
-        return $refreshToken->getUser();
-    }
-
-    public function getRefreshToken(string $refreshToken): ?RefreshToken
-    {
-        return $this->entityManager
-            ->getRepository(RefreshToken::class)
-            ->findOneBy(['refreshToken' => $refreshToken]);
     }
 }
