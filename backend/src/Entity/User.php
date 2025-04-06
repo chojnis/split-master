@@ -219,6 +219,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getCustomUsername(): ?string
+    {
+        return $this->username;
+    }
+
     public function getGroupMemberships(): Collection
     {
         return $this->groupMemberships;

@@ -7,15 +7,17 @@ use ApiPlatform\State\ProviderInterface;
 use App\Entity\Group;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use App\Service\GroupService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Repository\GroupMembershipRepository;
 
-class GroupGetProvider implements ProviderInterface
+class GroupSettlementsProvider implements ProviderInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
         private ProviderInterface $itemProvider,
         private GroupMembershipRepository $groupMembershipRepository,
+        private GroupService $groupService,
         private Security $security
     ) {}
 
@@ -36,6 +38,6 @@ class GroupGetProvider implements ProviderInterface
             throw new AccessDeniedException('You are not a member of this group.');
         }
 
-        return $group;
+        return $this->groupService->calculateSettlements($group);
     }
 }

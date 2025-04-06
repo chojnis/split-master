@@ -26,6 +26,7 @@ use ApiPlatform\Metadata\Link;
 use App\Dto\Group\CreateGroupRequest;
 use App\State\Group\GroupGetProvider;
 use App\State\Group\GroupGetCollectionProvider;
+use App\State\Group\GroupSettlementsProvider;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
 #[GetCollection(provider: GroupGetCollectionProvider::class)]
@@ -37,12 +38,20 @@ use App\State\Group\GroupGetCollectionProvider;
 #[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 #[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 
+// #[Get(
+//     uriTemplate: '/groups/{id}/debts',
+//     provider: GroupDebtProvider::class,
+//     output: GroupDebtResponse::class,
+//     normalizationContext: ['groups' => ['debt:read']],
+// )]
+
 #[Get(
-    uriTemplate: '/groups/{id}/debts',
-    provider: GroupDebtProvider::class,
-    output: GroupDebtResponse::class,
-    normalizationContext: ['groups' => ['debt:read']],
+    uriTemplate: '/groups/{id}/settlements',
+    provider: GroupSettlementsProvider::class,
+    // output: GroupDebtResponse::class,
+    // normalizationContext: ['groups' => ['debt:read']],
 )]
+
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
@@ -181,5 +190,10 @@ class Group
     {
         $this->currency = $currency;
         return $this;
+    }
+
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
     }
 }

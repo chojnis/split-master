@@ -45,7 +45,7 @@ use App\Dto\RefreshTokenRequest;
     input: RefreshTokenRequest::class,
     processor: RefreshTokenProcessor::class
 )]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: 'App\Repository\RefreshTokenRepository')]
 #[ORM\Table(name: 'refresh_token')]
 class RefreshToken
 {

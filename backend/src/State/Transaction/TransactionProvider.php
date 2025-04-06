@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Dto\Transaction\TransactionResponse;
 use App\Service\TransactionService;
 use Psr\Log\LoggerInterface;
+use App\Repository\GroupMembershipRepository;
 
 
 
@@ -31,6 +32,7 @@ class TransactionProvider implements ProviderInterface
         private Security $security,
         private GroupMembershipService $groupMembershipService,
         private TransactionService $transactionService,
+        private GroupMembershipRepository $groupMembershipRepository,
         private LoggerInterface $logger,
     ) {}
 
@@ -50,7 +52,7 @@ class TransactionProvider implements ProviderInterface
                 return null;
             }
 
-            if(!$this->groupMembershipService->isUserMemberOfGroup($user, $transaction->getGroup())) {
+            if(!$this->groupMembershipRepository->isUserMemberOfGroup($user, $transaction->getGroup())) {
                 throw new AccessDeniedException('You are not a member of this group.');
             }
 
@@ -64,10 +66,12 @@ class TransactionProvider implements ProviderInterface
                 exchangeRate: $transaction->getExchangeRate(),
                 payer: $payer,
                 payees: $payees,
-                transactionDate: $transaction->getTransactionDate()
+                entries: $transaction->getEntries(),
+                transactionDate: $transaction->getTransactionDate(),
             );
         }
 
-        return $this->itemProvider->provide($operation, $uriVariables, $context);
+        // return $this->itemProvider->provide($operation, $uriVariables, $context);
+        return null;
     }
 }

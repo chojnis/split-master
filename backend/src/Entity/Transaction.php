@@ -12,8 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\TransactionRepository;
-use App\State\TransactionProvider;
-use App\State\TransactionProcessor;
+use App\State\Transaction\TransactionProvider;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Patch;
@@ -29,6 +28,8 @@ use App\Entity\Currency;
 use App\Entity\User;
 use App\Entity\TransactionEntry;
 use App\State\Transaction\TransactionPostProcessor;
+use App\State\Transaction\TransactionPatchProcessor;
+use App\State\Transaction\TransactionDeleteProcessor;
 use App\Dto\Transaction\TransactionResponse;
 
 #[ApiResource(
@@ -75,22 +76,18 @@ use App\Dto\Transaction\TransactionResponse;
             fromProperty: 'transactions'
         ),
     ],
-    // name: 'create',
-    // provider: TransactionProvider::class,
-    // processor: TransactionProcessor::class,
     provider: TransactionProvider::class,
     processor: TransactionPostProcessor::class,
     input: TransactionRequest::class,
     output: TransactionResponse::class
 )]
 #[Patch(
-    name: 'patch',
-    processor: TransactionProcessor::class,
+    processor: TransactionPatchProcessor::class,
     input: TransactionRequest::class,
 )]
 #[Delete(
     name: 'delete',
-    processor: TransactionProcessor::class
+    processor: TransactionDeleteProcessor::class
 )]
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'transaction')]
@@ -120,7 +117,7 @@ class Transaction
     private ?Group $group = null;
 
     #[ORM\OneToMany(mappedBy: 'transaction', targetEntity: TransactionEntry::class, cascade: ['persist', 'remove'])]
-    // #[Groups(['transaction:read'])]
+    #[Groups(['transaction:read'])]
     private Collection $entries;
 
     #[ORM\Column(type: 'datetime')]
@@ -207,6 +204,25 @@ class Transaction
     public function getEntries(): Collection
     {
         return $this->entries;
+    }
+
+    public function addEntry(TransactionEntry $entry): self
+    {
+        if (!$this->entries->contains($entry)) {
+            $this->entries[] = $entry;
+            $entry->setTransaction($this);
+        }
+        return $this;
+    }
+
+    public function removeEntry(TransactionEntry $entry): self
+    {
+        if ($this->entries->contains($entry)) {
+            $this->entries->removeElement($entry);
+            $entry->setTransaction(null);
+        }
+
+        return $this;
     }
 }
 

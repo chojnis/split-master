@@ -5,6 +5,7 @@ namespace App\Dto\Transaction;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Entity\Currency;
 use App\Entity\User;
+use Doctrine\Common\Collections\Collection;
 
 class TransactionResponse
 {
@@ -29,6 +30,9 @@ class TransactionResponse
 
         #[Groups(['transaction:read'])]
         public array $payees,
+
+        #[Groups(['transaction:read'])]
+        public Collection $entries,
 
         #[Groups(['transaction:read'])]
         public \DateTime $transactionDate

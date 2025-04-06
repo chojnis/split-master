@@ -9,6 +9,9 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
+use App\Entity\Group;
+use App\Entity\GroupMembership;
+
 /**
  * @extends ServiceEntityRepository<User>
  */
@@ -49,5 +52,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newHashedPassword);
 
         $this->save($user, true);
+    }
+
+    public function findByGroup(Group $group): iterable
+    {
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.groupMemberships', 'gm', 'WITH', 'gm.group = :group AND gm.status = :status')
+            ->setParameter('group', $group)
+            ->setParameter('status', GroupMembership::STATUS_ACCEPTED)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOneByEmail(string $email): ?User
+    {
+        return $this->findOneBy(['email' => $email]);
     }
 }

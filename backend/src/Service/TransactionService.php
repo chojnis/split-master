@@ -18,17 +18,21 @@ use App\Repository\UserRepository;
 use App\Service\CurrencyExchangeService;
 use App\Entity\TransactionEntry;
 use App\Entity\TransactionHistory;
-use App\Service\GroupMembershipService;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use App\Repository\GroupMembershipRepository;
 
 class TransactionService
 {
     public function __construct(
         private TransactionRepository $transactionRepository,
-        private GroupMembershipService $groupMembershipService,
         private CurrencyRepository $currencyRepository,
         private UserRepository $userRepository,
         private CurrencyExchangeService $currencyExchangeService,
         private EntityManagerInterface $entityManager,
+        private GroupMembershipRepository $groupMembershipRepository,
+        private Security $security,
+        private LoggerInterface $logger,
     ) {}
 
     public function isUserPayerOrOwner(Transaction $transaction, User $user): bool
@@ -128,12 +132,12 @@ class TransactionService
             throw new \InvalidArgumentException('Currency not found.');
         }
 
-        if (!$this->groupMembershipService->isUserMemberOfGroup($payer, $group)) {
+        if (!$this->groupMembershipRepository->isUserMemberOfGroup($payer, $group)) {
             throw new \InvalidArgumentException('Payer is not a member of the group.');
         }
 
         foreach ($payees as $payee) {
-            if (!$this->groupMembershipService->isUserMemberOfGroup($payee, $group)) {
+            if (!$this->groupMembershipRepository->isUserMemberOfGroup($payee, $group)) {
                 throw new \InvalidArgumentException('Not all payees are members of the group.');
             }
         }
@@ -164,28 +168,176 @@ class TransactionService
 
         $totalAmount = $request->amount;
         $debitAmounts = splitAmount($totalAmount, count($payees));
+        $this->entityManager->persist($transaction);
 
         $creditEntry = new TransactionEntry();
         $creditEntry
-            ->setTransaction($transaction)
+            // ->setTransaction($transaction)
             ->setUser($payer)
             ->setAmount($totalAmount)
             ->setType(TransactionEntry::TYPE_CREDIT);
-        $this->entityManager->persist($creditEntry);
+        // $this->entityManager->persist($creditEntry);
+        $transaction->addEntry($creditEntry);
 
         foreach($payees as $index => $payee) {
             $debitEntry = new TransactionEntry();
             $debitEntry
-                ->setTransaction($transaction)
+                // ->setTransaction($transaction)
                 ->setUser($payee)
                 ->setAmount($debitAmounts[$index])
                 ->setType(TransactionEntry::TYPE_DEBIT);
-            $this->entityManager->persist($debitEntry);
+            // $this->entityManager->persist($debitEntry);
+            $transaction->addEntry($debitEntry);
         }
 
-        $this->entityManager->persist($transaction);
         $this->entityManager->flush();
 
+        return $transaction;
+    }
+
+    public function editTransaction(TransactionRequest $request, Transaction $transaction): Transaction
+    {
+        $user = $this->security->getUser();
+        if (!$user) {
+            throw new AccessDeniedException('User not authenticated.');
+        }
+
+        $payer = $this->userRepository->find($request->payerId);
+        if (!$payer) {
+            throw new \InvalidArgumentException('Payer not found.');
+        }
+
+        $payees = $this->userRepository->findBy(['id' => $request->payeesIds]);
+        if (count($payees) !== count($request->payeesIds)) {
+            throw new \InvalidArgumentException('One or more payees not found.');
+        }
+
+        $currency = $this->currencyRepository->find($request->currencyId);
+        if (!$currency) {
+            throw new \InvalidArgumentException('Currency not found.');
+        }
+
+        $this->addTransactionHistory(
+            $transaction,
+            $user,
+            'currency',
+            $transaction->getCurrency()->getCode(),
+            $currency->getCode()
+        );
+        $transaction->setCurrency($currency);
+
+        if($request->exchangeRate === null && $group->getCurrency() !== $currency) {
+            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
+                $currency->getCode(),
+                $group->getCurrency()->getCode(),
+                new \DateTime()
+            );
+
+        } elseif($request->exchangeRate !== null) {
+            $exchangeRate = $request->exchangeRate;
+        }
+
+        $this->addTransactionHistory(
+            $transaction,
+            $user,
+            'exchangeRate',
+            $transaction->getExchangeRate(),
+            $exchangeRate
+        );
+        $transaction->setExchangeRate($exchangeRate);
+
+        $this->addTransactionHistory(
+            $transaction,
+            $user,
+            'name',
+            $transaction->getName(),
+            $request->name
+        );
+        $transaction->setName($request->name);
+
+        if($request->transactionDate === null) {
+            $transactionDate = new \DateTime();
+        } else {
+            $transactionDate = $request->transactionDate;
+        }
+        $this->addTransactionHistory(
+            $transaction,
+            $user,
+            'transactionDate',
+            $transaction->getTransactionDate()->format('Y-m-d H:i:s'),
+            $transactionDate->format('Y-m-d H:i:s')
+        );
+        $transaction->setTransactionDate($transactionDate);
+
+        list($oldPayer, $oldPayees, $oldAmount) = $this->getTransactionDetails($transaction);
+
+        $toUpdateAmount = false;
+        if ($oldPayer !== $payer) {
+            $this->addTransactionHistory(
+                $transaction,
+                $user,
+                'payer',
+                $payer->getId(),
+                $request->payerId
+            );
+            $toUpdateAmount = true;
+        }
+
+        if ($oldAmount !== $request->amount) {
+            $this->addTransactionHistory(
+                $transaction,
+                $user,
+                'amount',
+                $oldAmount,
+                $request->amount
+            );
+            $toUpdateAmount = true;
+        }
+
+        if (count($oldPayees) !== count($payees) || array_diff($oldPayees, $payees)) {
+            $this->addTransactionHistory(
+                $transaction,
+                $user,
+                'payees',
+                implode(',', array_map(fn($payee) => $payee->getCustomUsername() ?? $payee->getEmail(), $oldPayees)),
+                implode(',', array_map(fn($payee) => $payee->getCustomUsername() ?? $payee->getEmail(), $payees))
+            );
+            $toUpdateAmount = true;
+        }
+
+        if (!$toUpdateAmount) {
+            return $transaction;
+        }
+
+        // remove existing entries
+        foreach ($transaction->getEntries() as $entry) {
+            $transaction->removeEntry($entry);
+            $this->entityManager->remove($entry);
+        }
+
+        // add new entries
+        $totalAmount = $request->amount;
+        $debitAmounts = splitAmount($totalAmount, count($payees));
+
+        // add credit entry
+        $creditEntry = new TransactionEntry();
+        $creditEntry
+            ->setUser($payer)
+            ->setAmount($totalAmount)
+            ->setType(TransactionEntry::TYPE_CREDIT);
+        $transaction->addEntry($creditEntry);
+        
+        // add debit entries
+        foreach ($payees as $index => $payee) {
+            $debitEntry = new TransactionEntry();
+            $debitEntry
+                ->setUser($payee)
+                ->setAmount($debitAmounts[$index])
+                ->setType(TransactionEntry::TYPE_DEBIT);
+            $transaction->addEntry($debitEntry);
+        }
+
+        $this->entityManager->flush();
         return $transaction;
     }
 
@@ -239,6 +391,24 @@ class TransactionService
             $amount
         ];
     }
+
+    public function addTransactionHistory(Transaction $transaction, User $changedBy, string $field, $oldValue, $newValue): void
+    {
+        if($oldValue === $newValue) {
+            return;
+        }
+
+        $history = (new TransactionHistory())
+            ->setTransaction($transaction)
+            ->setChangedBy($changedBy)
+            ->setField($field)
+            ->setOldValue((string) $oldValue)
+            ->setNewValue((string) $newValue)
+            ->setChangedAt(new \DateTime());
+
+        $this->entityManager->persist($history);
+        // $this->entityManager->flush();
+    }
 }
 
 function splitAmount(float $totalAmount, int $numberOfPayees): array
@@ -247,20 +417,20 @@ function splitAmount(float $totalAmount, int $numberOfPayees): array
         throw new \InvalidArgumentException('Number of payees must be greater than zero.');
     }
 
-    $amountPerPayee = floor($totalAmount / $numberOfPayees);
-    $remainder = $totalAmount % $numberOfPayees;
+    $totalAmountInCents = round($totalAmount * 100);
+    $amountPerPayee = floor($totalAmountInCents / $numberOfPayees);
+    $remainder = $totalAmountInCents % $numberOfPayees;
 
     $amounts = array_fill(0, $numberOfPayees, $amountPerPayee);
 
-    // for ($i = 0; $i < $remainder; $i++) {
-    //     $amounts[$i]++;
-    // }
-
     // randomze the distribution of the remainder
-    $randomKeys = array_rand($amounts, $remainder);
-    foreach ($randomKeys as $key) {
-        $amounts[$key]++;
+    if ($remainder > 0) {
+        $randomKeys = array_rand($amounts, $remainder);
+        foreach ((array)$randomKeys as $key) {
+            $amounts[$key]++;
+        }
     }
 
-    return $amounts;
+    // return $amounts;
+    return array_map(fn($amount) => $amount / 100, $amounts);
 }

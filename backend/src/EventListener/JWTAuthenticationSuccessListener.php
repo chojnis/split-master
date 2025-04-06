@@ -10,7 +10,7 @@ use App\Service\RefreshTokenService;
 class JWTAuthenticationSuccessListener
 {
     public function __construct(
-        // private SerializerInterface $serializer,
+        private SerializerInterface $serializer,
         private RefreshTokenService $refreshTokenService
     ){}
 
@@ -23,14 +23,14 @@ class JWTAuthenticationSuccessListener
             return;
         }
 
-        // $normalizedUser = $this->serializer->normalize(
-        //     $user, 
-        //     null, 
-        //     ['groups' => ['user:read']]
-        // );
+        $normalizedUser = $this->serializer->normalize(
+            $user, 
+            null, 
+            ['groups' => ['user:read']]
+        );
 
         $data['refresh_token'] = $this->refreshTokenService->generateRefreshToken($user)->getRefreshToken();
-        // $data['user'] = $normalizedUser;
+        $data['user'] = $normalizedUser;
 
         $event->setData($data);
     }
