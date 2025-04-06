@@ -8,7 +8,7 @@ use App\Service\RefreshTokenService;
 use App\Entity\RefreshToken;
 use App\Dto\RefreshTokenRequest;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-// use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use App\Repository\RefreshTokenRepository;
 
