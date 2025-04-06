@@ -115,6 +115,7 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 4. Ostatecznie korzystając ze z konfigurowanego emulatora uruchamiamy go klawiszami `a` lub `i` w zależności od urządzenia lub skanujemy dołączony kod QR fizycznym urządzeniem.
 
 ## Dokumentacja
-### Struktura bazy danych (do aktualizacji)
+### Struktura bazy danych
 
-![Untitled](https://github.com/user-attachments/assets/014bf146-b9da-49f2-91b3-af848fc816fc)
+![Untitled (1)](https://github.com/user-attachments/assets/d9edada6-5168-4eea-91ed-ed3e9d8d8d62)
+
