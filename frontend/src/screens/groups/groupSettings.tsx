@@ -7,7 +7,16 @@ import { LogOut } from '~/lib/icons/LogOut'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useLeaveGroupMutation, useGetGroupQuery, useSendInviteMutation, useGetCurrenciesQuery, useUpdateGroupMutation, useLazyGetGroupMembershipsQuery } from '~/api';
+import { 
+    useLeaveGroupMutation, 
+    useGetGroupQuery, 
+    useSendInviteMutation, 
+    useGetCurrenciesQuery, 
+    useUpdateGroupMutation, 
+    useLazyGetGroupMembershipsQuery,
+    useKickFromGroupMutation,
+    useChangeOwnershipMutation
+} from '~/api';
 import { Container } from '~/components/Container';
 import Loading from '~/components/Loading';
 import { Separator } from '~/components/Separator';
@@ -15,6 +24,8 @@ import { Separator } from '~/components/Separator';
 import { RootState } from '~/store';
 import { useSelector } from 'react-redux';
 import { showMessage, hideMessage } from "react-native-flash-message";
+import CrownIcon from '~/lib/icons/Crown';
+import TrashIcon from '~/lib/icons/Trash';
 
 
 import {
@@ -39,6 +50,7 @@ import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
 import { useEffect, useState } from 'react';
 import { Currency } from '~/api/types/entity';
 import { GroupMembershipsResponse } from '~/api/types/response';
+import { ItemText } from '@rn-primitives/select';
 
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
 type GroupSettingsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupSettings'>;
@@ -79,12 +91,16 @@ export default function GroupSettings() {
             isSuccess: isSuccessMemberships, 
         }
     ] = useLazyGetGroupMembershipsQuery();
-    
+
+    const [kickFromGroup, { isLoading: isLoadingKick, error: errorKick }] = useKickFromGroupMutation();
 
     const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate, isSuccess: isSuccessUpdateGroup }] = useUpdateGroupMutation();
 
+    const [changeOwnership, { isLoading: isLoadingChangeOwnership, error: errorChangeOwnership }] = useChangeOwnershipMutation();
+
     const userId = useSelector((state: RootState) => state.auth.user.id);
-    const isOwner = groupData?.owner.id === userId;
+
+    const [isOwner, setIsOwner] = useState<boolean>(groupData?.owner.id === userId);
 
     const [addMemberFields, setAddMemberFields] = useState<FormFieldType[]>([
         { label: 'E-mail użytkownika', placeholder: 'user@example.com', name: 'email', type: 'text', required: true }
@@ -155,6 +171,12 @@ export default function GroupSettings() {
         isSuccessGroup,
         isSuccessCurrencies
     ]);
+
+    useEffect(() => {
+        if (groupData) {
+            setIsOwner(groupData.owner.id === userId);
+        }
+    }, [groupData, userId]);
     
     const handleLeaveGroup = async () => {
         try {
@@ -201,7 +223,15 @@ export default function GroupSettings() {
                 message: "Zaproszenie zostało wysłane.",
                 type: "success",
             });
-            setOpenMemberDialog(false);
+            // setOpenMemberDialog(false);
+            getMemberships();
+
+            setAddMemberFields((prev) => {
+                const newFields = [...prev];
+                newFields[0].value = "";
+                return newFields;
+            });
+            
         } catch (error) {
             showMessage({
                 message: "Nie udało się wysłać zaproszenia. Spróbuj ponownie.",
@@ -239,18 +269,81 @@ export default function GroupSettings() {
         }
     };
 
-    const handleOpenChangeMemberDialog = (open: boolean) => {
+    const handleOpenChangeMemberDialog = async (open: boolean) => {
         setOpenMemberDialog(open);
+        getMemberships();
+    };
 
-        if (open) {
-            triggerMemberships(groupId).then((response) => {
-                if (response.data) {
-                    setMemberships(response.data);
-                }
+    const getMemberships = async () => {
+        const { data, error } = await triggerMemberships(groupId);
+
+        if (error) {
+            showMessage({
+                message: "Nie udało się pobrać członków grupy. Spróbuj ponownie.",
+                type: "danger"
+            })
+            return;
+        }
+
+        if (data) {
+            setMemberships(data);
+        }
+    }
+
+    const handleKickFromGroup = async (userId: string) => {
+        try {
+            const { error } = await kickFromGroup({groupId, userId});
+            if (error) {
+                showMessage({
+                    message: "Nie udało się usunąć użytkownika z grupy. Spróbuj ponownie.",
+                    type: "danger"
+                })
+                return;
+            }
+            showMessage({
+                message: "Użytkownik został usunięty z grupy.",
+                type: "success",
             });
+            getMemberships();
+        } catch (error) {
+            showMessage({
+                message: "Nie udało się usunąć użytkownika z grupy. Spróbuj ponownie.",
+                type: "danger"
+            })
         }
     };
 
+    const handleChangeOwnership = async (userId: string) => {
+        try {
+            const { error } = await changeOwnership({groupId, data: { owner: userId }});
+            if (error) {
+                showMessage({
+                    message: "Nie udało się zmienić właściciela grupy. Spróbuj ponownie.",
+                    type: "danger"
+                })
+                return;
+            }
+            showMessage({
+                message: "Zmieniono właściciela grupy.",
+                type: "success",
+            });
+            setOpenMemberDialog(false);
+            setIsOwner(false);
+        } catch (error) {
+            showMessage({
+                message: "Nie udało się zmienić właściciela grupy. Spróbuj ponownie.",
+                type: "danger"
+            })
+        }
+    }
+
+    if(!isSuccessGroup) {
+        return (
+            <Container>
+                <Loading />
+            </Container>
+        );
+    }
 
     return (
         <Container>
@@ -285,50 +378,81 @@ export default function GroupSettings() {
                         </Button>
                     </DialogTrigger>
                     <DialogContent className='sm:max-w-[425px] flex flex-col justify-between'>
-                        <DialogHeader>
-                            <ScrollView horizontal bounces={false} showsHorizontalScrollIndicator={false} className="flex flex-col max-h-60">
-                                <Table aria-labelledby='members-table' className="flex flex-col gap-2 max-h-60">
-                                    <TableHeader>
-                                        <TableRow className="w-full flex flex-row items-center justify-between">
-                                            <TableHead className='px-0.5'>
-                                                <Text>Użytkownik</Text>
-                                            </TableHead>
-                                            <TableHead>
-                                                <Text>Status</Text>
-                                            </TableHead>
-                                            <TableHead>
-                                                <Text>Akcje</Text>
-                                            </TableHead>
+                        <DialogHeader className="relative">
+                            {isLoadingKick && (
+                                <Loading absolute reverseColors />
+                            )}
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="w-full flex flex-row items-center justify-between">
+                                    <TableHead className="px-0.5">
+                                        <Text>Użytkownicy</Text>
+                                    </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+
+                                {isLoadingMemberships ? (
+                                    <TableBody className="flex flex-col w-full">
+                                        <TableRow className="flex flex-row items-center justify-center">
+                                            <TableCell className="flex items-center justify-center">
+                                                <Loading />
+                                            </TableCell>
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        <FlatList
-                                            data={memberships}
-                                            renderItem={({ item }) => (
-                                                <TableRow key={item.user.id}>
-                                                    <TableCell className="text-center">
+                                    </TableBody>
+                                ) : (
+                                    <ScrollView className="max-h-60" showsVerticalScrollIndicator={true}>
+                                        <TableBody className="flex flex-col w-full">
+                                            {memberships.map((item) => (
+                                                <TableRow key={item.user.id} className="flex flex-row items-center justify-between">
+                                                    <TableCell className="flex items-center flex-row">
                                                         <Text>{item.user.email}</Text>
+                                                        {item.user.id === groupData.owner.id && (
+                                                            <CrownIcon className="text-yellow-500 ml-2" width={16} height={16} />
+                                                        )}
                                                     </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Text>{item.status}</Text>
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Button variant="outline" onPress={() => handleOpenChangeMemberDialog(false)}>
-                                                            <Text>Usuń</Text>
-                                                        </Button>
+                                                    <TableCell className="flex items-center justify-center">
+                                                        {item.status === "pending" ? (
+                                                            <Text>Wysłano zaproszenie</Text>
+                                                        ) 
+                                                        : item.user.id === groupData.owner.id ? (
+                                                            <Button variant="destructive" className="" onPress={() => {}} disabled={true}>
+                                                                <TrashIcon className="text-white" width={16} height={16} />
+                                                            </Button>
+                                                        ) : (
+                                                            <View className="flex flex-row items-center gap-2">
+                                                                <Button variant="outline" className="" onPress={() => {handleChangeOwnership(item.user.id)}}>
+                                                                    <CrownIcon className="text-yellow-500" width={16} height={16} />
+                                                                </Button>
+                                                                <Button variant="destructive" className="" onPress={() => {handleKickFromGroup(item.user.id)}}>
+                                                                    <TrashIcon className="text-white" width={16} height={16} />
+                                                                </Button>
+                                                            </View>
+                                                        )}
                                                     </TableCell>
                                                 </TableRow>
-                                            )}
-                                            keyExtractor={(item) => item.user.id}
-                                        />
-                                    </TableBody>
-                                </Table>
-                            </ScrollView>
+                                            ))}
+                                        </TableBody>
+                                    </ScrollView>
+                                )}
+                            </Table>
                         </DialogHeader>
                         <DialogFooter className="flex flex-col">
-                            <Separator />
-                            <Text className="text-xl">Zaproś użytkownika</Text>
-                            <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
+                            <Table className="h-80">
+                                <TableHeader>
+                                    <TableRow className="w-full flex flex-row items-center justify-between">
+                                        <TableHead className="px-0.5">
+                                            <Text>Zaproś użytkownika</Text>
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>
+                                        <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

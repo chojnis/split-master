@@ -21,7 +21,8 @@ import {
   AddGroupRequest,
   AddTransactionRequest,
   sendInviteRequest,
-  PairExchangeRateRequest
+  PairExchangeRateRequest,
+  ChangeOwnershipRequest
 } from '~/api/types/request';
 import baseQuery from '~/api/query';
 
@@ -173,6 +174,22 @@ export const apiCall = createApi({
         },
       }),
     }),
+    kickFromGroup: builder.mutation<void, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/members/${userId}`,
+        method: 'DELETE',
+      }),
+    }),
+    changeOwnership: builder.mutation<void, { groupId: string; data: ChangeOwnershipRequest }>({
+      query: ({ groupId, data }) => ({
+        url: `groups/${groupId}`,
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+      }),
+    }),
   }),
 });
 
@@ -199,4 +216,6 @@ export const {
   useGetExchangeRatesQuery,
   useUpdateGroupMutation,
   useLazyGetGroupMembershipsQuery,
+  useKickFromGroupMutation,
+  useChangeOwnershipMutation,
 } = apiCall;

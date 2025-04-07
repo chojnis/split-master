@@ -19,23 +19,27 @@ use App\Entity\GroupMembership;
 use App\Entity\Transaction;
 use App\Entity\User;
 use Symfony\Component\Serializer\Annotation\Groups;
-use App\State\GroupProcessor;
 use App\State\GroupDebtProvider;
 use App\Dto\Group\GroupDebtResponse;
 use ApiPlatform\Metadata\Link;
 use App\Dto\Group\CreateGroupRequest;
+use App\State\Group\GroupCreateProcessor;
 use App\State\Group\GroupGetProvider;
 use App\State\Group\GroupGetCollectionProvider;
 use App\State\Group\GroupSettlementsProvider;
+use App\State\Group\GroupPatchProcessor;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
 #[GetCollection(provider: GroupGetCollectionProvider::class)]
 #[Get(provider: GroupGetProvider::class)]
 #[Post(
     // input: CreateGroupRequest::class,
-    processor: GroupProcessor::class
+    processor: GroupCreateProcessor::class
 )]
-#[Patch(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
+#[Patch(
+    security: "is_granted('ROLE_USER') and object.getOwner() == user",
+    processor: GroupPatchProcessor::class
+)]
 #[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
 
 // #[Get(
@@ -51,7 +55,6 @@ use App\State\Group\GroupSettlementsProvider;
     // output: GroupDebtResponse::class,
     // normalizationContext: ['groups' => ['debt:read']],
 )]
-
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]
 #[ORM\Table(name: '`group`')]
@@ -86,7 +89,7 @@ class Group
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'owner_id', referencedColumnName: 'id', nullable: false)]
-    #[Groups(groups: ['group:read'])]
+    #[Groups(groups: ['group:read', 'group:write'])]
     private User $owner;
 
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'group')]

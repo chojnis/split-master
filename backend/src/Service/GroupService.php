@@ -11,12 +11,14 @@ use App\Dto\Group\CreateGroupRequest;
 use App\Entity\Currency;
 use App\Entity\TransactionEntry;
 use App\Repository\GroupMembershipRepository;
+use Psr\Log\LoggerInterface;
 
 class GroupService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private GroupMembershipRepository $groupMembershipRepository
+        private GroupMembershipRepository $groupMembershipRepository,
+        private LoggerInterface $logger,
     ) {}
 
     public function removeUserFromGroup(User $user, Group $group): void
@@ -123,11 +125,11 @@ class GroupService
     {
         $groupMembership = $this->groupMembershipRepository->getGroupMembership($user, $group);
         if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_ACCEPTED) {
-            throw new \InvalidArgumentException('User is already a member of this group.');
+            throw new \InvalidArgumentException('Użytkownik jest już członkiem tej grupy.');
         }
 
         if($groupMembership && $groupMembership->getStatus() === GroupMembership::STATUS_PENDING) {
-            throw new \InvalidArgumentException('User has already been invited to this group.');
+            throw new \InvalidArgumentException('Użytkownik został już zaproszony do tej grupy.');
         }
 
         $membership = new GroupMembership();

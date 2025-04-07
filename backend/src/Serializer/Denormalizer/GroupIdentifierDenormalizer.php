@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use App\Entity\Group;
 use App\Entity\Currency;
+use App\Entity\User;
 
 class GroupIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
@@ -22,7 +23,13 @@ class GroupIdentifierDenormalizer implements DenormalizerInterface, Denormalizer
 
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        $data['currency'] = $this->iriConverter->getIriFromResource(resource: Currency::class, context: ['uri_variables' => ['id' => $data['currency']]]);
+        if(isset($data['currency'])){
+            $data['currency'] = $this->iriConverter->getIriFromResource(resource: Currency::class, context: ['uri_variables' => ['id' => $data['currency']]]);
+        }
+
+        if(isset($data['owner'])){
+            $data['owner'] = $this->iriConverter->getIriFromResource(resource: User::class, context: ['uri_variables' => ['id' => $data['owner']]]);
+        }
 
         return $this->denormalizer->denormalize($data, $type, $format, $context + [__CLASS__ => true]);
     }
@@ -32,7 +39,7 @@ class GroupIdentifierDenormalizer implements DenormalizerInterface, Denormalizer
         return 
             \in_array($format, ['json', 'jsonld'], true) 
             && is_a($type, Group::class, true)
-            && !empty($data['currency'])
+            && (!empty($data['currency']) || !empty($data['owner']))
             && !isset($context[__CLASS__]);
     }
 

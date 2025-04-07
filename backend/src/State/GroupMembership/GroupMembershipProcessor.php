@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State;
+namespace App\State\GroupMembership;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
@@ -19,6 +19,7 @@ use Psr\Log\LoggerInterface;
 use App\Service\GroupService;
 use App\Dto\GroupMembershipInviteDto;
 use App\Repository\UserRepository;
+use App\Entity\User;
 
 final class GroupMembershipProcessor implements ProcessorInterface
 {
@@ -30,7 +31,8 @@ final class GroupMembershipProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private GroupService $groupService,
         private UserRepository $userRepository,
-        private Security $security
+        private Security $security,
+        private LoggerInterface $logger,
     ) {}
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = [])
@@ -38,14 +40,6 @@ final class GroupMembershipProcessor implements ProcessorInterface
         $user = $this->security->getUser();
         if (!$user) {
             throw new \AccesDeniedException('User not authenticated.');
-        }
-
-        if($operation instanceof DeleteOperationInterface) {
-            $group = $data->getGroup();
-
-            $this->groupService->removeUserFromGroup($user, $group);
-            
-            return $this->deleteProcessor->process($data, $operation, $uriVariables, $context);
         }
 
         if ($data instanceof GroupMembershipInviteDto && $operation instanceof Post) {
@@ -66,17 +60,20 @@ final class GroupMembershipProcessor implements ProcessorInterface
             }
 
             return $this->groupService->inviteUser($invitedUser, $group);       
-        }elseif ($data instanceof GroupMembership && $operation instanceof Patch) {
+        }
+        
+        if ($data instanceof GroupMembership && $operation instanceof Patch) {
             $status = $data->getStatus();
             $originalData = $this->entityManager->getUnitOfWork()->getOriginalEntityData($data);
 
             if($originalData['status'] !== GroupMembership::STATUS_PENDING) {
                 throw new InvalidStatusChangeException();
             }
+
+            $data->setUpdatedAt(new \DateTime());
+            return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
         }
 
-        $data->setUpdatedAt(new \DateTime());
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
-
+        throw new \InvalidArgumentException('Invalid data type or operation.');
     }
 }

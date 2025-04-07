@@ -13,9 +13,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Exception\InvalidStatusChangeException;
 use Symfony\Component\Serializer\Annotation\Groups;
-use App\State\GroupMembershipProvider;
 use App\Repository\GroupMembershipRepository;
-use App\State\GroupMembershipProcessor;
+use App\State\GroupMembership\GroupMembershipProcessor;
+use App\State\GroupMembership\GroupMembershipProvider;
+use App\State\GroupMembership\GroupMembershipDeleteProcessor;
+use App\State\GroupMembership\GroupMembershipDeleteAdminProvider;
+use App\State\GroupMembership\GroupMembershipDeleteProvider;
+use App\State\GroupMembership\GroupMembershipInvitesProvider;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Group;
 use App\Entity\User;
@@ -29,8 +33,7 @@ use App\Dto\GroupMembershipInviteDto;
     ]
 )]
 #[GetCollection(
-    name: 'get_group_invites',
-    provider: GroupMembershipProvider::class, 
+    provider: GroupMembershipInvitesProvider::class, 
     uriTemplate: '/invites',
     normalizationContext: ['groups' => ['group_membership:invites']]
 )]
@@ -78,9 +81,8 @@ use App\Dto\GroupMembershipInviteDto;
             fromProperty: 'groupMemberships'
         )
     ],
-    name: 'delete_group_membership_admin',
-    provider: GroupMembershipProvider::class,
-    processor: GroupMembershipProcessor::class
+    provider: GroupMembershipDeleteAdminProvider::class,
+    processor: GroupMembershipDeleteProcessor::class
 )]
 #[Delete(
     security: "is_granted('ROLE_USER') and is_granted('DELETE', object)", 
@@ -92,13 +94,13 @@ use App\Dto\GroupMembershipInviteDto;
         )
     ],
     name: 'delete_group_membership_user',
-    provider: GroupMembershipProvider::class,
-    processor: GroupMembershipProcessor::class
+    provider: GroupMembershipDeleteProvider::class,
+    processor: GroupMembershipDeleteProcessor::class
 )]
 #[Delete(
     security: "is_granted('ROLE_USER') and is_granted('DELETE', object)", 
     uriTemplate: '/invites/{id}',
-    processor: GroupMembershipProcessor::class
+    processor: GroupMembershipDeleteProcessor::class
 )]
 #[ORM\Entity(repositoryClass: GroupMembershipRepository::class)]
 #[ORM\UniqueConstraint(name: 'user_group_unique', columns: ['user_id', 'group_id'])]

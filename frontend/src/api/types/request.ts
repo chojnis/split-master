@@ -1,5 +1,3 @@
-import { Transaction } from "./entity";
-
 export type LoginRequest = {
     email: string;
     password: string;
@@ -20,6 +18,9 @@ export type AddGroupRequest = {
     currency: number;
 }
 
+export type ChangeOwnershipRequest = {
+    owner: string;
+} 
 export type AddTransactionRequest = {
     name: string;
     amount: number;
