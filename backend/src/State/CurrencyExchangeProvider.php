@@ -11,13 +11,15 @@ use App\Service\CurrencyExchangeService;
 use App\Repository\CurrencyExchangeRepository;
 use App\Repository\CurrencyRepository;
 use App\Dto\CurrencyExchange\CurrencyExchangeResponse;
+use Psr\Log\LoggerInterface;
 
 class CurrencyExchangeProvider implements ProviderInterface
 {
     public function __construct(
         private CurrencyExchangeService $currencyExchangeService,
         private CurrencyExchangeRepository $currencyExchangeRepository,
-        private CurrencyRepository $currencyRepository
+        private CurrencyRepository $currencyRepository,
+        private LoggerInterface $logger
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -25,6 +27,13 @@ class CurrencyExchangeProvider implements ProviderInterface
         if($operation instanceof Get) {
             $fromCurrencyId = $uriVariables['fromCurrencyId'] ?? null;
             $toCurrencyId = $uriVariables['toCurrencyId'] ?? null;
+            $date = $context['filters']['date'] ?? null;
+
+            if ($date && strtotime($date) !== false) {
+                $date = new \DateTime($date);
+            } else {
+                $date = null;
+            }
 
             if (!$fromCurrencyId || !$toCurrencyId) {
                 throw new \InvalidArgumentException('Invalid currency ID provided');
@@ -37,11 +46,13 @@ class CurrencyExchangeProvider implements ProviderInterface
                 throw new \InvalidArgumentException('Invalid currency ID provided');
             }
 
+            list($date, $rate) = $this->currencyExchangeService->getExchangeRate($fromCurrency->getCode(), $toCurrency->getCode(), $date);
+
             return new CurrencyExchangeResponse(
                 fromCurrency: $fromCurrency->getCode(),
                 toCurrency: $toCurrency->getCode(),
-                rate: $this->currencyExchangeService->getExchangeRate($fromCurrency->getCode(), $toCurrency->getCode()),
-                date: new \DateTime("0:0")
+                rate: $rate,
+                date: $date
             );
         } elseif ($operation instanceof GetCollection) {
             $toCurrencyId = $uriVariables['toCurrencyId'] ?? null;

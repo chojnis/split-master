@@ -5,10 +5,12 @@ import { Text } from '~/components/ui/text';
 import { View } from 'react-native';
 import { FormFieldType } from '~/components/form/Form';
 import Select from '~/components/form/SelectField';
+import DateField from '~/components/form/DateField';
+import { useEffect, useState } from 'react';
 
 type FormFieldProps = {
   field: FormFieldType;
-  value?: FormFieldValue;
+  value: FormFieldValue;
   onChange: (name: string, value: FormFieldValue) => void;
   error?: string;
   className?: string;
@@ -17,9 +19,26 @@ type FormFieldProps = {
 export type FormFieldValue = string | string[] | number | Date;
 
 const FormField = ({ field, value, onChange, className, error }: FormFieldProps) => {
+  const [localValue, setLocalValue] = useState<string>(value?.toString?.() || '');
+
   const handleChange = (value: FormFieldValue) => {
-    onChange(field.name, field.type === 'number' ? Number(value) : value);
+    if(field.type === 'number') {
+      if (typeof value === 'string') {
+        value = value.replace(/[^0-9.]/g, '');
+        // value = parseFloat(value)
+      }
+
+      setLocalValue(value.toString());
+    }
+
+    onChange(field.name, value);
   };
+
+  useEffect(() => {
+    if (field.type === 'number') {
+      setLocalValue((value ?? '').toString());
+    }
+  }, [value]);
 
   return (
     <View className={`${className || ''}`}>
@@ -33,7 +52,7 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
         <View className={`border rounded-md relative flex justify-center ${error ? 'border-red-500' : 'border-stone-300'} ${field.type !== 'select' && field.type !== 'textarea' ? 'h-16' : ''}`}>
           {field.type === 'textarea' && (
             <Textarea 
-              value={value as string | undefined} 
+              value={value as string} 
               onChangeText={handleChange} 
               placeholder={field.placeholder} 
               keyboardType='default'
@@ -52,15 +71,21 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               multiple={field.multiple}
             />
           )}
+          {field.type === 'date' && (
+            <DateField
+              value={value as Date}
+              onChange={handleChange}
+            />
+          )}
           {field.type !== 'textarea' && field.type !== 'select' && (
             <Input
-              value={value as string | undefined}
+              value={field.type === 'number' ? localValue : value as string}
               onChangeText={handleChange}
-              keyboardType={field.type === 'number' ? 'number-pad' : 'default'}
               placeholder={field.placeholder}
+              keyboardType={field.type === 'number' ? 'numeric' : 'default'}
               secureTextEntry={field.type === 'password'}
-              className={'border-transparent'}
               aria-labelledby={field.name}
+              className={'border-transparent'}
             />
           )}
         </View>

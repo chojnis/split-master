@@ -75,6 +75,15 @@ class GroupMembershipRepository extends ServiceEntityRepository
         ]);
     }
 
+    public function getGroupMemberships(Group $group): iterable
+    {
+        return $this->createQueryBuilder('gm')
+            ->where('gm.group = :group')
+            ->setParameter('group', $group)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function areUsersMembersOfSameGroup()
     {
         $qb = $this->createQueryBuilder('gm1')

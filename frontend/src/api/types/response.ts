@@ -1,5 +1,5 @@
 import { User, Transaction, Currency, ExchangeRate } from "~/api/types/entity";
-import { Group, Invite } from "~/api/types/entity";
+import { Group, Invite, MembershipStatus } from "~/api/types/entity";
 
 export type LoginResponse = {
     token: string;
@@ -14,6 +14,11 @@ export type GroupResponse = Group;
 export type GroupsResponse = Group[];
 
 export type GroupMembersResponse = User[];
+
+export type GroupMembershipsResponse = {
+    user: User;
+    status: MembershipStatus;
+}[];
 
 export type GroupTransactionResponse = Transaction[];
 

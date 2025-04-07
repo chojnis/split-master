@@ -109,7 +109,7 @@ class Transaction
     #[Groups(['transaction:read'])]
     private ?Currency $currency = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 6)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 6, nullable: true)]
     #[Groups(['transaction:read'])]
     private ?float $exchangeRate = null;
 
@@ -121,7 +121,7 @@ class Transaction
     #[Groups(['transaction:read'])]
     private Collection $entries;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'date')]
     #[Groups(['transaction:read'])]
     private ?\DateTime $transactionDate = null;
 
@@ -191,12 +191,12 @@ class Transaction
         return $this;
     }
 
-    public function getExchangeRate(): float
+    public function getExchangeRate(): ?float
     {
         return $this->exchangeRate;
     }
 
-    public function setExchangeRate(float $exchangeRate): self
+    public function setExchangeRate(?float $exchangeRate): self
     {
         $this->exchangeRate = $exchangeRate;
         return $this;

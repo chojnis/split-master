@@ -27,7 +27,7 @@ export type AddTransactionRequest = {
     payerId: string;
     payeesIds: string[];
     exchangeRate: number | undefined;
-    transactionDate: Date | undefined;
+    transactionDate: string | undefined;
 }
 
 export type sendInviteRequest = {
@@ -40,4 +40,5 @@ export type sendInviteRequest = {
 export type PairExchangeRateRequest = {
     from: string;
     to: string;
+    date?: string;
 }

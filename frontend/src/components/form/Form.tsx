@@ -12,8 +12,9 @@ import { SelectOption } from '~/components/form/SelectField';
 export type FormFieldType = {
   label: string;
   name: string;
-  type: 'text' | 'number' | 'textarea' | 'password' | 'select';
+  type: 'text' | 'number' | 'textarea' | 'password' | 'select' | 'date';
   value?: FormFieldValue;
+  hidden?: boolean;
   required?: boolean;
   width?: number;
   placeholder?: string;
@@ -73,7 +74,6 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
   }, [error]);
 
   useEffect(() => {
-
     const initialData: FormDataType = {};
     fields.forEach(field => {
       if (
@@ -82,6 +82,10 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
         && formData[field.name] === undefined
       ) {
         initialData[field.name] = field.value;
+      }
+
+      if(field.type === 'date' && field.value === undefined) {
+        initialData[field.name] = new Date();
       }
     });
 
@@ -124,6 +128,8 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
     let currentRowWidth = 0;
 
     fields.forEach((field, index) => {
+      if (field.hidden) return;
+      
       const fieldWidth = field.width || 100;
       
       if (currentRowWidth + fieldWidth > 100) {
@@ -166,7 +172,7 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
             >
               <FormField
                 field={field}
-                value={formData[field.name]}
+                value={formData[field.name] === undefined ? field.value || '' : formData[field.name]}
                 onChange={handleChange}
                 error={errors[field.name]}
               />

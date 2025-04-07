@@ -8,6 +8,7 @@ use DateTime;
 use Exception;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\CurrencyExchange;
+use Psr\Log\LoggerInterface;
 
 class CurrencyExchangeService
 {
@@ -15,6 +16,7 @@ class CurrencyExchangeService
         private HttpClientInterface $client,
         private CurrencyExchangeRepository $currencyExchangeRepository,
         private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger
     ) {}
     
     /**
@@ -22,17 +24,17 @@ class CurrencyExchangeService
      * 
      * @param string $sourceCurrency Source currency code (e.g. 'USD')
      * @param string $targetCurrency Target currency code (e.g. 'EUR')
-     * @return float Exchange rate value
+     * @return array [date, rate]
      * @throws Exception If exchange rate cannot be obtained
      */
-    public function getExchangeRate(string $sourceCurrency, string $targetCurrency): float
+    public function getExchangeRate(string $sourceCurrency, string $targetCurrency, ?\DateTimeInterface $date = null): array
     {
         // If same currency, rate is 1.0
         if ($sourceCurrency === $targetCurrency) {
             return 1.0;
         }
         
-        $date = $date ?? new DateTime();
+        $date = $date ?? new \DateTime();
         $date->setTime(0, 0, 0);
         
         // Check if we have the rate in database
@@ -43,36 +45,36 @@ class CurrencyExchangeService
         ]);
 
         if ($exchangeRate !== null) {
-            return $exchangeRate->getRate();
+            return [$date, $exchangeRate->getRate()];
         }
         
-        // We don't have the rate - fetch from API
-        $rate = $this->fetchExchangeRateFromApi($sourceCurrency, $targetCurrency);
+        // $rate = $this->fetchExchangeRateFromApi($sourceCurrency, $targetCurrency);
+
+        try{
+            $rates = $this->fetchExchangeRateFromApi_v2($sourceCurrency, $date);
+
+            $this->saveExchangeRatesBatch($sourceCurrency, $rates, $date);
+
+            if (!isset($rates[strtolower($targetCurrency)])) {
+                throw new Exception('Exchange rate not found in API response');
+            }
+            
+            $rate = $rates[strtolower($targetCurrency)];
+        } catch (Exception $e) {
+            // If API call fails, try to get the latest rate from the database
+            $rate = $this->currencyExchangeRepository->findOneBy([
+                'fromCurrency' => $sourceCurrency,
+                'toCurrency' => $targetCurrency,
+            ], ['date' => 'DESC']);
+
+            if(!$rate) {
+                throw new Exception('Exchange rate not found in database and API call failed: ' . $e->getMessage());
+            }
+
+            return [$rate->getDate(), $rate->getRate()];
+        }
         
-        // Save the result to database
-        $this->saveExchangeRate($sourceCurrency, $targetCurrency, $rate, $date);
-        
-        return $rate;
-    }
-    
-    /**
-     * Convert amount from source currency to target currency
-     * 
-     * @param float $amount Amount to convert
-     * @param string $sourceCurrency Source currency code
-     * @param string $targetCurrency Target currency code
-     * @param DateTime|null $date Date for conversion (defaults to today)
-     * @return float Converted amount
-     * @throws Exception If exchange rate cannot be obtained
-     */
-    public function convert(
-        float $amount,
-        string $sourceCurrency,
-        string $targetCurrency,
-        ?DateTime $date = null
-    ): float {
-        $rate = $this->getExchangeRate($sourceCurrency, $targetCurrency, $date);
-        return $amount * $rate;
+        return [$date, $rate];
     }
     
     /**
@@ -121,6 +123,36 @@ class CurrencyExchangeService
     }
 
     /**
+     * Fetches the exchange rate from an API (version 2).
+     *
+     * @param string $baseCurrency The base currency code to fetch the exchange rate for
+     * @param \DateTimeInterface|null $date Optional date for historical exchange rates. If null, current rate is fetched.
+     * @return array ['currency_code' => 'exchange_rate']
+     * @throws \Exception If there is an error fetching the exchange rate
+     */
+    private function fetchExchangeRateFromApi_v2(string $baseCurrency, ?\DateTimeInterface $date = null): array
+    {
+        $dateStr = $date ? $date->format('Y-m-d') : (new DateTime())->format('Y-m-d');
+        $version = 'v1';
+        $baseCurrency = strtolower($baseCurrency);
+        $endpoint = "currencies/{$baseCurrency}.json";
+
+        $urls = [
+            "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{$dateStr}/{$version}/{$endpoint}",
+            "https://{$dateStr}.currency-api.pages.dev/{$version}/{$endpoint}",
+        ];
+                
+        foreach ($urls as $url) {
+            $response = $this->client->request('GET', $url);
+            if ($response->getStatusCode() === 200) {
+                return $response->toArray()[$baseCurrency] ?? [];
+            }
+        }
+
+        throw new \RuntimeException("Failed to fetch exchange rates from all sources.");
+    }
+
+    /**
      * Save exchange rate to database
      */
     private function saveExchangeRate(
@@ -138,36 +170,37 @@ class CurrencyExchangeService
         $this->entityManager->persist($exchangeRate);
         $this->entityManager->flush();
     }
-    
+
     /**
-     * Set exchange rate manually (useful for testing or when having external data)
+     * Save multiple exchange rates to database
      * 
-     * @param string $sourceCurrency Source currency code
-     * @param string $targetCurrency Target currency code
-     * @param float $rate Exchange rate value
-     * @param DateTime|null $date Date, defaults to today
+     * @param string $sourceCurrency Source/base currency code
+     * @param array $rates Array of [targetCurrency => rate]
+     * @param DateTime $date Date of the exchange rate
      */
-    public function setExchangeRate(
-        string $sourceCurrency,
-        string $targetCurrency,
-        float $rate,
-        ?DateTime $date = null
-    ): void {
-        $date = $date ?? new DateTime();
-        $date->setTime(0, 0, 0);
-        
-        $existingRate = $this->currencyExchangeRepository->findOneBy([
-            'fromCurrency' => $sourceCurrency,
-            'toCurrency' => $targetCurrency,
-            'date' => $date,
-        ]);
-        
-        if ($existingRate !== null) {
-            $existingRate->setRate($rate);
-        } else {
-            $this->saveExchangeRate($sourceCurrency, $targetCurrency, $rate, $date);
+    private function saveExchangeRatesBatch(string $sourceCurrency, array $rates, DateTime $date): void
+    {
+        foreach ($rates as $targetCurrency => $rate) {
+            if (
+                $sourceCurrency === $targetCurrency 
+                || !is_numeric($rate) 
+                || strlen($targetCurrency) > 3
+                || strlen((string)floor($rate)) > 4
+            ) {
+                continue;
+            }
+
+            $rate = round($rate, 4);
+
+            $exchangeRate = new CurrencyExchange();
+            $exchangeRate->setFromCurrency(strtoupper($sourceCurrency));
+            $exchangeRate->setToCurrency(strtoupper($targetCurrency));
+            $exchangeRate->setRate($rate);
+            $exchangeRate->setDate($date);
+
+            $this->entityManager->persist($exchangeRate);
         }
-        
+
         $this->entityManager->flush();
     }
 }

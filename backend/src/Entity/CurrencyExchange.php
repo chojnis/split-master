@@ -12,6 +12,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use App\State\CurrencyExchangeProvider;
 use App\Dto\CurrencyExchange\CurrencyExchangeResponse;
 
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\Parameter;
+
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['currency_exchange:read']],
@@ -30,7 +33,38 @@ use App\Dto\CurrencyExchange\CurrencyExchangeResponse;
             'from_property' => 'id',
             'to_property' => 'toCurrencyId'
         ],
+        // 'date' => [
+        //     'from_class' => DateTime::class,
+        //     'from_property' => 'date',
+        //     'to_property' => 'date',
+        //     'required' => false,
+        // ],
     ],
+    openapi: new Operation(
+        parameters: [
+            new Parameter(
+                name: 'fromCurrencyId',
+                in: 'path',
+                description: 'ID of the source currency.',
+                required: true,
+                schema: ['type' => 'integer']
+            ),
+            new Parameter(
+                name: 'toCurrencyId',
+                in: 'path',
+                description: 'ID of the target currency.',
+                required: true,
+                schema: ['type' => 'integer']
+            ),
+            new Parameter(
+                name: 'date',
+                in: 'query',
+                description: 'Date in format YYYY-MM-DD. If not provided, current date is used.',
+                required: false,
+                schema: ['type' => 'string']
+            ),
+        ],
+    ),
     provider: CurrencyExchangeProvider::class,
     output: CurrencyExchangeResponse::class,
 )]
@@ -42,7 +76,7 @@ use App\Dto\CurrencyExchange\CurrencyExchangeResponse;
             'from_class' => Currency::class,
             'from_property' => 'id',
             'to_property' => 'toCurrency'
-        ],
+        ]
     ],
     provider: CurrencyExchangeProvider::class,
     output: CurrencyExchangeResponse::class,

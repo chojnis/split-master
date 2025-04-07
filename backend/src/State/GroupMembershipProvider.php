@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\Get;
 use App\Entity\User;
 use App\Entity\Group;
 use App\Repository\GroupMembershipRepository;
+use App\Repository\GroupRepository;
 
 class GroupMembershipProvider implements ProviderInterface
 {
@@ -24,6 +25,7 @@ class GroupMembershipProvider implements ProviderInterface
         private ProviderInterface $itemProvider,
         private EntityManagerInterface $entityManager,
         private GroupMembershipRepository $groupMembershipRepository,
+        private GroupRepository $groupRepository,
         private Security $security,
     ) {}
 
@@ -63,16 +65,17 @@ class GroupMembershipProvider implements ProviderInterface
         }
 
         if($operation instanceof GetCollection) {
-            if($operation->getName() === 'get_group_members') {
+            if($operation->getName() === 'get_group_memberships') {
                 $groupId = $uriVariables['groupId'];
                 $group = $this->entityManager->getRepository(Group::class)->find($groupId);
                 if (!$group) {
                     throw new \InvalidArgumentException('Group not found.');
                 }
-                if (!$this->groupMembershipRepository->isUserMemberOfGroup($user, $group)) {
-                    throw new AccessDeniedException();
+                if ($group->getOwner() !== $user) {
+                    throw new \AccessDeniedException('You are not the owner of this group.');
                 }
-                return $this->groupMembershipRepository->getGroupMembers($group);
+
+                return $this->groupMembershipRepository->getGroupMemberships($group);
             }
             return $this->groupMembershipRepository->getUserGroupInvites($user);
         }

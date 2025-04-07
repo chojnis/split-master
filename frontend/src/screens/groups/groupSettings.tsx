@@ -1,4 +1,4 @@
-import { Alert, View } from 'react-native';
+import { Alert, FlatList, View, ScrollView } from 'react-native';
 
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
@@ -7,7 +7,7 @@ import { LogOut } from '~/lib/icons/LogOut'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { GroupsStackParamList } from '~/navigation/groups';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useLeaveGroupMutation, useGetGroupQuery, useSendInviteMutation, useGetCurrenciesQuery, useUpdateGroupMutation } from '~/api';
+import { useLeaveGroupMutation, useGetGroupQuery, useSendInviteMutation, useGetCurrenciesQuery, useUpdateGroupMutation, useLazyGetGroupMembershipsQuery } from '~/api';
 import { Container } from '~/components/Container';
 import Loading from '~/components/Loading';
 import { Separator } from '~/components/Separator';
@@ -25,9 +25,20 @@ import {
     DialogHeader,
     DialogTrigger,
   } from '~/components/ui/dialog';
+
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableFooter,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '~/components/ui/table';
 import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
 import { useEffect, useState } from 'react';
 import { Currency } from '~/api/types/entity';
+import { GroupMembershipsResponse } from '~/api/types/response';
 
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
 type GroupSettingsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupSettings'>;
@@ -57,6 +68,18 @@ export default function GroupSettings() {
         error: errorCurrencies
     } = useGetCurrenciesQuery();
     const [sendInvite, { isLoading: isLoadingInvite, error: errorInvite }] = useSendInviteMutation();
+    const [memberships, setMemberships] = useState<GroupMembershipsResponse>([]);
+
+    const [
+        triggerMemberships, 
+        { 
+            isLoading: isLoadingMemberships, 
+            isFetching: isFetchingMemberships, 
+            isError: isErrorMemberships,
+            isSuccess: isSuccessMemberships, 
+        }
+    ] = useLazyGetGroupMembershipsQuery();
+    
 
     const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate, isSuccess: isSuccessUpdateGroup }] = useUpdateGroupMutation();
 
@@ -88,7 +111,10 @@ export default function GroupSettings() {
             || !isSuccessGroup
             || !isSuccessCurrencies
         ) {
-            Alert.alert('Błąd', 'Nie można pobrać danych grupy. Spróbuj ponownie.');
+            showMessage({
+                message: "Nie udało się pobrać danych grupy. Spróbuj ponownie.",
+                type: "danger"
+            })
             navigation.goBack();
             return;
         }
@@ -190,7 +216,10 @@ export default function GroupSettings() {
 
             const { error } = await updateGroup({ groupId, data: { groupName, description, currency } });
             if (error) {
-                Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
+                showMessage({
+                    message: "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.",
+                    type: "danger"
+                })
                 return;
             }
 
@@ -210,6 +239,18 @@ export default function GroupSettings() {
         }
     };
 
+    const handleOpenChangeMemberDialog = (open: boolean) => {
+        setOpenMemberDialog(open);
+
+        if (open) {
+            triggerMemberships(groupId).then((response) => {
+                if (response.data) {
+                    setMemberships(response.data);
+                }
+            });
+        }
+    };
+
 
     return (
         <Container>
@@ -221,7 +262,7 @@ export default function GroupSettings() {
                         </Button>
                     </DialogTrigger>
                     <DialogContent className='sm:max-w-[425px]'>
-                        <DialogHeader>
+                        <DialogFooter>
                             <Form 
                                 fields={editGroupFields} 
                                 onSubmit={handleSaveGroupData} 
@@ -231,22 +272,64 @@ export default function GroupSettings() {
                                 submitText="Zapisz" 
                                 submitTextClassName="text-white" 
                             />
-                        </DialogHeader>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             )}
 
             {isOwner && (
-                <Dialog open={openMemberDialog} onOpenChange={setOpenMemberDialog}>
+                <Dialog open={openMemberDialog} onOpenChange={handleOpenChangeMemberDialog}>
                     <DialogTrigger asChild>
                         <Button variant='outline'>
-                            <Text>Dodaj członka</Text>
+                            <Text>Zarządzaj członkami</Text>
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className='sm:max-w-[425px]'>
+                    <DialogContent className='sm:max-w-[425px] flex flex-col justify-between'>
                         <DialogHeader>
-                            <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
+                            <ScrollView horizontal bounces={false} showsHorizontalScrollIndicator={false} className="flex flex-col max-h-60">
+                                <Table aria-labelledby='members-table' className="flex flex-col gap-2 max-h-60">
+                                    <TableHeader>
+                                        <TableRow className="w-full flex flex-row items-center justify-between">
+                                            <TableHead className='px-0.5'>
+                                                <Text>Użytkownik</Text>
+                                            </TableHead>
+                                            <TableHead>
+                                                <Text>Status</Text>
+                                            </TableHead>
+                                            <TableHead>
+                                                <Text>Akcje</Text>
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <FlatList
+                                            data={memberships}
+                                            renderItem={({ item }) => (
+                                                <TableRow key={item.user.id}>
+                                                    <TableCell className="text-center">
+                                                        <Text>{item.user.email}</Text>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <Text>{item.status}</Text>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <Button variant="outline" onPress={() => handleOpenChangeMemberDialog(false)}>
+                                                            <Text>Usuń</Text>
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                            keyExtractor={(item) => item.user.id}
+                                        />
+                                    </TableBody>
+                                </Table>
+                            </ScrollView>
                         </DialogHeader>
+                        <DialogFooter className="flex flex-col">
+                            <Separator />
+                            <Text className="text-xl">Zaproś użytkownika</Text>
+                            <Form fields={addMemberFields} onSubmit={handleInviteSubmit} isLoading={isLoadingInvite} error={errorInvite} submitText="Wyślij zaproszenie" />
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             )}

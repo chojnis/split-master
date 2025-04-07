@@ -25,7 +25,7 @@ export type Transaction = {
     created_at: Date;
     payer: User;
     payees: User[];
-    exchangeRate: number;
+    exchangeRate?: number;
     transactionDate: Date;
 }
 
@@ -44,3 +44,5 @@ export type ExchangeRate = {
     rate: number;
     date: Date;
 }
+
+export type MembershipStatus = "accepted" | "pending";

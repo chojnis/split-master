@@ -62,8 +62,8 @@ const EditTransaction = () => {
         isFetching: isFetchingExchangeRate,
         refetch: refetchExchangeRate 
     } = useGetPairExchangeRateQuery(
-        {from: selectedCurrencyId, to: defaultCurrencyId}, 
-        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === ""}
+        {from: selectedCurrencyId, to: defaultCurrencyId, date: transactionData?.transactionDate ? new Date(transactionData.transactionDate).toISOString().split('T')[0] : ''}, 
+        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === "" || !transactionData?.transactionDate}
     );
 
     const [fields, setFields] = useState<FormFieldType[]>([]);
@@ -101,7 +101,7 @@ const EditTransaction = () => {
 
             setFields([
                 { 
-                    label: 'Nazwa transakcji', 
+                    label: 'Nazwa', 
                     placeholder: 'Pączki', 
                     name: 'name', 
                     type: 'text', 
@@ -109,7 +109,7 @@ const EditTransaction = () => {
                     value: transactionData.name, 
                 },
                 { 
-                    label: 'Wartość transakcji', 
+                    label: 'Kwota', 
                     placeholder: '0.00', 
                     name: 'amount', 
                     type: 'number', 
@@ -127,12 +127,28 @@ const EditTransaction = () => {
                     value: transactionData.currency.id,
                 },
                 {
-                    label: 'Płatnik',
+                    label: 'Kurs wymiany',
+                    name: 'exchangeRate',
+                    type: 'number',
+                    hidden: defaultCurrencyId === transactionData.currency.id,
+                    value: transactionData.exchangeRate ? transactionData.exchangeRate.toString() : '',
+                },
+                {
+                    label: 'Kto zapłacił?',
                     name: 'payerId',
                     type: 'select',
                     required: true,
+                    width: 70,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
                     value: transactionData.payer.id,
+                },
+                {
+                    label: 'Kiedy?',
+                    name: 'transactionDate',
+                    type: 'date',
+                    required: true,
+                    width: 30,
+                    value: new Date(transactionData.transactionDate),
                 },
                 {
                     label: 'Odbiorcy',
@@ -172,23 +188,14 @@ const EditTransaction = () => {
 
 
         }
-
-
-
-
     }, [
-        currencies, 
-        members,
-        isFetchingCurrencies,
-        isFetchingMembers,
-        isErrorCurrencies,
-        isErrorMembers,
-        isSuccessCurrencies,
-        isSuccessMembers
+        isInitFetching,
+        isLoadError,
+        isLoadDataReady
     ]);
 
     useEffect(() => {
-        let placeholder = '';
+        let placeholder = '...';
         if (
             !isFetchingExchangeRate
             && !isErrorExchangeRate
@@ -196,20 +203,11 @@ const EditTransaction = () => {
         ) {
             placeholder = '1 ' + exchangeRateData.fromCurrency + ' = ' + exchangeRateData.rate.toString() + ' ' + exchangeRateData.toCurrency;
         }
-
-        let value = '';
-        if (
-            !isFetchingTransaction
-            && !isErrorTransaction
-            && isSuccessTransaction
-        ) {
-            value = transactionData.exchangeRate.toString();
-        }
     
         setFields((prevFields) => 
             prevFields.map((field) => 
                 field.name === 'exchangeRate' 
-                ? { ...field, placeholder: placeholder, value: value }
+                ? { ...field, placeholder: placeholder }
                 : field
             )
         );
@@ -219,12 +217,17 @@ const EditTransaction = () => {
         isSuccessExchangeRate,
         exchangeRateData,
         selectedCurrencyId,
+        isFetchingTransaction,
+        isErrorTransaction,
+        isSuccessTransaction,
     ]);
 
     const handleSubmit = async (formData: FormDataType) => {
         const formDataWithNumberAmount = {
             ...formData,
-            amount: parseFloat(formData.amount as string)
+            amount: parseFloat(formData.amount as string),
+            transactionDate: (formData.transactionDate as Date).toISOString().split('T')[0],
+            exchangeRate: formData.exchangeRate ? parseFloat(formData.exchangeRate as string) : undefined,
         };
         const requestData = formDataWithNumberAmount as AddTransactionRequest;
         try {
@@ -252,24 +255,23 @@ const EditTransaction = () => {
     };
 
     const addExchangeRateField = () => {
-        const exchangeRateField: FormFieldType = {
-            label: 'Kurs wymiany',
-            name: 'exchangeRate',
-            type: 'number'
-        }
-
-        setFields((prevFields) => {
-            if (prevFields.some((field) => field.name === 'exchangeRate')) return prevFields;
-            return [
-                ...prevFields.slice(0, 3),
-                exchangeRateField,
-                ...prevFields.slice(3),
-            ];
-        });
+        setFields((prevFields) => 
+            prevFields.map((field) => 
+                field.name === 'exchangeRate' 
+                ? { ...field, hidden: false }
+                : field
+            )
+        );
     };
 
     const removeExchangeRateField = () => {
-        setFields((prevFields) => prevFields.filter((field) => field.name !== 'exchangeRate'));
+        setFields((prevFields) => 
+            prevFields.map((field) => 
+                field.name === 'exchangeRate' 
+                ? { ...field, hidden: true }
+                : field
+            )
+        );
     };
 
     const onChange = (data: FormDataType) => {

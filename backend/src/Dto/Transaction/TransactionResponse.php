@@ -23,7 +23,7 @@ class TransactionResponse
         public Currency $currency,
 
         #[Groups(['transaction:read'])]
-        public float $exchangeRate,
+        public ?float $exchangeRate,
 
         #[Groups(['transaction:read'])]
         public User $payer,

@@ -12,7 +12,8 @@ import {
   AddTransactionResponse,
   InvitesResponse,
   PairExchangeRateResponse,
-  ExchangeRatesResponse
+  ExchangeRatesResponse,
+  GroupMembershipsResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
@@ -49,6 +50,12 @@ export const apiCall = createApi({
     getGroupMembers: builder.query<GroupMembersResponse, string>({
       query: (groupId) => ({
         url: `groups/${groupId}/members`,
+        method: 'GET',
+      }),
+    }),
+    getGroupMemberships: builder.query<GroupMembershipsResponse, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}/memberships`,
         method: 'GET',
       }),
     }),
@@ -145,8 +152,8 @@ export const apiCall = createApi({
       })
     }),
     getPairExchangeRate: builder.query<PairExchangeRateResponse, PairExchangeRateRequest>({
-      query: ({ from, to }) => ({
-        url: `currency-exchange/${from}/${to}`,
+      query: ({ from, to, date }) => ({
+        url: `currency-exchange/${from}/${to}` + (date ? `?date=${date}` : ''),
         method: 'GET',
       }),
     }),
@@ -191,4 +198,5 @@ export const {
   useGetPairExchangeRateQuery,
   useGetExchangeRatesQuery,
   useUpdateGroupMutation,
+  useLazyGetGroupMembershipsQuery,
 } = apiCall;

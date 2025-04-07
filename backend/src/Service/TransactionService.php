@@ -90,7 +90,7 @@ class TransactionService
 
         // if no exchange rate, get it from currency exchange service
         if ($request->exchangeRate === null) {
-            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
+            list($date, $exchangeRate) = $this->currencyExchangeService->getExchangeRate(
                 $currency->getCode(),
                 $transaction->getGroup()->getCurrency()->getCode(),
                 new \DateTime()
@@ -142,15 +142,15 @@ class TransactionService
             }
         }
 
-        if ($request->exchangeRate === null) {
-            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
-                $currency->getCode(),
-                $group->getCurrency()->getCode(),
-                new \DateTime()
-            );
-        } else {
+        // if ($request->exchangeRate === null) {
+        //     list($date, $exchangeRate) = $this->currencyExchangeService->getExchangeRate(
+        //         $currency->getCode(),
+        //         $group->getCurrency()->getCode(),
+        //         new \DateTime()
+        //     );
+        // } else {
             $exchangeRate = $request->exchangeRate;
-        }
+        // }
 
         if($request->transactionDate === null) {
             $transactionDate = new \DateTime();
@@ -226,18 +226,24 @@ class TransactionService
         );
         $transaction->setCurrency($currency);
 
-        if($request->exchangeRate === null && $transaction->getGroup()->getCurrency() !== $currency) {
-            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
-                $currency->getCode(),
-                $transaction->getGroup()->getCurrency()->getCode(),
-                new \DateTime()
-            );
+        // if($request->exchangeRate === null && $transaction->getGroup()->getCurrency() !== $currency) {
+        //     list($date, $exchangeRate) = $this->currencyExchangeService->getExchangeRate(
+        //         $currency->getCode(),
+        //         $transaction->getGroup()->getCurrency()->getCode(),
+        //         new \DateTime()
+        //     );
 
-        } elseif($request->exchangeRate !== null) {
+        // } elseif($request->exchangeRate !== null) {
+        //     $exchangeRate = $request->exchangeRate;
+        // } else {
+        //     $exchangeRate = $transaction->getExchangeRate();
+        // }
+
+        // if ($request->exchangeRate === null) {
+        //     $exchangeRate = $transaction->getExchangeRate();
+        // } else {
             $exchangeRate = $request->exchangeRate;
-        } else {
-            $exchangeRate = $transaction->getExchangeRate();
-        }
+        // }
 
         $this->addTransactionHistory(
             $transaction,
@@ -309,36 +315,34 @@ class TransactionService
             $toUpdateAmount = true;
         }
 
-        if (!$toUpdateAmount) {
-            return $transaction;
-        }
+        if ($toUpdateAmount) {
+            // remove existing entries
+            foreach ($transaction->getEntries() as $entry) {
+                $transaction->removeEntry($entry);
+                $this->entityManager->remove($entry);
+            }
 
-        // remove existing entries
-        foreach ($transaction->getEntries() as $entry) {
-            $transaction->removeEntry($entry);
-            $this->entityManager->remove($entry);
-        }
+            // add new entries
+            $totalAmount = $request->amount;
+            $debitAmounts = splitAmount($totalAmount, count($payees));
 
-        // add new entries
-        $totalAmount = $request->amount;
-        $debitAmounts = splitAmount($totalAmount, count($payees));
-
-        // add credit entry
-        $creditEntry = new TransactionEntry();
-        $creditEntry
-            ->setUser($payer)
-            ->setAmount($totalAmount)
-            ->setType(TransactionEntry::TYPE_CREDIT);
-        $transaction->addEntry($creditEntry);
-        
-        // add debit entries
-        foreach ($payees as $index => $payee) {
-            $debitEntry = new TransactionEntry();
-            $debitEntry
-                ->setUser($payee)
-                ->setAmount($debitAmounts[$index])
-                ->setType(TransactionEntry::TYPE_DEBIT);
-            $transaction->addEntry($debitEntry);
+            // add credit entry
+            $creditEntry = new TransactionEntry();
+            $creditEntry
+                ->setUser($payer)
+                ->setAmount($totalAmount)
+                ->setType(TransactionEntry::TYPE_CREDIT);
+            $transaction->addEntry($creditEntry);
+            
+            // add debit entries
+            foreach ($payees as $index => $payee) {
+                $debitEntry = new TransactionEntry();
+                $debitEntry
+                    ->setUser($payee)
+                    ->setAmount($debitAmounts[$index])
+                    ->setType(TransactionEntry::TYPE_DEBIT);
+                $transaction->addEntry($debitEntry);
+            }
         }
 
         $this->entityManager->flush();

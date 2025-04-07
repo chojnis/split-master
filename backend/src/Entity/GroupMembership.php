@@ -34,6 +34,18 @@ use App\Dto\GroupMembershipInviteDto;
     uriTemplate: '/invites',
     normalizationContext: ['groups' => ['group_membership:invites']]
 )]
+#[GetCollection(
+    name: 'get_group_memberships',
+    uriTemplate: '/groups/{groupId}/memberships',
+    uriVariables: [
+        'groupId' => new Link(
+            fromClass: Group::class, 
+            fromProperty: 'groupMemberships'
+        )
+    ],
+    provider: GroupMembershipProvider::class, 
+    normalizationContext: ['groups' => ['group_membership:members']]
+)]
 #[Post(
     denormalizationContext: ['groups' => ['group_membership:create']], 
     uriTemplate: '/groups/{groupId}/members', 
@@ -117,7 +129,7 @@ class GroupMembership
         choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED],
         message: 'Nieprawidłowy status.'
     )]
-    #[Groups(['group_membership:read', 'group_membership:patch'])]
+    #[Groups(['group_membership:read', 'group_membership:patch', 'group_membership:members'])]
     private string $status = self::STATUS_PENDING;
 
     #[ORM\Column(type: 'datetime')]

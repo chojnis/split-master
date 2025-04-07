@@ -8,6 +8,8 @@ import { GroupsStackParamList } from '~/navigation/groups';
 import { Currency } from '~/api/types/entity';
 import Loading from '~/components/Loading';
 import { useCallback, useEffect, useState } from 'react';
+import { AddTransactionRequest } from '~/api/types/request';
+import { showMessage } from 'react-native-flash-message';
 
 type AddTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddTransaction'>;
 type AddTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'AddTransaction'>;
@@ -36,6 +38,7 @@ const AddTransaction = () => {
     } = useGetGroupMembersQuery(groupId);
 
     const [selectedCurrencyId, setSelectedCurrencyId] = useState<string>("");
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
     const { 
         data: exchangeRateData, 
@@ -45,8 +48,8 @@ const AddTransaction = () => {
         isFetching: isFetchingExchangeRate,
         refetch: refetchExchangeRate 
     } = useGetPairExchangeRateQuery(
-        {from: selectedCurrencyId, to: defaultCurrencyId}, 
-        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === ""}
+        {from: selectedCurrencyId, to: defaultCurrencyId, date: selectedDate?.toISOString().split('T')[0]}, 
+        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === "" || !selectedDate}
     );
 
     const [fields, setFields] = useState<FormFieldType[]>([]);
@@ -70,7 +73,10 @@ const AddTransaction = () => {
             || currencies.length === 0
             || members.length === 0
         ) {
-            Alert.alert('Błąd', 'Nie można pobrać walut lub członków grupy. Spróbuj ponownie.');
+            showMessage({
+                message: 'Nie można pobrać walut lub członków grupy. Spróbuj ponownie.',
+                type: 'danger',
+            });
             navigation.goBack();
             return;
         }
@@ -79,8 +85,8 @@ const AddTransaction = () => {
         if(fields.length === 0) {
 
             setFields([
-                { label: 'Nazwa transakcji', placeholder: 'Pączki', name: 'name', type: 'text', required: true },
-                { label: 'Wartość transakcji', placeholder: '0.00', name: 'amount', type: 'number', width: 70, required: true },
+                { label: 'Nazwa', placeholder: 'Pączki', name: 'name', type: 'text', required: true },
+                { label: 'Kwota', placeholder: '0.00', name: 'amount', type: 'number', width: 70, required: true },
                 {
                     label: 'Waluta',
                     name: 'currencyId',
@@ -88,17 +94,31 @@ const AddTransaction = () => {
                     width: 30,
                     required: true,
                     selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
-                    // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
                     value: currencies[0].id,
                 },
                 {
-                    label: 'Płatnik',
+                    label: 'Kurs wymiany',
+                    name: 'exchangeRate',
+                    type: 'number',
+                    hidden: defaultCurrencyId === currencies[0].id,
+                    value: '',
+                },
+                {
+                    label: 'Kto zapłacił?',
                     name: 'payerId',
                     type: 'select',
                     required: true,
+                    width: 70,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
-                    // defaultSelectValue: {label: members[0].username || members[0].email, value: members[0].id},
                     value: members[0].id,
+                },
+                {
+                    label: 'Kiedy?',
+                    name: 'transactionDate',
+                    type: 'date',
+                    required: true,
+                    width: 30,
+                    value: new Date(),
                 },
                 {
                     label: 'Odbiorcy',
@@ -107,7 +127,6 @@ const AddTransaction = () => {
                     required: true,
                     multiple: true,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
-                    // defaultSelectValue: [{label: members[0].username || members[0].email, value: members[0].id}],
                     value: [members[0].id],
                 },
             ]);
@@ -137,10 +156,6 @@ const AddTransaction = () => {
                 )
             );
         }
-
-
-
-
     }, [
         currencies, 
         members,
@@ -153,7 +168,8 @@ const AddTransaction = () => {
     ]);
 
     useEffect(() => {
-        let placeholder = '';
+        let placeholder = '...';
+
         if (
             !isFetchingExchangeRate
             && !isErrorExchangeRate
@@ -178,41 +194,53 @@ const AddTransaction = () => {
     ]);
 
     const handleSubmit = async (formData: FormDataType) => {
-        const { name, amount, currencyId, payerId, payeesIds } = formData as { name: string; amount: string; currencyId: string; payerId: string; payeesIds: string[] };
+        const formDataWithNumberAmount = {
+            ...formData,
+            amount: parseFloat(formData.amount as string),
+            transactionDate: (formData.transactionDate as Date).toISOString().split('T')[0],
+            exchangeRate: formData.exchangeRate ? parseFloat(formData.exchangeRate as string) : undefined,
+        };
+        const requestData = formDataWithNumberAmount as AddTransactionRequest;
         try {
-            const { data } = await fetchAddTransaction({ groupId, data: { name, amount, currencyId, payerId, payeesIds } });
+            const { data } = await fetchAddTransaction({ groupId, data: requestData });
             if (data) {
+                showMessage({
+                    message: 'Transakcja została dodana pomyślnie.',
+                    type: 'success',
+                });
                 navigation.goBack();
             }
         } catch (err) {
-            Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
+            showMessage({
+                message: 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.',
+                type: 'danger',
+            });
         }
     };
 
     const addExchangeRateField = () => {
-        const exchangeRateField: FormFieldType = {
-            label: 'Kurs wymiany',
-            name: 'exchangeRate',
-            type: 'number'
-        }
-
-        setFields((prevFields) => {
-            if (prevFields.some((field) => field.name === 'exchangeRate')) return prevFields;
-            return [
-                ...prevFields.slice(0, 3),
-                exchangeRateField,
-                ...prevFields.slice(3),
-            ];
-        });
+        setFields((prevFields) => 
+            prevFields.map((field) => 
+                field.name === 'exchangeRate' 
+                ? { ...field, hidden: false }
+                : field
+            )
+        );
     };
 
     const removeExchangeRateField = () => {
-        setFields((prevFields) => prevFields.filter((field) => field.name !== 'exchangeRate'));
-    };
+        setFields((prevFields) => 
+            prevFields.map((field) => 
+                field.name === 'exchangeRate' 
+                ? { ...field, hidden: true }
+                : field
+            )
+        );    };
 
     const onChange = (data: FormDataType) => {
-        const { currencyId } = data as { currencyId: string };
+        const { currencyId, transactionDate } = data as { currencyId: string, transactionDate: Date };
         setSelectedCurrencyId(currencyId);
+        setSelectedDate(transactionDate);
         if (currencyId !== defaultCurrencyId) {
             addExchangeRateField();
         } else {

@@ -36,7 +36,7 @@ class TransactionRequest
     public int $payerId;
 
     #[Groups(['transaction:write'])]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Transakcja musi mieć co najmniej jednego odbiorcę.')]
     #[Assert\Count(
         min: 1,
         minMessage: 'Transakcja musi mieć co najmniej jednego odbiorcę.'
@@ -44,13 +44,15 @@ class TransactionRequest
     public array $payeesIds;
 
     #[Groups(['transaction:write'])]
-    #[Assert\Positive]
+    #[Assert\Positive(message: 'Kurs wymiany musi być większy od 0.')]
     #[Assert\LessThanOrEqual(
         value: 9999.999999,
+        message: 'Kurs wymiany nie może przekroczyć limitu: {{ compared_value }}.'
     )]
     public ?float $exchangeRate = null;
 
     #[Groups(['transaction:write'])]
-    #[Assert\DateTime]
-    public ?\DateTimeInterface $transactionDate = null;
+    #[Assert\Type(\DateTime::class)]
+    #[Assert\LessThanOrEqual("today", message: 'Data transakcji nie może być w przyszłości.')]
+    public ?\DateTime $transactionDate = null;
 }
