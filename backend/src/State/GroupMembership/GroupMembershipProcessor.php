@@ -46,17 +46,17 @@ final class GroupMembershipProcessor implements ProcessorInterface
             $groupId = $uriVariables['groupId'];
             $group = $this->entityManager->getRepository(Group::class)->find($groupId);
             if (!$group) {
-                throw new \InvalidArgumentException('Group not found.');
+                throw new \InvalidArgumentException('Nie znaleziono grupy.');
             }
 
             if($group->getOwner() !== $user) {
-                throw new \InvalidArgumentException('You are not the owner of this group.');
+                throw new \InvalidArgumentException('Nie jesteś członkiem tej grupy.');
             }
 
             $email = $data->getEmail();
             $invitedUser = $this->userRepository->findOneByEmail($email);
             if (!$invitedUser) {
-                throw new \InvalidArgumentException('User not found.');
+                throw new \InvalidArgumentException('Nie znaleziono użytkownika.');
             }
 
             return $this->groupService->inviteUser($invitedUser, $group);       

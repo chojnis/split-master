@@ -126,7 +126,7 @@ class TransactionService
         }
 
         list($oldPayer, $oldPayees, $oldAmount) = $this->getTransactionDetails($transaction);
-        if($this->groupMembershipRepository->isUserMemberOfGroup($oldPayer, $transaction->getGroup())) {
+        if(!$this->groupMembershipRepository->isUserMemberOfGroup($oldPayer, $transaction->getGroup())) {
             throw new \InvalidArgumentException('Nie można edytować transakcji z nieobecnymi członkami.');
         }
 
@@ -134,10 +134,6 @@ class TransactionService
             if (!$this->groupMembershipRepository->isUserMemberOfGroup($payee, $transaction->getGroup())) {
                 throw new \InvalidArgumentException('Nie można edytować transakcji z nieobecnymi członkami.');
             }
-        }
-
-        if (!$this->groupMembershipRepository->isUserMemberOfGroup($transaction->getPayer, $transaction->getGroup())) {
-            throw new \AccessDeniedException('User is not a member of the group.');
         }
 
         $payer = $this->userRepository->find($request->payerId);
