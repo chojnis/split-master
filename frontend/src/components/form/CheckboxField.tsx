@@ -10,6 +10,7 @@ interface Option {
 interface CheckboxFieldProps {
     // label: string;
     options: Option[];
+    disabled?: boolean;
     values: string[];
     onChange: (values: string[]) => void;
     // error?: string;
@@ -18,17 +19,16 @@ interface CheckboxFieldProps {
 const CheckboxField: React.FC<CheckboxFieldProps> = ({
     // label,
     options,
+    disabled,
     values,
     onChange,
     // error,
 }) => {
     const handleToggle = (value: string) => {
-        // Create new values array first
         const newValues = values.includes(value)
-            ? values.filter(v => v !== value) // Remove value if already selected
-            : [...values, value]; // Add value if not already selected
+            ? values.filter(v => v !== value)
+            : [...values, value];
         
-        // Call onChange with the new values
         onChange(newValues);
     };
 
@@ -41,10 +41,11 @@ const CheckboxField: React.FC<CheckboxFieldProps> = ({
                 >
                 <View className={`flex flex-row items-center p-3 ${values.includes(option.value) ? 'bg-green-100' : 'bg-stone-100'} rounded-md ${index !== options.length - 1 ? 'mb-2' : 'mb-4'}`}>
                     <Checkbox
-                    value={values.includes(option.value)}
-                    onValueChange={() => handleToggle(option.value)}
-                    style={styles.checkbox}
-                    color={values.includes(option.value) ? '#50C878' : undefined}
+                        value={values.includes(option.value)}
+                        onValueChange={() => handleToggle(option.value)}
+                        style={styles.checkbox}
+                        color={values.includes(option.value) ? '#50C878' : undefined}
+                        disabled={disabled}
                     />
                     <Text style={styles.checkboxLabel}>{option.label}</Text>
                 </View>

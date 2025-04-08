@@ -12,12 +12,15 @@ use App\Entity\Currency;
 use App\Entity\TransactionEntry;
 use App\Repository\GroupMembershipRepository;
 use Psr\Log\LoggerInterface;
+use App\Repository\UserRepository;
+
 
 class GroupService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private GroupMembershipRepository $groupMembershipRepository,
+        private UserRepository $userRepository,
         private LoggerInterface $logger,
     ) {}
 
@@ -28,8 +31,8 @@ class GroupService
             return;
         }
 
+        $newOwner = null;
         if($group->getOwner() === $user) {
-            $newOwner = null;
             foreach($this->groupMembershipRepository->getGroupMembers($group) as $member) {
                 if ($member->getUser() !== $newOwner) {
                     $newOwner = $member->getUser();
@@ -37,13 +40,23 @@ class GroupService
                 }
             }
             
-            if ($newOwner) {
-                $group->setOwner($newOwner);
-            } else {
+            if ($newOwner === null) {
                 $this->entityManager->remove($group);
+                $this->entityManager->flush();
+                return;
             }
         }
 
+        $settlements = $this->calculateSettlements($group);
+        foreach ($settlements as $settlement) {
+            if ($settlement['from'] === $user || $settlement['to'] === $user) {
+                throw new AccessDeniedException('Użytkownik ma niezrealizowane rozliczenia.');
+            }
+        }
+
+        if($newOwner) {
+            $group->setOwner($newOwner);
+        }
 
         $this->entityManager->remove($groupMembership);
         $this->entityManager->flush();
@@ -52,6 +65,8 @@ class GroupService
     public function calculateSettlements(Group $group)
     {
         $balances = $this->getBalances($group);
+
+        $this->logger->info('Balances: ' . json_encode($balances));
 
         $debtors = [];
         $creditors = [];
@@ -65,6 +80,7 @@ class GroupService
         }
 
         $settlements = [];
+        $currency = $group->getCurrency();
 
         foreach ($debtors as $debtorId => $debtAmount) {
             foreach ($creditors as $creditorId => &$creditAmount) {
@@ -73,9 +89,13 @@ class GroupService
                 $amountToPay = min($debtAmount, $creditAmount);
 
                 $settlements[] = [
-                    'from' => $debtorId,
-                    'to' => $creditorId,
+                    // 'from' => $debtorId,
+                    // 'to' => $creditorId,
+                    // 'amount' => $amountToPay,
+                    'from' => $this->userRepository->find($debtorId),
+                    'to' => $this->userRepository->find($creditorId),
                     'amount' => $amountToPay,
+                    'currency' => $currency,
                 ];
 
                 $debtAmount -= $amountToPay;
@@ -100,6 +120,11 @@ class GroupService
                     : -$entry->getAmount();
             }
         }
+
+        foreach ($balances as $userId => $balance) {
+            $balances[$userId] = round($balance, 2);
+        }
+        
         return $balances;
     }
 

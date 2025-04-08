@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Service\GroupService;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Repository\GroupMembershipRepository;
+use App\Dto\Group\GroupSettlementResponse;
 
 class GroupSettlementsProvider implements ProviderInterface
 {

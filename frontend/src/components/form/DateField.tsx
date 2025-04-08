@@ -3,6 +3,7 @@ import { View, Pressable } from 'react-native';
 import DatePicker from 'react-native-date-picker'
 import { Text } from '~/components/ui/text';
 import { FormFieldValue } from '~/components/form/FormField';
+import { formatDateNicely } from '~/lib/utils';
 
 interface DateFieldProps {
     value: Date;
@@ -16,12 +17,12 @@ const DateField: React.FC<DateFieldProps> = ({
     const [show, setShow] = useState<boolean>(false);
 
     return (
-        <View className="top-0 left-0 bottom-0 right-0 absolute z-10 w-full flex items-center justify-center">
+        <View className="top-0 left-0 bottom-0 right-0 absolute z-10 w-full flex px-4 items-start justify-center">
             <Pressable
                 onPress={() => setShow(true)}
             >
-                <Text>
-                    {value.toLocaleDateString()}
+                <Text className="text-lg">
+                    {formatDateNicely(value, true)}
                 </Text>
             </Pressable>
             

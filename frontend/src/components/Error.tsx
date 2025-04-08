@@ -5,24 +5,27 @@ import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
 
 type ErrorProps = {
-    onRefresh: () => void;
-    message?: string;
+    message: string;
+    onRefresh?: () => void;
     className?: string;
 }
 
 const Error = ({ onRefresh, message, className }: ErrorProps) => {
 
-    message ||= "Wystąpił błąd.";
+    // message ||= "Wystąpił błąd.";
 
     return (
         <View className={`${className || ''}`}>
             <ErrorText className="mb-2">{message}</ErrorText>
-            <Button
-                variant="link"
-                onPress={onRefresh}
-            >
-            <Text>Spróbuj ponownie</Text>
-            </Button>
+            {onRefresh && (
+                <Button
+                    variant="link"
+                    onPress={onRefresh}
+                >
+                    <Text>Spróbuj ponownie</Text>
+                </Button>
+            )}
+
         </View>
     )
 }

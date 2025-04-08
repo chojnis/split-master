@@ -13,7 +13,8 @@ import {
   InvitesResponse,
   PairExchangeRateResponse,
   ExchangeRatesResponse,
-  GroupMembershipsResponse
+  GroupMembershipsResponse,
+  GroupSettlementsResponse
 } from '~/api/types/response';
 import { 
   LoginRequest, 
@@ -45,8 +46,8 @@ export const apiCall = createApi({
         body: credentials,
       }),
     }),
-    getGroups: builder.query<GroupsResponse, number>({
-      query: (page) => 'groups?page=' + page,
+    getGroups: builder.query<GroupsResponse, number|undefined>({
+      query: (page) => 'groups' + (page ? `?page=${page}` : ''),
     }),
     getGroupMembers: builder.query<GroupMembersResponse, string>({
       query: (groupId) => ({
@@ -60,9 +61,9 @@ export const apiCall = createApi({
         method: 'GET',
       }),
     }),
-    getGroupTransactions: builder.query<GroupTransactionResponse, string>({
-      query: (groupId) => ({
-        url: `groups/${groupId}/transactions`,
+    getGroupTransactions: builder.query<GroupTransactionResponse, {groupId: string, page?: number}>({
+      query: ({groupId, page}) => ({
+        url: `groups/${groupId}/transactions` + (page ? `?page=${page}` : ''),
         method: 'GET',
       }),
     }),
@@ -109,6 +110,12 @@ export const apiCall = createApi({
         headers: {
           'Content-Type': 'application/merge-patch+json',
         },
+      }),
+    }),
+    deleteTransaction: builder.mutation<void, string>({
+      query: (transactionId) => ({
+        url: `transactions/${transactionId}`,
+        method: 'DELETE'
       }),
     }),
     getTransaction: builder.query<AddTransactionResponse, string>({
@@ -190,6 +197,12 @@ export const apiCall = createApi({
         },
       }),
     }),
+    getGroupSettlements: builder.query<GroupSettlementsResponse, string>({
+      query: (groupId) => ({
+        url: `groups/${groupId}/settlements`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
@@ -200,6 +213,7 @@ export const {
   useLazyGetGroupsQuery,
   useGetGroupMembersQuery,
   useGetGroupTransactionsQuery,
+  useLazyGetGroupTransactionsQuery,
   useAddGroupMutation,
   useGetGroupQuery,
   useGetUserQuery,
@@ -218,4 +232,6 @@ export const {
   useLazyGetGroupMembershipsQuery,
   useKickFromGroupMutation,
   useChangeOwnershipMutation,
+  useGetGroupSettlementsQuery,
+  useDeleteTransactionMutation
 } = apiCall;

@@ -57,13 +57,14 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               placeholder={field.placeholder} 
               keyboardType='default'
               aria-labelledby={field.name}
-              className={'border-transparent'}
+              className={'border-transparent bg-transparent'}
             />
           )}
           {field.type === 'select' && (
             <Select
               // value={typeof value === 'number' ? String(value) : value as string | string[] | undefined}
               value={value}
+              disabled={field.disabled}
               onChangeValue={handleChange}
               selectOptions={field.selectOptions || []}
               className={'border-transparent'}
@@ -85,11 +86,16 @@ const FormField = ({ field, value, onChange, className, error }: FormFieldProps)
               keyboardType={field.type === 'number' ? 'numeric' : 'default'}
               secureTextEntry={field.type === 'password'}
               aria-labelledby={field.name}
-              className={'border-transparent'}
+              className={'border-transparent bg-transparent'}
             />
           )}
         </View>
         {error !== undefined && <Text className="text-red-500">{error}</Text>}
+        {field.description && (
+          <Text className="text-sm text-gray-500 mt-1">
+            {field.description}
+          </Text>
+        )}
     </View>
   );
 };

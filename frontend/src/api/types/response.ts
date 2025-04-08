@@ -1,5 +1,5 @@
 import { User, Transaction, Currency, ExchangeRate } from "~/api/types/entity";
-import { Group, Invite, MembershipStatus } from "~/api/types/entity";
+import { Group, Invite, MembershipStatus, GroupSettlement } from "~/api/types/entity";
 
 export type LoginResponse = {
     token: string;
@@ -35,5 +35,7 @@ export type InvitesResponse = Invite[];
 export type PairExchangeRateResponse = ExchangeRate;
 
 export type ExchangeRatesResponse = ExchangeRate[];
+
+export type GroupSettlementsResponse = GroupSettlement[];
 
 

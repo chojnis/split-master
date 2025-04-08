@@ -7,13 +7,15 @@ import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
 import EditTransactionScreen from '~/screens/groups/editTransaction';
+import TransactionDetailsScreen from '~/screens/groups/transactionDetails';
+import { Currency } from '~/api/types/entity';
 
 export type GroupsStackParamList = {
     GroupsList: undefined;
     GroupDetails: { groupId: string };
-    TransactionDetails: undefined;
-    AddTransaction: { groupId: string, defaultCurrencyId: string };
-    EditTransaction: { groupId: string, transactionId: string, defaultCurrencyId: string };
+    AddTransaction: { groupId: string, defaultCurrency: Currency };
+    EditTransaction: { groupId: string, transactionId: string, defaultCurrency: Currency };
+    TransactionDetails: { groupId: string, transactionId: string, defaultCurrency: Currency };
     AddGroup: undefined;
     UserDetails: { userId: string};
     GroupSettings: { groupId: string };
@@ -57,16 +59,25 @@ const GroupsStack = () => {
                 component={AddGroupScreen} 
             />
             <GroupsStackNavigator.Screen 
+                name="TransactionDetails"
+                options={{
+                    title: 'Szczegóły transakcji'
+                }}
+                component={TransactionDetailsScreen} 
+            />
+            <GroupsStackNavigator.Screen 
                 name="AddTransaction"
                 options={{
-                    title: 'Dodaj transakcję'
+                    title: 'Dodaj transakcję',
+                    presentation: 'modal'
                 }}
                 component={AddTransactionScreen} 
             />
             <GroupsStackNavigator.Screen 
                 name="EditTransaction"
                 options={{
-                    title: 'Edytuj transakcję'
+                    title: 'Edytuj transakcję',
+                    presentation: 'modal'
                 }}
                 component={EditTransactionScreen} 
             />

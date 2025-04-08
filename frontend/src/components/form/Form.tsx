@@ -14,6 +14,8 @@ export type FormFieldType = {
   name: string;
   type: 'text' | 'number' | 'textarea' | 'password' | 'select' | 'date';
   value?: FormFieldValue;
+  disabled?: boolean;
+  description?: string;
   hidden?: boolean;
   required?: boolean;
   width?: number;

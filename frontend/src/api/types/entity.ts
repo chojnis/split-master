@@ -20,13 +20,19 @@ export type Currency = {
 export type Transaction = {
     id: string;
     name: string;
-    amount: number;
+    originalAmount: number;
     currency: Currency;
-    created_at: Date;
     payer: User;
     payees: User[];
+    entries: TransactionEntry[];
     exchangeRate?: number;
     transactionDate: Date;
+}
+
+export type TransactionEntry = {
+    amount: number;
+    user: User;
+    type: "CREDIT" | "DEBIT";
 }
 
 export type Invite = {
@@ -46,3 +52,10 @@ export type ExchangeRate = {
 }
 
 export type MembershipStatus = "accepted" | "pending";
+
+export type GroupSettlement = {
+    from: User;
+    to: User;
+    amount: number;
+    currency: Currency;
+}

@@ -12,6 +12,7 @@ export type SelectOption = {
 
 type SelectProps = {
     value?: FormFieldValue;
+    disabled?: boolean;
     onChangeValue: (value: FormFieldValue) => void;
     selectOptions: SelectOption[];
     defaultValue?: SelectOption | SelectOption[];
@@ -29,6 +30,7 @@ const findOptionsByValue = (options: SelectOption[], values?: string[]) => {
 
 const SelectField = ({
     value,
+    disabled,
     onChangeValue, 
     className,
     selectOptions,
@@ -42,6 +44,7 @@ const SelectField = ({
             {!multiple ? (
                 <Picker
                     selectedValue={value}
+                    enabled={!disabled}
                     onValueChange={(itemValue, itemIndex) => {
                         const selectedOption = selectOptions[itemIndex];
                         if (selectedOption) {
@@ -56,7 +59,7 @@ const SelectField = ({
                         value={option.value} 
                         label={option.label} 
                         style={{
-                            backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+                            backgroundColor: colorScheme === 'dark' ? '#1e2939' : '#fff',
                             color: colorScheme === 'dark' ? '#fff' : '#000',
                             fontSize: 16,
                         }}
@@ -66,6 +69,7 @@ const SelectField = ({
             ) : (
                 <CheckboxField
                     values={Array.isArray(value) ? value : []}
+                    disabled={disabled}
                     options={selectOptions}
                     onChange={(values) => {
                         onChangeValue(values);

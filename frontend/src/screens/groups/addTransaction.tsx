@@ -17,7 +17,7 @@ type AddTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'AddTransa
 const AddTransaction = () => {
     const navigation = useNavigation<AddTransactionScreenNavigationProps>();
     const route = useRoute<AddTransactionScreenRouteProps>();
-    const { groupId, defaultCurrencyId } = route.params;
+    const { groupId, defaultCurrency } = route.params;
 
     const [fetchAddTransaction, { isLoading, error }] = useAddTransactionMutation();
     const { 
@@ -48,8 +48,8 @@ const AddTransaction = () => {
         isFetching: isFetchingExchangeRate,
         refetch: refetchExchangeRate 
     } = useGetPairExchangeRateQuery(
-        {from: selectedCurrencyId, to: defaultCurrencyId, date: selectedDate?.toISOString().split('T')[0]}, 
-        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === "" || !selectedDate}
+        {from: selectedCurrencyId, to: defaultCurrency.id, date: selectedDate?.toISOString().split('T')[0]}, 
+        {skip: !selectedCurrencyId || !defaultCurrency.id || selectedCurrencyId === defaultCurrency.id || selectedCurrencyId === "" || !selectedDate}
     );
 
     const [fields, setFields] = useState<FormFieldType[]>([]);
@@ -100,15 +100,16 @@ const AddTransaction = () => {
                     label: 'Kurs wymiany',
                     name: 'exchangeRate',
                     type: 'number',
-                    hidden: defaultCurrencyId === currencies[0].id,
+                    hidden: defaultCurrency.id === currencies[0].id,
                     value: '',
+                    description: 'Pozostaw puste, aby użyć automatycznego kursu.',
                 },
                 {
                     label: 'Kto zapłacił?',
                     name: 'payerId',
                     type: 'select',
                     required: true,
-                    width: 70,
+                    width: 60,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
                     value: members[0].id,
                 },
@@ -117,7 +118,7 @@ const AddTransaction = () => {
                     name: 'transactionDate',
                     type: 'date',
                     required: true,
-                    width: 30,
+                    width: 40,
                     value: new Date(),
                 },
                 {
@@ -241,7 +242,7 @@ const AddTransaction = () => {
         const { currencyId, transactionDate } = data as { currencyId: string, transactionDate: Date };
         setSelectedCurrencyId(currencyId);
         setSelectedDate(transactionDate);
-        if (currencyId !== defaultCurrencyId) {
+        if (currencyId !== defaultCurrency.id) {
             addExchangeRateField();
         } else {
             removeExchangeRateField();
@@ -252,7 +253,16 @@ const AddTransaction = () => {
 
     return (
         <Container>
-            <Form fields={fields} onSubmit={handleSubmit} onChange={onChange} isLoading={isLoading} error={error} submitText="Dodaj transakcję" submitClassName="bg-green-500" />
+            <Form 
+                fields={fields} 
+                onSubmit={handleSubmit} 
+                onChange={onChange} 
+                isLoading={isLoading} 
+                error={error} 
+                submitText="Dodaj transakcję" 
+                submitClassName="bg-green-500" 
+                submitTextClassName='text-white'
+            />
         </Container>
     );
 };

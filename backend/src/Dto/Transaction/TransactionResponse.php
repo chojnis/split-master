@@ -17,7 +17,7 @@ class TransactionResponse
         public string $name,
         
         #[Groups(['transaction:read'])]
-        public float $amount,
+        public float $originalAmount,
 
         #[Groups(['transaction:read'])]
         public Currency $currency,

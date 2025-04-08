@@ -14,6 +14,7 @@ class TransactionDeleteProcessor implements ProcessorInterface
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
         private ProcessorInterface $removeProcessor,
+        private GroupMembershipRepository $groupMembershipRepository,
         private Security $security
     ) {}
 

@@ -1,7 +1,7 @@
 import { TypedStartListening } from '@reduxjs/toolkit';
 import { StringToBoolean } from 'class-variance-authority/dist/types';
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, View } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle,
@@ -14,48 +14,84 @@ import Plus from '~/lib/icons/Plus';
 
 type FloatingActionButtonProps = {
   onPress: () => void;
+  secondOnPress?: () => void;
   icon?: React.ReactNode;
+  secondIcon?: React.ReactNode;
+  secondClassName?: string;
   className?: string;
 }
 
-const FloatingActionButton = ({ onPress, icon, className }: FloatingActionButtonProps) => {
+const FloatingActionButton = ({ onPress, secondOnPress, icon, secondIcon, className, secondClassName }: FloatingActionButtonProps) => {
   const scale = useSharedValue(1);
+  const secondScale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.9);
+  const secondAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: secondScale.value }],
+  }));
+
+  const handlePressIn = (second?: boolean) => {
+    // scale.value = withSpring(0.9);
+    if(second) {
+      secondScale.value = withSpring(0.9);
+    } else {
+      scale.value = withSpring(0.9);
+    }
   };
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1);
+  const handlePressOut = (second?: boolean) => {
+    // scale.value = withSpring(1);
+    if(second) {
+      secondScale.value = withSpring(1);
+    } else {
+      scale.value = withSpring(1);
+    }
   };
 
   return (
-    <Animated.View 
-      style={[styles.container, animatedStyle]}
-    >
-      <Button
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        className={`${className || ''}`}
+    <View className="absolute bottom-4 right-4 flex flex-column items-center justify-center gap-4">
+      {secondOnPress && (
+        <Animated.View 
+          style={[styles.container, secondAnimatedStyle]}
+        >
+          <Button
+            onPress={secondOnPress}
+            onPressIn={() => handlePressIn(true)}
+            onPressOut={() => handlePressOut(true)}
+            className={`${secondClassName || ''}`}
+          >
+            {secondIcon || (
+              <Plus className="dark:text-black text-white" width={24} height={24} />
+            )}
+          </Button>
+        </Animated.View>
+      )}
+      <Animated.View 
+        style={[styles.container, animatedStyle]}
       >
-        {icon || (
-          <Plus className="dark:text-black text-white" width={24} height={24} />
-        )}
-      </Button>
-    </Animated.View>
+        <Button
+          onPress={onPress}
+          onPressIn={() => handlePressIn()}
+          onPressOut={() => handlePressOut()}
+          className={`${className || ''}`}
+        >
+          {icon || (
+            <Plus className="dark:text-black text-white" width={24} height={24} />
+          )}
+        </Button>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
+    // position: 'absolute',
+    // right: 16,
+    // bottom: 16,
     borderRadius: 28,
     elevation: 6,
     shadowColor: '#000',

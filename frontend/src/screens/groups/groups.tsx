@@ -29,7 +29,7 @@ export default function Groups() {
   const [groups, setGroups ] = useState<Group[]>([]);
   const [page, setPage ] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [trigger, { isLoading, isFetching, isError }] = useLazyGetGroupsQuery();
+  const [trigger, { isLoading, isFetching, isError, isSuccess }] = useLazyGetGroupsQuery();
 
   const { data: invites, isLoading: isLoadingInvites, refetch: refetchInvites } = useGetInvitesQuery();
   const [acceptInvite, {isLoading: isLoadingAccept, error: errorAccept, isSuccess: isSuccessAccept}] = useAcceptInviteMutation();
@@ -47,6 +47,7 @@ export default function Groups() {
 
   const loadNextPage = async (manual?: boolean) => {
     if(!hasMore || isFetching || (!manual && isError)) return;
+    if(page === 1) return loadInitPage();
     const { data, isSuccess } = await trigger(page);
     if(isSuccess) {
       setGroups((prev) => [...prev, ...data]);
@@ -76,7 +77,7 @@ export default function Groups() {
   );
 
   const renderInviteItem = ({ item, index }: { item: Invite, index: number }) => (
-    <Card className={`flex p-4 mb-16 border-orange-500 ${index > 0 ? 'mt-4' : 'mt-6'}`}>
+    <Card className={`flex p-4 border-orange-500 ${index > 0 ? 'mt-4' : 'mt-6'}`}>
       <CardHeader>
         <CardDescription className="mb-2">Otrzymałeś zaproszenie do grupy</CardDescription>
         <CardTitle>{item.group.groupName}</CardTitle>
@@ -144,6 +145,13 @@ export default function Groups() {
             onEndReachedThreshold={0.5}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             className={'flex px-6'}
+            ListEmptyComponent={() => (
+                isSuccess && (
+                  <View className="flex items-center justify-center mt-6">
+                    <Text className="dark:text-gray-300 text-gray-500">Nie jesteś w żadnej grupie</Text>
+                  </View>
+                )
+            )}
             ListFooterComponent={() => (
               <>
                 {isError && !isFetching && (

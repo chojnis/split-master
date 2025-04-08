@@ -13,7 +13,7 @@ const Loading = ({ reverseColors, absolute, className }: LoadingProps) => {
 
     return (
         <View 
-            className={`flex items-center justify-center ${absolute ? "absolute w-full h-full opacity-70 z-10 dark:bg-black bg-white" : ""} ${className || ''}`}
+            className={`flex items-center justify-center ${absolute ? "absolute w-full h-full opacity-70 z-10 dark:bg-[#1e2939] bg-white" : ""} ${className || ''}`}
         >
             <View className="animate-spin">
                 <Loader 

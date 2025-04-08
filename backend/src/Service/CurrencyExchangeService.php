@@ -31,7 +31,7 @@ class CurrencyExchangeService
     {
         // If same currency, rate is 1.0
         if ($sourceCurrency === $targetCurrency) {
-            return 1.0;
+            return [$date, 1.0];
         }
         
         $date = $date ?? new \DateTime();

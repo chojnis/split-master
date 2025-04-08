@@ -1,9 +1,9 @@
-import { useGetGroupTransactionsQuery } from '~/api';
+import { useGetGroupTransactionsQuery, useLazyGetGroupTransactionsQuery } from '~/api';
 import { Currency, Transaction, User } from '~/api/types/entity';
 import TransactionItem from '~/components/transaction/TransactionItem';
 import { View, FlatList, RefreshControl, Pressable } from 'react-native';
 import { Text } from '~/components/ui/text';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Loading from '~/components/Loading';
 import Error from '~/components/Error';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,65 +14,118 @@ type GroupDetailsStackNavigationProp = StackNavigationProp<GroupsStackParamList,
 
 type TransactionSectionProps = {
     groupId: string;
-    defaultCurrencyId: string;
+    defaultCurrency: Currency;
     navigation: GroupDetailsStackNavigationProp
 }
 
-const TransactionsSection = ({ groupId, defaultCurrencyId, navigation }: TransactionSectionProps) => {
-    const { data, isLoading, refetch, error } = useGetGroupTransactionsQuery(groupId);
+const TransactionsSection = ({ groupId, defaultCurrency, navigation }: TransactionSectionProps) => {
+    // const { data, isLoading, refetch, error } = useGetGroupTransactionsQuery({groupId});
+
+    const [transactions, setTransactions ] = useState<Transaction[]>([]);
+    const [page, setPage ] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [trigger, { isLoading, isFetching, isSuccess, isError }] = useLazyGetGroupTransactionsQuery();
+    
     const [refreshing, setRefreshing] = useState(false);
+
+    const loadInitPage = async () => {
+        const { data, isSuccess } = await trigger({groupId, page: 1});
+        setTransactions(isSuccess ? data : []);
+        setPage(isSuccess ? 2 : 1);
+        setHasMore(isSuccess ? data.length !== 0 : true);
+      }
+    
+      const loadNextPage = async (manual?: boolean) => {
+        if(!hasMore || isFetching || (!manual && isError)) return;
+        if(page === 1) return loadInitPage();
+        const { data, isSuccess } = await trigger({groupId, page});
+        if(isSuccess) {
+            setTransactions((prev) => [...prev, ...data]);
+            setPage((prev) => prev + 1);
+            if(data.length === 0) {
+                setHasMore(false);
+            }
+        }
+      }
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await refetch();
+        // await refetch();
+        await loadInitPage();
         setRefreshing(false);
     };
 
+    useEffect(() => {
+        loadInitPage();
+    }, []);
+    
     useFocusEffect(
         useCallback(() => {
-            refetch();
+            // refetch();
+            loadInitPage();
         }, [])
     );
 
-    const renderTransaction = ({ item }: { item: Transaction }) => (
-        <Pressable
-            onPress={() => {
-                navigation.navigate("EditTransaction", {
-                    transactionId: item.id,
-                    groupId: groupId,
-                    defaultCurrencyId: defaultCurrencyId,
-                });
-            }}
-        >
-            <TransactionItem
-                id={item.id}
-                payerName={item.payer.username || item.payer.email}
-                title={item.name}
-                amount={item.amount}
-                currencySymbol={item.currency.name}
-            />
-        </Pressable>
+    const renderTransaction = ({ item, index }: { item: Transaction, index: number }) => (
+        // <View>
+            <Pressable
+                onPress={() => {
+                    navigation.navigate("TransactionDetails", {
+                        transactionId: item.id,
+                        groupId,
+                        defaultCurrency
+                    });
+                }}
+                className={`${index > 0 ? 'mt-2' : ''}`}
+            >
+                <TransactionItem
+                    id={item.id}
+                    payerName={item.payer.username || item.payer.email}
+                    title={item.name}
+                    amount={item.originalAmount}
+                    currency={item.currency}
+                    transactionDate={item.transactionDate}
+                />
+            </Pressable>
+        // </View>
     );
     
-    const showLoading = isLoading || refreshing;
-    if(showLoading && error) return <Loading reverseColors />
-
+    // const showLoading = isLoading || refreshing;
+    const showLoading = isLoading || refreshing || (transactions.length === 0 && isFetching);
+    // if(showLoading && error) return <Loading reverseColors />
     return (
         <View className="mt-4">
-            <View className="flex items-start justify-center mb-4">
-                <Text className="text-lg uppercase">Transakcje</Text>
-            </View>
             {showLoading && <Loading absolute reverseColors />}
-            {error ? (
+            {/* {error ? (
                 <Error onRefresh={onRefresh} message="Wystąpił błąd podczas ładowania grup" />
-            )  : (
+            )  : ( */}
                 <FlatList
-                    data={data}
+                    // data={data}
+                    data={transactions}
                     renderItem={renderTransaction}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => `transaction-${item.id}`}
+                    onEndReached={()=>loadNextPage()}
+                    onEndReachedThreshold={0.5}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    className="flex"
+                    ListEmptyComponent={() => (
+                        isSuccess && (
+                            <View className="flex items-center justify-center">
+                                <Text className="dark:text-gray-300 text-gray-500">Nie ma jeszcze transakcji</Text>
+                            </View>
+                        )
+                    )}
+                    contentContainerStyle={{ paddingBottom: 96 }}
+                    ListFooterComponent={() => (
+                        <>
+                            {isError && !isFetching && (
+                                <Error className="mt-4" onRefresh={()=>loadNextPage(true)} message="Wystąpił błąd podczas ładowania transakcji" />
+                            )}
+                            <View className="h-24"></View>
+                        </>
+                    )}
                 />
-            )}
+            {/* )} */}
         </View>
     );
 }

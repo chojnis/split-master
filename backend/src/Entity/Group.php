@@ -28,6 +28,7 @@ use App\State\Group\GroupGetProvider;
 use App\State\Group\GroupGetCollectionProvider;
 use App\State\Group\GroupSettlementsProvider;
 use App\State\Group\GroupPatchProcessor;
+use App\Dto\Group\GroupSettlementResponse;
 
 #[ApiResource(security: "is_granted('ROLE_USER')", normalizationContext: ['groups' => ['group:read']], denormalizationContext: ['groups' => ['group:write']])]
 #[GetCollection(provider: GroupGetCollectionProvider::class)]
@@ -52,8 +53,8 @@ use App\State\Group\GroupPatchProcessor;
 #[Get(
     uriTemplate: '/groups/{id}/settlements',
     provider: GroupSettlementsProvider::class,
-    // output: GroupDebtResponse::class,
-    // normalizationContext: ['groups' => ['debt:read']],
+    output: GroupSettlementResponse::class,
+    normalizationContext: ['groups' => ['settlement:read']],
 )]
 
 #[ORM\Entity(repositoryClass: GroupRepository::class)]

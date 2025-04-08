@@ -51,6 +51,7 @@ import { useEffect, useState } from 'react';
 import { Currency } from '~/api/types/entity';
 import { GroupMembershipsResponse } from '~/api/types/response';
 import { ItemText } from '@rn-primitives/select';
+import Error from '~/components/Error';
 
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
 type GroupSettingsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupSettings'>;
@@ -61,7 +62,7 @@ export default function GroupSettings() {
     const groupId = router.params.groupId;
     const navigation = useNavigation<GroupSettingsStackNavigationProp>();
 
-    const [leaveGroup, { isLoading: isLoadingLeave }] = useLeaveGroupMutation();
+    const [leaveGroup, { isLoading: isLoadingLeave, error: errorLeave }] = useLeaveGroupMutation();
     const { 
         data: groupData, 
         isLoading: isLoadingGroup, 
@@ -155,9 +156,11 @@ export default function GroupSettings() {
                 label: 'Waluta',
                 name: 'currency',
                 type: 'select',
-                required: true,
+                // required: true,
+                disabled: true,
                 selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
                 value: groupData.currency.id,
+                description: 'Nie można zmienić waluty po dodaniu grupy.',
             },
         ]);
 
@@ -227,9 +230,11 @@ export default function GroupSettings() {
             getMemberships();
 
             setAddMemberFields((prev) => {
-                const newFields = [...prev];
-                newFields[0].value = "";
-                return newFields;
+                const emailField = prev.find((item) => item.name === "email");
+                if (emailField) {
+                    emailField.value = "";
+                }
+                return [...prev];
             });
             
         } catch (error) {
@@ -264,8 +269,10 @@ export default function GroupSettings() {
             });
             setOpenGroupDialog(false);
         } catch (error) {
-            console.error("Error updating group data:", error);
-            Alert.alert("Błąd", "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.");
+            showMessage({
+                message: "Nie udało się zaktualizować danych grupy. Spróbuj ponownie.",
+                type: "danger"
+            })
         }
     };
 
@@ -350,11 +357,11 @@ export default function GroupSettings() {
             {isOwner && (
                 <Dialog className="mb-2" open={openGroupDialog} onOpenChange={setOpenGroupDialog}>
                     <DialogTrigger asChild>
-                        <Button variant='outline'>
+                        <Button variant='outline' className="dark:bg-[#101828] dark:border-transparent">
                             <Text>Edytuj dane grupy</Text>
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className='sm:max-w-[425px]'>
+                    <DialogContent className='sm:max-w-[425px] dark:bg-[#1e2939]'>
                         <DialogFooter>
                             <Form 
                                 fields={editGroupFields} 
@@ -373,11 +380,11 @@ export default function GroupSettings() {
             {isOwner && (
                 <Dialog open={openMemberDialog} onOpenChange={handleOpenChangeMemberDialog}>
                     <DialogTrigger asChild>
-                        <Button variant='outline'>
+                        <Button variant='outline' className="dark:bg-[#101828] dark:border-transparent">
                             <Text>Zarządzaj członkami</Text>
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className='sm:max-w-[425px] flex flex-col justify-between'>
+                    <DialogContent className='sm:max-w-[425px] flex flex-col justify-between dark:bg-[#1e2939]'>
                         <DialogHeader className="relative">
                             {isLoadingKick && (
                                 <Loading absolute reverseColors />
@@ -386,21 +393,21 @@ export default function GroupSettings() {
                                 <TableHeader>
                                     <TableRow className="w-full flex flex-row items-center justify-between">
                                     <TableHead className="px-0.5">
-                                        <Text>Użytkownicy</Text>
+                                        <Text>Członkowie</Text>
                                     </TableHead>
                                     </TableRow>
                                 </TableHeader>
 
-                                {isLoadingMemberships ? (
-                                    <TableBody className="flex flex-col w-full">
-                                        <TableRow className="flex flex-row items-center justify-center">
-                                            <TableCell className="flex items-center justify-center">
-                                                <Loading />
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody>
-                                ) : (
-                                    <ScrollView className="max-h-60" showsVerticalScrollIndicator={true}>
+                                <ScrollView className="h-60" showsVerticalScrollIndicator={true}>
+                                    {isLoadingMemberships ? (
+                                        <TableBody className="flex flex-col w-full h-60">
+                                            <TableRow className="flex flex-row items-center justify-center">
+                                                <TableCell className="flex items-center justify-center">
+                                                    <Loading />
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    ) : (
                                         <TableBody className="flex flex-col w-full">
                                             {memberships.map((item) => (
                                                 <TableRow key={item.user.id} className="flex flex-row items-center justify-between">
@@ -420,7 +427,7 @@ export default function GroupSettings() {
                                                             </Button>
                                                         ) : (
                                                             <View className="flex flex-row items-center gap-2">
-                                                                <Button variant="outline" className="" onPress={() => {handleChangeOwnership(item.user.id)}}>
+                                                                <Button variant="outline" className="bg-transparent dark:border-white" onPress={() => {handleChangeOwnership(item.user.id)}}>
                                                                     <CrownIcon className="text-yellow-500" width={16} height={16} />
                                                                 </Button>
                                                                 <Button variant="destructive" className="" onPress={() => {handleKickFromGroup(item.user.id)}}>
@@ -432,7 +439,10 @@ export default function GroupSettings() {
                                                 </TableRow>
                                             ))}
                                         </TableBody>
-                                    </ScrollView>
+                                    )}
+                                </ScrollView>
+                                {errorKick && (
+                                    <Error message={'detail' in errorKick ? errorKick.detail : ""} />
                                 )}
                             </Table>
                         </DialogHeader>
@@ -441,7 +451,7 @@ export default function GroupSettings() {
                                 <TableHeader>
                                     <TableRow className="w-full flex flex-row items-center justify-between">
                                         <TableHead className="px-0.5">
-                                            <Text>Zaproś użytkownika</Text>
+                                            <Text>Zaproś</Text>
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -469,6 +479,9 @@ export default function GroupSettings() {
                     </View>
                 )}
             </Button>
+            {errorLeave && (
+                <Error className="mt-2" message={'detail' in errorLeave ? errorLeave.detail : ""} />
+            )}
         </Container>
     );
 }

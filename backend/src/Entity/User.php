@@ -79,7 +79,7 @@ use App\State\UserDeleteProcessor;
 #[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Groups(['user:read', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read'])]
+    #[Groups(['user:read', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read', 'settlement:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -94,7 +94,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         message: 'Niepoprawny adres email.',
         groups: ['user:create']
     )]
-    #[Groups(['user:read', 'user:create', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read'])]
+    #[Groups(['user:read', 'user:create', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read', 'settlement:read'])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -110,7 +110,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'group_membership:members', 'transaction:read', 'group:read', 'debt:read', 'settlement:read'])]
     private ?string $username = null;
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]

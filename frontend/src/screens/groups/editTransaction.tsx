@@ -23,7 +23,7 @@ type EditTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'EditTran
 const EditTransaction = () => {
     const navigation = useNavigation<EditTransactionScreenNavigationProps>();
     const route = useRoute<EditTransactionScreenRouteProps>();
-    const { groupId, transactionId, defaultCurrencyId } = route.params;
+    const { groupId, transactionId, defaultCurrency } = route.params;
 
     const [updateTransaction, { isLoading, error }] = useEditTransactionMutation();
     const { 
@@ -62,8 +62,8 @@ const EditTransaction = () => {
         isFetching: isFetchingExchangeRate,
         refetch: refetchExchangeRate 
     } = useGetPairExchangeRateQuery(
-        {from: selectedCurrencyId, to: defaultCurrencyId, date: transactionData?.transactionDate ? new Date(transactionData.transactionDate).toISOString().split('T')[0] : ''}, 
-        {skip: !selectedCurrencyId || !defaultCurrencyId || selectedCurrencyId === defaultCurrencyId || selectedCurrencyId === "" || !transactionData?.transactionDate}
+        {from: selectedCurrencyId, to: defaultCurrency.id, date: transactionData?.transactionDate ? new Date(transactionData.transactionDate).toISOString().split('T')[0] : ''}, 
+        {skip: !selectedCurrencyId || !defaultCurrency.id || selectedCurrencyId === defaultCurrency.id || selectedCurrencyId === "" || !transactionData?.transactionDate}
     );
 
     const [fields, setFields] = useState<FormFieldType[]>([]);
@@ -115,7 +115,7 @@ const EditTransaction = () => {
                     type: 'number', 
                     width: 70, 
                     required: true,
-                    value: transactionData.amount.toString(),
+                    value: transactionData.originalAmount.toString(),
                 },
                 {
                     label: 'Waluta',
@@ -130,15 +130,16 @@ const EditTransaction = () => {
                     label: 'Kurs wymiany',
                     name: 'exchangeRate',
                     type: 'number',
-                    hidden: defaultCurrencyId === transactionData.currency.id,
+                    hidden: defaultCurrency.id === transactionData.currency.id,
                     value: transactionData.exchangeRate ? transactionData.exchangeRate.toString() : '',
+                    description: 'Pozostaw puste, aby użyć automatycznego kursu.',
                 },
                 {
                     label: 'Kto zapłacił?',
                     name: 'payerId',
                     type: 'select',
                     required: true,
-                    width: 70,
+                    width: 60,
                     selectOptions: members.map((member) => ({ label: member.username || member.email, value: member.id })),
                     value: transactionData.payer.id,
                 },
@@ -147,7 +148,7 @@ const EditTransaction = () => {
                     name: 'transactionDate',
                     type: 'date',
                     required: true,
-                    width: 30,
+                    width: 40,
                     value: new Date(transactionData.transactionDate),
                 },
                 {
@@ -277,7 +278,7 @@ const EditTransaction = () => {
     const onChange = (data: FormDataType) => {
         const { currencyId } = data as { currencyId: string };
         setSelectedCurrencyId(currencyId);
-        if (currencyId !== defaultCurrencyId) {
+        if (currencyId !== defaultCurrency.id) {
             addExchangeRateField();
         } else {
             removeExchangeRateField();
@@ -288,7 +289,16 @@ const EditTransaction = () => {
 
     return (
         <Container>
-            <Form fields={fields} onSubmit={handleSubmit} onChange={onChange} isLoading={isLoading} error={error} submitText="Zapisz transakcję" submitClassName="bg-green-500" />
+            <Form 
+                fields={fields} 
+                onSubmit={handleSubmit} 
+                onChange={onChange} 
+                isLoading={isLoading} 
+                error={error} 
+                submitText="Zapisz transakcję" 
+                submitClassName="bg-green-500 text" 
+                submitTextClassName="text-white"
+            />
         </Container>
     );
 };

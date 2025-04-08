@@ -4,6 +4,7 @@ namespace App\State\Group;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\State\ProviderInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Repository\GroupMembershipRepository;
 use App\Entity\Group;
@@ -13,6 +14,8 @@ final class GroupPatchProcessor implements ProcessorInterface
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface $persistProcessor, 
+        #[Autowire(service: 'api_platform.doctrine.orm.state.item_provider')]
+        private ProviderInterface $itemProvider,
         private GroupMembershipRepository $groupMembershipRepository
     ) {}
 
@@ -27,6 +30,13 @@ final class GroupPatchProcessor implements ProcessorInterface
                 throw new \InvalidArgumentException('New owner must be a member of group.');
             }
         }
+
+        $previousData = $context['previous_data'] ?? null;
+        if(!$previousData instanceof Group) {
+            throw new \InvalidArgumentException('Previous data not found.');
+        }
+
+        $data->setCurrency($previousData->getCurrency());
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
     }

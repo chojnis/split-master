@@ -25,7 +25,7 @@ class GroupDebtProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
         if (!$user) {
-            return new AccessDeniedException('User not authenticated.');
+            throw new AccessDeniedException('User not authenticated.');
         }
 
         $groupId = $uriVariables['id'] ?? null;

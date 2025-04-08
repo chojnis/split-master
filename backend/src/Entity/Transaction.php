@@ -104,6 +104,10 @@ class Transaction
     #[Groups(['transaction:read'])]
     private ?string $name = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[Groups(['transaction:read'])]
+    private ?float $originalAmount = null;
+
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[ORM\JoinColumn(name: 'currency_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['transaction:read'])]
@@ -223,6 +227,17 @@ class Transaction
             $entry->setTransaction(null);
         }
 
+        return $this;
+    }
+
+    public function getOriginalAmount(): float
+    {
+        return $this->originalAmount;
+    }
+
+    public function setOriginalAmount(float $originalAmount): self
+    {
+        $this->originalAmount = $originalAmount;
         return $this;
     }
 }

@@ -26,15 +26,15 @@ class Currency
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['currency:read', 'transaction:read', 'debt:read', 'group:read'])]
+    #[Groups(['currency:read', 'transaction:read', 'debt:read', 'group:read', 'settlement:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 3, unique: true)]
-    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read'])]
+    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read', 'settlement:read'])]
     private string $code;
 
     #[ORM\Column(type: 'string', length: 100)]
-    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read'])]
+    #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read', 'settlement:read'])]
     private string $name;
 
     public function getId(): ?int

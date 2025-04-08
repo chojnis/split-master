@@ -44,9 +44,6 @@ class TransactionProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|TransactionResponse|Transaction|null
     {
-        // log entrance
-        $this->logger->info('TransactionProvider: provide method called');
-
         $user = $this->security->getUser();
         if (!$user) {
             throw new \AccessDeniedException('User not authenticated.');
@@ -67,7 +64,7 @@ class TransactionProvider implements ProviderInterface
             return new TransactionResponse(
                 id: $transaction->getId(),
                 name: $transaction->getName(),
-                amount: $amount,
+                originalAmount: $transaction->getOriginalAmount(),
                 currency: $transaction->getCurrency(),
                 exchangeRate: $transaction->getExchangeRate(),
                 payer: $payer,
@@ -98,7 +95,7 @@ class TransactionProvider implements ProviderInterface
                 $output[] = new TransactionResponse(
                     id: $transaction->getId(),
                     name: $transaction->getName(),
-                    amount: $amount,
+                    originalAmount: $transaction->getOriginalAmount(),
                     currency: $transaction->getCurrency(),
                     exchangeRate: $transaction->getExchangeRate(),
                     payer: $payer,

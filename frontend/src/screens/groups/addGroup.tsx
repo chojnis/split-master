@@ -57,6 +57,7 @@ const AddGroup = () => {
                 selectOptions: currencies.map((currency: Currency) => ({ label: currency.name, value: currency.id })),
                 // defaultSelectValue: {label: currencies[0].name, value: currencies[0].id},
                 value: currencies[0].id,
+                description: 'Waluta, w której będą rozliczane transakcje grupowe. Nie można jej zmienić po dodaniu grupy.',
             }
         ]);
     }, [

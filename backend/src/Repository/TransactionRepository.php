@@ -44,6 +44,8 @@ class TransactionRepository extends ServiceEntityRepository
                         ->setFirstResult(($page - 1) * $itemsPerPage)
                         ->setMaxResults($itemsPerPage)
                 )
+                ->orderBy('t.transactionDate', 'DESC')
+                ->orderBy('t.id', 'DESC')
         );
     }
 }
