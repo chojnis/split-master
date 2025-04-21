@@ -67,18 +67,18 @@ class Group
     #[Groups(groups: ['group:read', 'transaction:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 100)]
+    #[ORM\Column(type: 'string', length: 30)]
     #[Assert\NotBlank(message: 'Nazwa grupy nie może być pusta.')]
     #[Assert\Length(
-        max: 100,
+        max: 30,
         maxMessage: 'Nazwa grupy nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
     #[Groups(groups: ['group:read', 'group:write', 'transaction:read', 'group_membership:invites'])]
     private string $groupName;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     #[Assert\Length(
-        max: 255,
+        max: 50,
         maxMessage: 'Opis nie może przekroczyć ilości znaków: {{ limit }}.'
     )]
     #[Groups(groups: ['group:read', 'group:write', 'transaction:read', 'group_membership:invites'])]

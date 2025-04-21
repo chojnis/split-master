@@ -126,7 +126,7 @@ class GroupMembership
     #[Groups(['group_membership:read', 'group_membership:invites'])]
     private Group $group;
 
-    #[ORM\Column(type: 'string', length: 20)]
+    #[ORM\Column(type: 'string', length: 8)]
     #[Assert\Choice(
         choices: [self::STATUS_PENDING, self::STATUS_ACCEPTED],
         message: 'Nieprawidłowy status.'

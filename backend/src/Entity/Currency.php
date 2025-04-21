@@ -33,7 +33,7 @@ class Currency
     #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read', 'settlement:read'])]
     private string $code;
 
-    #[ORM\Column(type: 'string', length: 100)]
+    #[ORM\Column(type: 'string', length: 10)]
     #[Groups(['currency:read', 'currency:write', 'transaction:read', 'debt:read', 'group:read', 'settlement:read'])]
     private string $name;
 

@@ -100,7 +100,7 @@ class Transaction
     #[Groups(['transaction:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 50)]
     #[Groups(['transaction:read'])]
     private ?string $name = null;
 

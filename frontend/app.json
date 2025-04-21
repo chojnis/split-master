@@ -33,6 +33,11 @@
         "userInterfaceStyle": "automatic"
       },
       "package": "com.anonymous.frontend"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "18e7dd3c-15ee-48e3-912c-c03a0a92a4a0"
+      }
     }
   }
 }
