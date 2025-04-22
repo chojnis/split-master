@@ -10,35 +10,26 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\State\CurrencyExchangeProvider;
-use App\Dto\CurrencyExchange\CurrencyExchangeResponse;
-
+use App\Entity\Currency;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
+use ApiPlatform\Metadata\Link;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')",
-    normalizationContext: ['groups' => ['currency_exchange:read']],
-    denormalizationContext: ['groups' => ['currency_exchange:write']],
+    normalizationContext: ['groups' => ['currency_exchange:read']]
 )]
 #[Get(
     uriTemplate: '/currency-exchange/{fromCurrencyId}/{toCurrencyId}',
     uriVariables: [
-        'fromCurrencyId' => [
-            'from_class' => Currency::class,
-            'from_property' => 'id',
-            'to_property' => 'fromCurrencyId'
-        ],
-        'toCurrencyId' => [
-            'from_class' => Currency::class,
-            'from_property' => 'id',
-            'to_property' => 'toCurrencyId'
-        ],
-        // 'date' => [
-        //     'from_class' => DateTime::class,
-        //     'from_property' => 'date',
-        //     'to_property' => 'date',
-        //     'required' => false,
-        // ],
+        'fromCurrencyId' => new Link(
+            fromClass: Currency::class,
+            fromProperty: 'id'
+        ),
+        'toCurrencyId' => new Link(
+            fromClass: Currency::class,
+            fromProperty: 'id'
+        )
     ],
     openapi: new Operation(
         parameters: [
@@ -65,21 +56,7 @@ use ApiPlatform\OpenApi\Model\Parameter;
             ),
         ],
     ),
-    provider: CurrencyExchangeProvider::class,
-    output: CurrencyExchangeResponse::class,
-)]
-
-#[GetCollection(
-    uriTemplate: '/currency-exchange/{toCurrencyId}',
-    uriVariables: [
-        'toCurrencyId' => [
-            'from_class' => Currency::class,
-            'from_property' => 'id',
-            'to_property' => 'toCurrency'
-        ]
-    ],
-    provider: CurrencyExchangeProvider::class,
-    output: CurrencyExchangeResponse::class,
+    provider: CurrencyExchangeProvider::class
 )]
 
 #[ORM\Entity(repositoryClass: CurrencyExchangeRepository::class)]

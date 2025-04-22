@@ -165,12 +165,12 @@ export const apiCall = createApi({
         method: 'GET',
       }),
     }),
-    getExchangeRates: builder.query<ExchangeRatesResponse, string>({
-      query: ( to ) => ({
-        url: `currency-exchange/${to}`,
-        method: 'GET',
-      }),
-    }),
+    // getExchangeRates: builder.query<ExchangeRatesResponse, string>({
+    //   query: ( to ) => ({
+    //     url: `currency-exchange/${to}`,
+    //     method: 'GET',
+    //   }),
+    // }),
     updateGroup: builder.mutation<void, { groupId: string; data: AddGroupRequest }>({
       query: ({ groupId, data }) => ({
         url: `groups/${groupId}`,
@@ -227,7 +227,7 @@ export const {
   useLeaveGroupMutation,
   useSendInviteMutation,
   useGetPairExchangeRateQuery,
-  useGetExchangeRatesQuery,
+  // useGetExchangeRatesQuery,
   useUpdateGroupMutation,
   useLazyGetGroupMembershipsQuery,
   useKickFromGroupMutation,

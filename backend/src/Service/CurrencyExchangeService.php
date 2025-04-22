@@ -76,6 +76,70 @@ class CurrencyExchangeService
         
         return [$date, $rate];
     }
+
+    /**
+     * Get exchange rate from source currency to target currency v2
+     * 
+     * @param string $sourceCurrency Source currency code (e.g. 'USD')
+     * @param string $targetCurrency Target currency code (e.g. 'EUR')
+     * @return CurrencyExchange
+     * @throws Exception If exchange rate cannot be obtained
+     */
+    public function getExchangeRate_v2(string $sourceCurrency, string $targetCurrency, ?\DateTimeInterface $date = null): CurrencyExchange
+    {
+        // If same currency, rate is 1.0
+        if ($sourceCurrency === $targetCurrency) {
+            return (new CurrencyExchange())
+                ->setFromCurrency($sourceCurrency)
+                ->setToCurrency($targetCurrency)
+                ->setRate(1.0)
+                ->setDate(new \DateTime());
+        }
+        
+        $date = $date ?? new \DateTime();
+        $date->setTime(0, 0, 0);
+        
+        // Check if we have the rate in database
+        $exchangeRate = $this->currencyExchangeRepository->findOneBy([
+            'fromCurrency' => $sourceCurrency,
+            'toCurrency' => $targetCurrency,
+            'date' => $date,
+        ]);
+
+        if ($exchangeRate !== null) {
+            return $exchangeRate;
+        }
+        
+        try{
+            $rates = $this->fetchExchangeRateFromApi_v2($sourceCurrency, $date);
+
+            $this->saveExchangeRatesBatch($sourceCurrency, $rates, $date);
+
+            if (!isset($rates[strtolower($targetCurrency)])) {
+                throw new Exception('Exchange rate not found in API response');
+            }
+            
+            $rate = $rates[strtolower($targetCurrency)];
+        } catch (Exception $e) {
+            // If API call fails, try to get the latest rate from the database
+            $rate = $this->currencyExchangeRepository->findOneBy([
+                'fromCurrency' => $sourceCurrency,
+                'toCurrency' => $targetCurrency,
+            ], ['date' => 'DESC']);
+
+            if(!$rate) {
+                throw new Exception('Exchange rate not found in database and API call failed: ' . $e->getMessage());
+            }
+
+            return $rate;
+        }
+        
+        return (new CurrencyExchange())
+            ->setFromCurrency($sourceCurrency)
+            ->setToCurrency($targetCurrency)
+            ->setRate($rate)
+            ->setDate($date);
+    }
     
     /**
      * Fetches exchange rate from external API

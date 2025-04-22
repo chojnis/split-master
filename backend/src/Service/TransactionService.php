@@ -254,14 +254,14 @@ class TransactionService
 
         $exchangeRate = $transaction->getExchangeRate();
         if($exchangeRate === null) {
-            list($date, $exchangeRate) = $this->currencyExchangeService->getExchangeRate(
+            $exchangeRate = $this->currencyExchangeService->getExchangeRate_v2(
                 $transaction->getCurrency()->getCode(),
                 $transaction->getGroup()->getCurrency()->getCode(),
                 $transaction->getTransactionDate()
             );
         }
 
-        $totalAmount = $totalAmount * $exchangeRate;
+        $totalAmount = $totalAmount * $exchangeRate->getRate();
 
         $debitAmounts = splitAmount($totalAmount, count($payees));
 
