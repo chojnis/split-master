@@ -19,7 +19,7 @@ class GroupGetProvider implements ProviderInterface
         private Security $security
     ) {}
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Group|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): Group|null
     {
         $user = $this->security->getUser();
         if (!$user) {

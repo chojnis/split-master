@@ -18,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\GroupMembership;
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Entity\Currency;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\State\GroupDebtProvider;
 use App\Dto\Group\GroupDebtResponse;
