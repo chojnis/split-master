@@ -254,7 +254,7 @@ class TransactionService
 
         $exchangeRate = $transaction->getExchangeRate();
         if($exchangeRate === null) {
-            $exchangeRate = $this->currencyExchangeService->getExchangeRate_v2(
+            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
                 $transaction->getCurrency()->getCode(),
                 $transaction->getGroup()->getCurrency()->getCode(),
                 $transaction->getTransactionDate()
