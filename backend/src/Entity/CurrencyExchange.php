@@ -21,16 +21,6 @@ use ApiPlatform\Metadata\Link;
 )]
 #[Get(
     uriTemplate: '/currency-exchange/{fromCurrencyId}/{toCurrencyId}',
-    uriVariables: [
-        'fromCurrencyId' => new Link(
-            fromClass: Currency::class,
-            fromProperty: 'id'
-        ),
-        'toCurrencyId' => new Link(
-            fromClass: Currency::class,
-            fromProperty: 'id'
-        )
-    ],
     openapi: new Operation(
         parameters: [
             new Parameter(
