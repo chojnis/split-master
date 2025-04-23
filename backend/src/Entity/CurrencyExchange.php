@@ -73,7 +73,7 @@ class CurrencyExchange
 
     #[ORM\Column(type: 'date')]
     #[Groups(['currency_exchange:read'])]
-    private ?DateTime $date = null;
+    private ?\DateTimeInterface $date = null;
 
     public function __construct()
     {
@@ -107,12 +107,12 @@ class CurrencyExchange
         return $this;
     }
 
-    public function getDate(): ?DateTime
+    public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
+    public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
         return $this;

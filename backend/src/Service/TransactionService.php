@@ -62,15 +62,7 @@ class TransactionService
             }
         }
 
-        // if ($request->exchangeRate === null) {
-        //     list($date, $exchangeRate) = $this->currencyExchangeService->getExchangeRate(
-        //         $currency->getCode(),
-        //         $group->getCurrency()->getCode(),
-        //         new \DateTime()
-        //     );
-        // } else {
-            $exchangeRate = $request->exchangeRate;
-        // }
+        $exchangeRate = $request->exchangeRate;
 
         if($request->transactionDate === null) {
             $transactionDate = new \DateTime();
@@ -254,14 +246,15 @@ class TransactionService
 
         $exchangeRate = $transaction->getExchangeRate();
         if($exchangeRate === null) {
-            $exchangeRate = $this->currencyExchangeService->getExchangeRate(
+            $exchangeRateObject = $this->currencyExchangeService->getExchangeRateObject(
                 $transaction->getCurrency()->getCode(),
                 $transaction->getGroup()->getCurrency()->getCode(),
                 $transaction->getTransactionDate()
             );
+            $exchangeRate = $exchangeRateObject->getRate();
         }
 
-        $totalAmount = $totalAmount * $exchangeRate->getRate();
+        $totalAmount = $totalAmount * $exchangeRate;
 
         $debitAmounts = splitAmount($totalAmount, count($payees));
 

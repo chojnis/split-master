@@ -43,6 +43,6 @@ class CurrencyExchangeProvider implements ProviderInterface
             throw new \InvalidArgumentException('Invalid currency ID provided');
         }
 
-        return $this->currencyExchangeService->getExchangeRate($fromCurrency->getCode(), $toCurrency->getCode(), $date);
+        return $this->currencyExchangeService->getExchangeRateObject($fromCurrency->getCode(), $toCurrency->getCode(), $date);
     }
 }

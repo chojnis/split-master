@@ -167,17 +167,17 @@ class Transaction
         return $this;
     }
 
-    public function getCreatedAt(): \DateTime
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getTransactionDate(): \DateTime
+    public function getTransactionDate(): \DateTimeInterface
     {
         return $this->transactionDate;
     }
 
-    public function setTransactionDate(\DateTime $transactionDate): self
+    public function setTransactionDate(\DateTimeInterface $transactionDate): self
     {
         $this->transactionDate = $transactionDate;
         return $this;

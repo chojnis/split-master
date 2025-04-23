@@ -18,14 +18,14 @@ class CurrencyExchangeService
     ) {}
 
     /**
-     * Get exchange rate from source currency to target currency
+     * Get exchange rate object from source currency to target currency
      * 
      * @param string $sourceCurrency Source currency code (e.g. 'USD')
      * @param string $targetCurrency Target currency code (e.g. 'EUR')
      * @return CurrencyExchange
      * @throws Exception If exchange rate cannot be obtained
      */
-    public function getExchangeRate(string $sourceCurrency, string $targetCurrency, ?\DateTimeInterface $date = null): CurrencyExchange
+    public function getExchangeRateObject(string $sourceCurrency, string $targetCurrency, ?\DateTimeInterface $date = null): CurrencyExchange
     {
         // If same currency, rate is 1.0
         if ($sourceCurrency === $targetCurrency) {
