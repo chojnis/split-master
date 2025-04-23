@@ -77,7 +77,7 @@ use App\Dto\Transaction\TransactionResponse;
             fromProperty: 'transactions'
         ),
     ],
-    provider: TransactionProvider::class,
+    // provider: TransactionProvider::class,
     processor: TransactionPostProcessor::class,
     input: TransactionRequest::class,
     output: TransactionResponse::class
@@ -127,11 +127,11 @@ class Transaction
 
     #[ORM\Column(type: 'date')]
     #[Groups(['transaction:read'])]
-    private ?\DateTime $transactionDate = null;
+    private ?\DateTimeInterface $transactionDate = null;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups(['transaction:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     public function __construct()
     {

@@ -6,7 +6,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Currency;
 use App\Entity\User;
 use Symfony\Component\Serializer\Annotation\Groups;
-
+use ApiPlatform\Metadata\ApiProperty;
 
 class TransactionRequest
 {
@@ -52,7 +52,13 @@ class TransactionRequest
     public ?float $exchangeRate = null;
 
     #[Groups(['transaction:write'])]
-    #[Assert\Type(\DateTime::class)]
+    #[Assert\Type(\DateTimeInterface::class)]
     #[Assert\LessThanOrEqual("today", message: 'Data transakcji nie może być w przyszłości.')]
-    public ?\DateTime $transactionDate = null;
+    #[ApiProperty(
+        openapiContext: [
+            'type' => 'string',
+            'format' => 'date'
+        ]
+    )]
+    public ?\DateTimeInterface $transactionDate = null;
 }
