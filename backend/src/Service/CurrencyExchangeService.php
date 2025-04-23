@@ -18,7 +18,7 @@ class CurrencyExchangeService
     ) {}
 
     /**
-     * Get exchange rate from source currency to target currency v2
+     * Get exchange rate from source currency to target currency
      * 
      * @param string $sourceCurrency Source currency code (e.g. 'USD')
      * @param string $targetCurrency Target currency code (e.g. 'EUR')
