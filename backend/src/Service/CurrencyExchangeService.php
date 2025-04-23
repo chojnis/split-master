@@ -60,6 +60,12 @@ class CurrencyExchangeService
             }
             
             $rate = $rates[strtolower($targetCurrency)];
+            
+            return (new CurrencyExchange())
+                ->setFromCurrency($sourceCurrency)
+                ->setToCurrency($targetCurrency)
+                ->setRate($rate)
+                ->setDate($date);
         } catch (Exception $e) {
             // If API call fails, try to get the latest rate from the database
             $rate = $this->currencyExchangeRepository->findOneBy([
@@ -73,12 +79,6 @@ class CurrencyExchangeService
 
             return $rate;
         }
-        
-        return (new CurrencyExchange())
-            ->setFromCurrency($sourceCurrency)
-            ->setToCurrency($targetCurrency)
-            ->setRate($rate)
-            ->setDate($date);
     }
 
     /**
