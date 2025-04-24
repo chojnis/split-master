@@ -11,8 +11,8 @@ use App\Dto\Group\CreateGroupRequest;
 use App\Entity\Currency;
 use App\Entity\TransactionEntry;
 use App\Repository\GroupMembershipRepository;
-use Psr\Log\LoggerInterface;
 use App\Repository\UserRepository;
+use App\Dto\Group\GroupSettlementResponse;
 
 
 class GroupService
@@ -20,8 +20,7 @@ class GroupService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private GroupMembershipRepository $groupMembershipRepository,
-        private UserRepository $userRepository,
-        private LoggerInterface $logger,
+        private UserRepository $userRepository
     ) {}
 
     public function removeUserFromGroup(User $user, Group $group): void
@@ -66,8 +65,6 @@ class GroupService
     {
         $balances = $this->getBalances($group);
 
-        $this->logger->info('Balances: ' . json_encode($balances));
-
         $debtors = [];
         $creditors = [];
 
@@ -88,15 +85,12 @@ class GroupService
 
                 $amountToPay = min($debtAmount, $creditAmount);
 
-                $settlements[] = [
-                    // 'from' => $debtorId,
-                    // 'to' => $creditorId,
-                    // 'amount' => $amountToPay,
-                    'from' => $this->userRepository->find($debtorId),
-                    'to' => $this->userRepository->find($creditorId),
-                    'amount' => $amountToPay,
-                    'currency' => $currency,
-                ];
+                $settlements[] = new GroupSettlementResponse(
+                    from: $this->userRepository->find($debtorId),
+                    to: $this->userRepository->find($creditorId),
+                    amount: $amountToPay,
+                    currency: $currency
+                );
 
                 $debtAmount -= $amountToPay;
                 $creditAmount -= $amountToPay;

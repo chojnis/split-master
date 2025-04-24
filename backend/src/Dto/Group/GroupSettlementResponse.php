@@ -3,6 +3,8 @@
 namespace App\Dto\Group;
 
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Entity\Currency;
+use App\Entity\User;
 
 class GroupSettlementResponse
 {

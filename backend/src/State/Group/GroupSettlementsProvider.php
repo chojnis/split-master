@@ -22,7 +22,7 @@ class GroupSettlementsProvider implements ProviderInterface
         private Security $security
     ) {}
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|Group|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|null
     {
         $user = $this->security->getUser();
         if (!$user) {
