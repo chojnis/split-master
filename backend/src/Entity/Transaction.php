@@ -77,7 +77,6 @@ use App\Dto\Transaction\TransactionResponse;
             fromProperty: 'transactions'
         ),
     ],
-    // provider: TransactionProvider::class,
     processor: TransactionPostProcessor::class,
     input: TransactionRequest::class,
     output: TransactionResponse::class
