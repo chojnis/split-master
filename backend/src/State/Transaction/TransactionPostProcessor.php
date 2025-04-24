@@ -14,7 +14,6 @@ use ApiPlatform\Exception\AccessDeniedException;
 use App\Entity\Group;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Service\TransactionService;
-use Psr\Log\LoggerInterface;
 use App\Repository\GroupMembershipRepository;
 
 
@@ -24,8 +23,7 @@ class TransactionPostProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private Security $security,
         private GroupMembershipRepository $groupMembershipRepository,
-        private TransactionService $transactionService,
-        private LoggerInterface $logger
+        private TransactionService $transactionService
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Transaction

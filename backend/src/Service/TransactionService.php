@@ -18,7 +18,6 @@ use App\Repository\UserRepository;
 use App\Service\CurrencyExchangeService;
 use App\Entity\TransactionEntry;
 use App\Entity\TransactionHistory;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\GroupMembershipRepository;
 
@@ -31,8 +30,7 @@ class TransactionService
         private CurrencyExchangeService $currencyExchangeService,
         private EntityManagerInterface $entityManager,
         private GroupMembershipRepository $groupMembershipRepository,
-        private Security $security,
-        private LoggerInterface $logger,
+        private Security $security
     ) {}
 
     public function createTransaction(TransactionRequest $request, Group $group): Transaction
@@ -64,10 +62,9 @@ class TransactionService
 
         $exchangeRate = $request->exchangeRate;
 
-        if($request->transactionDate === null) {
+        $transactionDate = $request->transactionDate;
+        if ($transactionDate === null) {
             $transactionDate = new \DateTime();
-        } else {
-            $transactionDate = $request->transactionDate;
         }
 
         $transaction = new Transaction();
@@ -80,28 +77,6 @@ class TransactionService
             ->setTransactionDate($transactionDate);
 
         $this->entityManager->persist($transaction);
-        // $totalAmount = $request->amount;
-        // $debitAmounts = splitAmount($totalAmount, count($payees));
-
-        // $creditEntry = new TransactionEntry();
-        // $creditEntry
-        //     // ->setTransaction($transaction)
-        //     ->setUser($payer)
-        //     ->setAmount($totalAmount)
-        //     ->setType(TransactionEntry::TYPE_CREDIT);
-        // // $this->entityManager->persist($creditEntry);
-        // $transaction->addEntry($creditEntry);
-
-        // foreach($payees as $index => $payee) {
-        //     $debitEntry = new TransactionEntry();
-        //     $debitEntry
-        //         // ->setTransaction($transaction)
-        //         ->setUser($payee)
-        //         ->setAmount($debitAmounts[$index])
-        //         ->setType(TransactionEntry::TYPE_DEBIT);
-        //     // $this->entityManager->persist($debitEntry);
-        //     $transaction->addEntry($debitEntry);
-        // }
 
         $this->createTransactionEntries($transaction, $payer, $payees, $request->amount);
 
@@ -255,7 +230,6 @@ class TransactionService
         }
 
         $totalAmount = $totalAmount * $exchangeRate;
-
         $debitAmounts = splitAmount($totalAmount, count($payees));
 
         $creditEntry = new TransactionEntry();
@@ -357,7 +331,7 @@ function splitAmount(float $totalAmount, int $numberOfPayees): array
 
     $amounts = array_fill(0, $numberOfPayees, $amountPerPayee);
 
-    // randomze the distribution of the remainder
+    // randomize distribution of the remainder
     if ($remainder > 0) {
         $randomKeys = array_rand($amounts, $remainder);
         foreach ((array)$randomKeys as $key) {
@@ -365,6 +339,5 @@ function splitAmount(float $totalAmount, int $numberOfPayees): array
         }
     }
 
-    // return $amounts;
     return array_map(fn($amount) => $amount / 100, $amounts);
 }
