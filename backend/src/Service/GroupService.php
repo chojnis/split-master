@@ -67,7 +67,6 @@ class GroupService
 
         $debtors = [];
         $creditors = [];
-
         foreach ($balances as $userId => $balance) {
             if ($balance < 0) {
                 $debtors[$userId] = -$balance;

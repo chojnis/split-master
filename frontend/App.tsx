@@ -1,39 +1,17 @@
 import './global.css';
 
 import { Provider } from 'react-redux';
-import { setupStore, AppStore } from './src/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './src/store';
 import Navigation from './src/navigation';
-import { useEffect, useState } from 'react';
 import LoadingScreen from './src/screens/loading';
 
-let store: AppStore | undefined;
-
 export default function App() {
-  const [isAppReady, setAppReady] = useState(false);
-
-  useEffect(() => {
-
-    // setupStore().then((newStore) => {
-    //   store = newStore;
-    //   setAppReady(true);
-    // });
-
-    const initializeApp = async () => {
-      const newStore = await setupStore();
-      store = newStore;
-      setAppReady(true);
-    }
-
-    initializeApp();
-  }, []);
-
-  if (!isAppReady || !store) {
-      return <LoadingScreen />;
-  }
-  
   return (
       <Provider store={store}>
+        <PersistGate loading={<LoadingScreen />} persistor={persistor}>
           <Navigation />
+        </PersistGate>
       </Provider>
   );
 }

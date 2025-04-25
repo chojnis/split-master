@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StackNavigationProp } from '@react-navigation/stack';
-import GroupsScreen from '~/screens/groups/groups';
+import GroupsScreen from '~/screens/groups';
 import GroupDetailsScreen from '~/screens/groups/groupDetails';
 import GroupSettingsScreen from '~/screens/groups/groupSettings';
 import UserDetailsScreen from '~/screens/user/userDetails';

@@ -1,54 +1,37 @@
-import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
-import { setupListeners } from '@reduxjs/toolkit/query';
+import { configureStore, EnhancedStore, combineReducers } from '@reduxjs/toolkit';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import { apiCall } from '~/api';
 import storageMiddleware from '~/store/middleware/storageMiddleware';
-import authReducer, { loadAuthState, authSlice } from '~/store/reducers/authReducer';
+import authReducer from '~/store/reducers/authReducer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const tempStore = configureStore({
-  reducer: {
-    auth: authReducer,
-    [apiCall.reducerPath]: apiCall.reducer,
-  }
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['auth']
+}
+
+const rootReducer = combineReducers({
+  auth: authReducer,
+  [apiCall.reducerPath]: apiCall.reducer,
 });
 
-export const setupStore = async (): Promise<AppStore> => {
-  const loadedState = await loadAuthState();
-  
-  if (loadedState.token && loadedState.refreshToken) {
-    tempStore.dispatch(authSlice.actions.login({
-      token: loadedState.token,
-      refresh_token: loadedState.refreshToken,
-      user: loadedState.user,
-    }));
-  }
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-  const store = configureStore({
-    reducer: {
-      auth: authReducer,
-      [apiCall.reducerPath]: apiCall.reducer,
-    },
-    middleware: (getDefaultMiddleware) => 
-      getDefaultMiddleware()
-        .concat(apiCall.middleware, storageMiddleware),
-    preloadedState: {
-      auth: loadedState
-    }
-  });
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    })
+      .concat(apiCall.middleware)
+      .concat(storageMiddleware),
+});
 
-  setupListeners(store.dispatch);
+export const persistor = persistStore(store);
 
-  return store;
-};
-
-// const store = configureStore({
-//   reducer: {
-//     auth: authReducer,
-//     [apiCall.reducerPath]: apiCall.reducer,
-//   },
-//   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiCall.middleware, storageMiddleware),
-// });
-
-export type RootState = ReturnType<typeof tempStore.getState>;
-export type AppDispatch = typeof tempStore.dispatch;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 export type AppStore = EnhancedStore<RootState>;
-// export default store;

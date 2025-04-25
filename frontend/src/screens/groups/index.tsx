@@ -25,7 +25,6 @@ import {
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
 export default function Groups() {
-  // const { data, isLoading, isFetching, error, refetch } = useLazyGetGroupsQuery();
   const [groups, setGroups ] = useState<Group[]>([]);
   const [page, setPage ] = useState(1);
   const [hasMore, setHasMore] = useState(true);
