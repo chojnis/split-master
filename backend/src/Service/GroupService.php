@@ -48,7 +48,7 @@ class GroupService
 
         $settlements = $this->calculateSettlements($group);
         foreach ($settlements as $settlement) {
-            if ($settlement['from'] === $user || $settlement['to'] === $user) {
+            if ($settlement->from === $user || $settlement->to === $user) {
                 throw new AccessDeniedException('Użytkownik ma niezrealizowane rozliczenia.');
             }
         }

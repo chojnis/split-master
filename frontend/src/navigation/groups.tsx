@@ -1,9 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StackNavigationProp } from '@react-navigation/stack';
 import GroupsScreen from '~/screens/groups';
 import GroupDetailsScreen from '~/screens/groups/groupDetails';
 import GroupSettingsScreen from '~/screens/groups/groupSettings';
-import UserDetailsScreen from '~/screens/user/userDetails';
+// import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
 import EditTransactionScreen from '~/screens/groups/editTransaction';
@@ -17,7 +16,7 @@ export type GroupsStackParamList = {
     EditTransaction: { groupId: string, transactionId: string, defaultCurrency: Currency };
     TransactionDetails: { groupId: string, transactionId: string, defaultCurrency: Currency };
     AddGroup: undefined;
-    UserDetails: { userId: string};
+    // UserDetails: { userId: string};
     GroupSettings: { groupId: string };
 };
 
@@ -25,11 +24,7 @@ const GroupsStackNavigator = createNativeStackNavigator<GroupsStackParamList>();
 
 const GroupsStack = () => {
     return (
-        <GroupsStackNavigator.Navigator
-            // screenOptions = {{
-            //     headerRight: () => <ToggleTheme />
-            // }}
-        >
+        <GroupsStackNavigator.Navigator>
             <GroupsStackNavigator.Screen 
                 name="GroupsList" 
                 options={{
@@ -81,13 +76,13 @@ const GroupsStack = () => {
                 }}
                 component={EditTransactionScreen} 
             />
-            <GroupsStackNavigator.Screen
+            {/* <GroupsStackNavigator.Screen
                 name="UserDetails"
                 options={{
                     title: 'Szczegóły użytkownika'
                 }}
                 component={UserDetailsScreen}
-            />
+            /> */}
         </GroupsStackNavigator.Navigator>
     );
 }
