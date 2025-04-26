@@ -1,5 +1,5 @@
 import { View, FlatList, RefreshControl, Pressable } from 'react-native';
-import { useGetGroupsQuery, useLazyGetGroupsQuery, useGetInvitesQuery, useAcceptInviteMutation, useRejectInviteMutation } from '~/api';
+import { useLazyGetGroupsQuery, useGetInvitesQuery } from '~/api';
 import { Group, Invite } from '~/api/types/entity';
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -13,14 +13,7 @@ import Loading from '~/components/Loading';
 import Error from '~/components/Error';
 import HousePlus from '~/lib/icons/HousePlus'; 
 import { Text } from '~/components/ui/text';
-import { Button } from '~/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription
-} from '~/components/ui/card';
+import InviteItem from '~/components/group/InviteItem';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
@@ -30,9 +23,7 @@ export default function Groups() {
   const [hasMore, setHasMore] = useState(true);
   const [trigger, { isLoading, isFetching, isError, isSuccess }] = useLazyGetGroupsQuery();
 
-  const { data: invites, isLoading: isLoadingInvites, refetch: refetchInvites } = useGetInvitesQuery();
-  const [acceptInvite, {isLoading: isLoadingAccept, error: errorAccept, isSuccess: isSuccessAccept}] = useAcceptInviteMutation();
-  const [rejectInvite, {isLoading: isLoadingReject, error: errorReject, isSuccess: isSuccessReject}] = useRejectInviteMutation();
+  const { data: invites, refetch: refetchInvites } = useGetInvitesQuery();
 
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<GroupsStackNavigationProp>();
@@ -72,46 +63,17 @@ export default function Groups() {
     useCallback(() => {
       loadInitPage();
       refetchInvites();
-    }, [isSuccessAccept, isSuccessReject])
+    }, [])
   );
 
   const renderInviteItem = ({ item, index }: { item: Invite, index: number }) => (
-    <Card className={`flex p-4 border-orange-500 ${index > 0 ? 'mt-4' : 'mt-6'}`}>
-      <CardHeader>
-        <CardDescription className="mb-2">Otrzymałeś zaproszenie do grupy</CardDescription>
-        <CardTitle>{item.group.groupName}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-row justify-between">
-        <Button 
-          onPress={() => acceptInvite(item.id)} 
-          disabled={isLoadingAccept}
-          className="bg-green-500"
-        >
-          {isLoadingAccept ? (
-            <Loading />
-          ) : (
-            <Text>Akceptuj</Text>
-          )}
-        </Button>
-        <Button 
-          onPress={() => rejectInvite(item.id)} 
-          disabled={isLoadingReject}
-          className="bg-red-500"
-        >
-          {isLoadingReject ? (
-            <Loading />
-          ) : (
-            <Text>Odrzuć</Text>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+    <View className={`${index > 0 ? 'mt-4' : 'mt-6'}`}>
+      <InviteItem invite={item} refresh={onRefresh} />
+    </View>
   );
 
   const renderItem = ({ item, index }: { item: Group, index: number }) => (
-    <View
-      className={`${index > 0 ? 'mt-4' : 'mt-6'}`}
-    >
+    <View className={`${index > 0 ? 'mt-4' : 'mt-6'}`}>
       <Pressable
         onPress={() => navigation.navigate('GroupDetails', { groupId: item.id })}
       >

@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LoginResponse } from '~/api/types/response';
 import { User } from '~/api/types/entity';
-import { apiCall } from '~/api';
 
 export type AuthState = {
   isAuthenticated: boolean;
@@ -33,10 +32,7 @@ export const authSlice = createSlice({
       state.refreshToken = undefined;
       state.user = {} as User;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(apiCall.util.resetApiState, (state, action) => {});
-  },
+  }
 });
 
 export const { login, logout } = authSlice.actions;

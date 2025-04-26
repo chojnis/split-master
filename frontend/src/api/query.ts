@@ -9,7 +9,6 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const baseQuery = fetchBaseQuery({
     baseUrl: API_URL,
     prepareHeaders: (headers, { getState }) => {
-      // headers.set('Accept', 'application/json');
       const token = (getState() as RootState).auth.token;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);

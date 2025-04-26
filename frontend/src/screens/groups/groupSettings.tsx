@@ -1,4 +1,4 @@
-import { Alert, FlatList, View, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
@@ -30,7 +30,6 @@ import TrashIcon from '~/lib/icons/Trash';
 
 import {
     Dialog,
-    DialogClose,
     DialogContent,
     DialogFooter,
     DialogHeader,
@@ -41,7 +40,6 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -50,7 +48,6 @@ import Form, { FormDataType, FormFieldType } from '~/components/form/Form';
 import { useEffect, useState } from 'react';
 import { Currency } from '~/api/types/entity';
 import { GroupMembershipsResponse } from '~/api/types/response';
-import { ItemText } from '@rn-primitives/select';
 import Error from '~/components/Error';
 
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
@@ -65,42 +62,30 @@ export default function GroupSettings() {
     const [leaveGroup, { isLoading: isLoadingLeave, error: errorLeave }] = useLeaveGroupMutation();
     const { 
         data: groupData, 
-        isLoading: isLoadingGroup, 
         isFetching: isFetchingGroup,
         isError: isErrorGroup,
         isSuccess: isSuccessGroup,
-        error: errorGroup,
         refetch: refetchGroup
     } = useGetGroupQuery(groupId);
     const { 
         data: currencies, 
-        isLoading: isLoadingCurrencies, 
         isFetching: isFetchingCurrencies,
         isError: isErrorCurrencies,
-        isSuccess: isSuccessCurrencies,
-        error: errorCurrencies
+        isSuccess: isSuccessCurrencies
     } = useGetCurrenciesQuery();
     const [sendInvite, { isLoading: isLoadingInvite, error: errorInvite }] = useSendInviteMutation();
     const [memberships, setMemberships] = useState<GroupMembershipsResponse>([]);
 
     const [
         triggerMemberships, 
-        { 
-            isLoading: isLoadingMemberships, 
-            isFetching: isFetchingMemberships, 
-            isError: isErrorMemberships,
-            isSuccess: isSuccessMemberships, 
-        }
+        { isLoading: isLoadingMemberships }
     ] = useLazyGetGroupMembershipsQuery();
 
     const [kickFromGroup, { isLoading: isLoadingKick, error: errorKick }] = useKickFromGroupMutation();
-
     const [updateGroup, { isLoading: isLoadingUpdate, error: errorUpdate, isSuccess: isSuccessUpdateGroup }] = useUpdateGroupMutation();
+    const [changeOwnership] = useChangeOwnershipMutation();
 
-    const [changeOwnership, { isLoading: isLoadingChangeOwnership, error: errorChangeOwnership }] = useChangeOwnershipMutation();
-
-    const userId = useSelector((state: RootState) => state.auth.user.id);
-
+    const userId = useSelector((state: RootState) => state.auth.user?.id);
     const [isOwner, setIsOwner] = useState<boolean>(groupData?.owner.id === userId);
 
     const [addMemberFields, setAddMemberFields] = useState<FormFieldType[]>([

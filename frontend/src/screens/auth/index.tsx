@@ -12,10 +12,11 @@ export default function Welcome() {
 
     return (
         <Container>
-            <Text
-                className={'text-2xl'}
-            >
-                Witaj w aplikacji
+            <Text className={'text-4xl text-center'}>
+                Aplikacja do dzielenia kosztów
+            </Text>
+            <Text className={'text-lg mt-2 text-center text-gray-500'}>
+                Daniel Chojnicki, numer indeksu 308034
             </Text>
             <Button
                 className={'mt-4'} 

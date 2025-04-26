@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { useGetTransactionQuery, useGetPairExchangeRateQuery, useDeleteTransactionMutation } from '~/api';
 import { useCallback, useState } from 'react';
-import { useLayoutEffect } from 'react';
 import { Button } from '~/components/ui/button';	
 import { Text } from '~/components/ui/text';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
