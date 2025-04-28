@@ -1,6 +1,5 @@
 import { Text } from '~/components/ui/text';
-import { View, Pressable } from 'react-native';
-import ReceiptText from '~/lib/icons/ReceiptText';
+import { View } from 'react-native';
 import { Currency } from '~/api/types/entity';
 import { formatAmount } from '~/lib/utils';
 import { formatDateNicely } from '~/lib/utils';

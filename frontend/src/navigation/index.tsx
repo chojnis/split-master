@@ -1,4 +1,4 @@
-import { NavigationContainer, ThemeProvider } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Platform } from 'react-native';
@@ -30,7 +30,6 @@ const Navigation = () => {
   }
 
   return (
-    <ThemeProvider value={theme}>
       <NavigationContainer theme={theme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         {!isAuthenticated ? <AuthStack /> : <RootTab />}
@@ -52,7 +51,6 @@ const Navigation = () => {
           }}
         />
       </NavigationContainer>
-    </ThemeProvider>
   );
 }
 

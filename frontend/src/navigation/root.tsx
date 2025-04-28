@@ -1,13 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from '~/screens/settings';
-import AddTransactionScreen from '~/screens/groups/addTransaction';
-import ToggleTheme from '~/components/ToogleTheme';
 import SettingsIcon from '~/lib/icons/Settings';
-import SquarePlusIcon from '~/lib/icons/SquarePlus';
 import HouseIcon from '~/lib/icons/House';
 import GroupsStack from './groups';
-import AddTransactionButton from '~/components/transaction/AddTransactionButton';
-import { GroupsStackParamList } from '~/navigation/groups';
 
 export type RootTabParamList = {
     Groups: undefined;
@@ -18,11 +13,7 @@ const RootTabNavigator = createBottomTabNavigator<RootTabParamList>();
 
 const RootTab = () => {
     return (
-      <RootTabNavigator.Navigator
-        // screenOptions = {{
-        //   headerRight: () => <ToggleTheme />
-        // }}
-      >
+      <RootTabNavigator.Navigator>
         <RootTabNavigator.Screen 
           name="Groups"
           options={{
