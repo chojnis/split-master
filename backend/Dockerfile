@@ -89,7 +89,7 @@ RUN set -eux; \
 
 # copy sources
 COPY --link . ./
-COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link --chmod=777 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN rm -Rf frankenphp/
 
 # create env from env.example
