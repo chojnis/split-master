@@ -31,7 +31,7 @@ use App\Entity\Transaction;
 use App\Entity\Group;
 use App\State\UserProvider;
 use ApiPlatform\Metadata\Link;
-use App\Dto\UserUpdateDto;
+use App\Dto\User\UserUpdateDto;
 use App\State\UserUpdateProcessor;
 use App\State\UserDeleteProcessor;
 

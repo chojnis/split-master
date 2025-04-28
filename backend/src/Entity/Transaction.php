@@ -22,7 +22,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\Metadata\Link;
-use App\Dto\TransactionRequest;
+use App\Dto\Transaction\TransactionRequest;
 use App\Entity\Group;
 use App\Entity\Currency;
 use App\Entity\User;

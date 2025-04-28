@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dto;
+namespace App\Dto\User;
 
 use App\Entity\User;
 use App\Validator\UniqueEntityDto;

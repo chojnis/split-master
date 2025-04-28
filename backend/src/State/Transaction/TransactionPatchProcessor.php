@@ -5,7 +5,7 @@ namespace App\State\Transaction;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Transaction;
-use App\Dto\TransactionRequest;
+use App\Dto\Transaction\TransactionRequest;
 use App\Entity\TransactionEntry;
 use Doctrine\ORM\EntityManagerInterface;
 use ApiPlatform\Exception\InvalidArgumentException;

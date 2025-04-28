@@ -4,7 +4,7 @@
 
 
 # Versions
-FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
+FROM dunglas/frankenphp:1-php8.2 AS frankenphp_upstream
 
 
 # The different stages of this Dockerfile are meant to be built into separate images
@@ -41,12 +41,9 @@ RUN set -eux; \
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
 RUN set -eux; \
-	install-php-extensions pdo_mysql pdo_pgsql
+    install-php-extensions pdo_mysql
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
-
-# Copy the custom php.ini file
-COPY config/php.ini /usr/local/etc/php/php.ini
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
@@ -100,3 +97,9 @@ RUN set -eux; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;
+
+# create schema
+RUN set -eux; \
+	php bin/console doctrine:schema:create; \
+	php bin/console cache:clear; \
+	php bin/console cache:warmup;

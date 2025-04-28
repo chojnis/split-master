@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Entity\User;
 use ApiPlatform\Metadata\Operation;
-use App\Dto\TransactionRequest;
+use App\Dto\Transaction\TransactionRequest;
 use App\Entity\Currency;
 use App\Entity\Group;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;

@@ -17,7 +17,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use Psr\Log\LoggerInterface;
 use App\Service\GroupService;
-use App\Dto\GroupMembershipInviteDto;
+use App\Dto\GroupMembership\GroupMembershipInviteDto;
 use App\Repository\UserRepository;
 use App\Entity\User;
 

@@ -24,7 +24,7 @@ use ApiPlatform\Metadata\Link;
 use App\Entity\Group;
 use App\Entity\User;
 use Symfony\Component\Serializer\Annotation\SerializedName;
-use App\Dto\GroupMembershipInviteDto;
+use App\Dto\GroupMembership\GroupMembershipInviteDto;
 
 #[ApiResource(
     security: "is_granted('ROLE_USER')", 
