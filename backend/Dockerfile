@@ -91,6 +91,12 @@ RUN set -eux; \
 COPY --link . ./
 RUN rm -Rf frankenphp/
 
+# create env from env.example
+RUN set -eux; \
+	if [ ! -f .env ]; then \
+		cp .env.example .env; \
+	fi
+
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
