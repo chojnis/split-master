@@ -88,9 +88,8 @@ RUN set -eux; \
 	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
 # copy sources
-COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link . ./
-RUN rm -Rf frankenphp/
+# RUN rm -Rf frankenphp/
 
 # create env from env.example
 RUN set -eux; \
