@@ -46,13 +46,14 @@ RUN set -eux; \
 ###< recipes ###
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
-COPY --link --chmod=777 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
 
-ENTRYPOINT ["docker-entrypoint"]
+# ENTRYPOINT ["docker-entrypoint"]
 
 HEALTHCHECK --start-period=60s CMD curl -f http://localhost:2019/metrics || exit 1
-CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
+# CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
+CMD ["/usr/local/bin/docker-entrypoint", "frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
@@ -89,7 +90,6 @@ RUN set -eux; \
 
 # copy sources
 COPY --link . ./
-COPY --link --chmod=777 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN rm -Rf frankenphp/
 
 # create env from env.example
