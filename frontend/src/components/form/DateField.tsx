@@ -10,10 +10,7 @@ interface DateFieldProps {
     onChange: (date: FormFieldValue) => void;
 }
 
-const DateField: React.FC<DateFieldProps> = ({
-    value,
-    onChange
-}) => {
+const DateField = ({ value, onChange }: DateFieldProps) => {
     const [show, setShow] = useState<boolean>(false);
 
     return (
@@ -28,6 +25,7 @@ const DateField: React.FC<DateFieldProps> = ({
             
             <DatePicker
                 modal
+                mode="date"
                 date={value as Date}
                 open={show}
                 onConfirm={(date) => {

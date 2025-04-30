@@ -11,7 +11,7 @@ import Animated, {
     Easing,
 } from 'react-native-reanimated';
 
-const ToggleTheme: React.FC = () => {
+const ToggleTheme = () => {
     const { theme, toggleColorScheme } = useColorScheme();
     const scale = useSharedValue(1);
     const rotation = useSharedValue(0);

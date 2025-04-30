@@ -129,7 +129,7 @@ export default function TransactionDetails() {
             </View>
             <Separator />
             <View className="flex flex-col gap-2 items-start justify-center mt-4 mb-4">
-                <Text className="text-lg font-semibold">Uczestnicy</Text>
+                <Text className="text-lg font-semibold">Odbiorcy</Text>
                 <View className="flex flex-col gap-2 items-center justify-center">
                     {data.entries.filter(entry => entry.type === 'DEBIT').map((entry) => (
                         <View key={entry.user.id} className="flex flex-row items-center gap-2 justify-between w-full p-4 bg-gray-100 dark:bg-[#101828] rounded-lg">

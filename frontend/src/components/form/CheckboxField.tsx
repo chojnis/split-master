@@ -16,14 +16,14 @@ interface CheckboxFieldProps {
     // error?: string;
 }
 
-const CheckboxField: React.FC<CheckboxFieldProps> = ({
-    // label,
-    options,
-    disabled,
-    values,
-    onChange,
-    // error,
-}) => {
+const CheckboxField = (
+    { 
+        options,
+        disabled = false,
+        values,
+        onChange,
+    }: CheckboxFieldProps
+) => {
     const handleToggle = (value: string) => {
         const newValues = values.includes(value)
             ? values.filter(v => v !== value)
