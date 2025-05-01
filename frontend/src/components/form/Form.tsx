@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import FormField, { FormFieldValue } from '~/components/form/FormField';
@@ -156,7 +156,7 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
   }
 
   return (
-    <View>
+    <ScrollView>
       {generalError && (
         <ErrorText>{generalError}</ErrorText>
       )}
@@ -189,7 +189,7 @@ const Form = ({ fields, onSubmit, onChange, error, isLoading, submitText, submit
       >
         {isLoading ? <Loading /> : <Text className={`${submitTextClassName || ''}`}>{submitText || 'Prześlij'}</Text>}
       </Button>
-    </View>
+    </ScrollView>
   );
 };
 
