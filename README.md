@@ -1,21 +1,20 @@
 # Split Master
 
-Aplikacja do dzielenia kosztów (np. podróży) z klientem w React Native i backendem w Symfony (API Platform)
+Aplikacja do dzielenia kosztów (np. podróży) z klientem w React Native i backendem w API Platform (Symfony)
 
 ## Wymagania
 
 Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
 - **Node.js** w wersji 22.x
 - **npm** w wersji 10.x (dołączony do Node.js)
-- **PHP-FPM** w wersji 8.2
-- **Docker (opcjonalne, ale zalecane)** w wersji 24.x
-- **Symfony CLI** ([instalacja](https://symfony.com/download))
-- **Composer** ([instalacja](https://getcomposer.org/download/))
-- **Ngrok (opcjonalne, ale zalecane)** (dostępne bez instalacji za pomocą: `npx ngrok` dzięki npm, weryfikacja `npx ngrok --version`)
+- **Docker** w wersji 24.x
+- **Docker Compose** w wersji 2.x
 - **Expo CLI** (dostępne bez instalacji za pomocą: `npx expo`, weryfikacja `npx expo --version`)
 - **Urządzenie mobilne iOS/Android z zainstalowaną aplikacją Expo lub emulator** na przykład Android Studio [instalacja](https://docs.expo.dev/workflow/android-studio-emulator/)
 
-## Instalacja
+> Wszystkie przedstawione w dalszej części polecenia będą wykonywane w systemie Linux, natomiast aplikacja jest możliwa do zainstalowania i uruchomienia także na systemach Windows i MacOS przy użyciu tych samych narzędzi.
+
+## Kod źródłowy
 
 1. Klonujemy repozytorium:
     ```bash
@@ -23,99 +22,104 @@ Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
     cd split-master
     ```
 
-2. Instalujemy zależności:
+    > W pobranym repozytorium znajdują się dwa foldery odpowiedzialne za back-end i front-end, w których powinny odbywać się instalacje i uruchamianie obu z części.
+
+## Instalacja i uruchamianie części back-endowej
+
+```bash
+cd backend
+```
+
+
+1. Kopiujemy `.env.example` zmieniając jego nazwę na `.env`:
     ```bash
-    cd backend
-    composer install
-    cd ../frontend
-    npm install
-    cd ..
+    cp .env.example .env
     ```
+    > Zawartość pliku jest uzupełniona danymi przykładowymi, które wystarczą uruchomienia wersji deweloperskiej
 
-## Konfiguracja
-
-### Serwer
-
-1. Kopiujemy `backend/.env.example` zmieniając jego nazwę na `.env`:
+2. Budujemy obraz Dockerowy:
+   ```bash
+   docker compose build --no-cache
+   ```
    
+3. W kontekście lokalnej integracji z częścią front-endową aplikacji, konieczna jest znajomość adresu IP serwera back-endu w sieci lokalnej (przy założeniu, że serwer klienta znajduje się w tej samej sieci). W przypadku systemu Linux można w tym celu wykorzystać polecenie ip:
     ```bash
-    cp backend/.env.example backend/.env
+    ip a
     ```
 
-3. Generujemy klucze publiczny i prywatny dla tokenów JWT:
-   
+4. Uruchamiamy środowisko wirtualne z serwerem back-endu:
     ```bash
-    php backend/bin/console lexik:jwt:generate-keypair
+    SERVER_NAME=http://[ADRES_IP] docker compose up --wait
     ```
 
-### Klient
-
-1. Kopiujemy `frontend/.env.example` zmieniając jego nazwę na `.env`:
-   
+5. Instalujemy zależności:
     ```bash
-    cp frontend/.env.example frontend/.env
-    ```
-    W późniejszych krokach uzupełnimy wartości.
-
-## Uruchamianie
-
-### Baza danych (Docker)
-
-1. Uruchamiamy bazę danych za pomocą `docker compose`:
-   
-    ```bash
-    docker compose -f backend/docker-compose-database.yaml up -d
+    docker exec php composer install
     ```
 
-### Serwer
-
-> W przypadku pierwszego uruchomienia konieczne będzie stworzenie bazy danych, jej schematu, a także załadowanie danych testowych:
->
-> ```bash
-> php backend/bin/console doctrine:database:create
-> php backend/bin/console doctrine:schema:create
-> php backend/bin/console doctrine:fixtures:load
-> ```
-
-1. Korzystając z Symfony CLI uruchamiamy serwer:
+6. Inicjalizujemy strukturę bazy danych:
     ```bash
-    cd backend
-    symfony serve --port=8000
-    ```
-    Opcjonalnie z przełącznikiem `-d` w celu uruchomienia w tle:
-    ```bash
-    symfony serve -d --port=8000
+    docker exec php php bin/console doctrine:schema:create
     ```
 
-2. Żeby ułatwić połączenie między klientem a serwerem korzystamy z ngrok w celu stworzenia tunelu do publicznego adresu HTTPS:
+7. Generujemy klucze publiczny/prywatny dla mechanizmu tokenów JWT:
     ```bash
-    npx ngrok http 8000
+    docker exec php php bin/console lexik:jwt:generate-keypair
     ```
 
-3. Ostatecznie kopiujemy wygenerowany adres, żeby umieścić go w konfiguracji klienta.
-
-### Klient
-
-1. Do skopiowanego adresu wygenerowanego przez ngrok dodajemy `/api`:
+8. Inicjalizujemy przykładowe dane:
     ```bash
-    https://xxx/api
+    docker exec php php bin/console doctrine:fixtures:load
+    ```
+    > Inicjalizacja danych początkowych jest opcjonalna, ale aplikacja wymaga przynajmniej jednej waluty w tabeli ```currency```
+
+
+Efektem przeprowadzonych kroków jest gotowe środowisko deweloperskie, które umożliwia wprowadzanie aktywnych zmian w kodzie, a także udostępnia:
+* aplikację API Platform na porcie 80
+    * /api
+    * /api/docs
+* zintegrowaną bazę danych MariaDB z gotową strukturą
+* klienta graficznego bazy danych udostępnionego na porcie 8080
+* przykładowych użytkowników z grupami i transakcjami:
+    * pierwszy@user.com:password
+    * drugi@user.com:password
+    * trzeci@user.com:password
+
+### Instalacja i uruchamianie części front-endowej
+
+```bash
+cd frontend
+```
+
+1. Kopiujemy `.env.example` zmieniając jego nazwę na `.env`:
+    ```bash
+    cp .env.example .env
     ```
 
-2. Zmodyfikowany adres ustawiamy w pliku `frontend/.env` dla parametru `EXPO_PUBLIC_API_URL`:
-    ```bash
-    EXPO_PUBLIC_API_URL=https://xxx/api
-    ```
+2. Uzupełniamy zmienną ```EXPO_PUBLIC_API_URL``` lokalnym serwerem API:
+   ```bash
+   EXPO_PUBLIC_API_URL=http://[ADRES_IP]/api
+   ```
 
-3. Korzystając z Expo CLI uruchamiamy serwer deweloperski
-    ```bash
-    cd frontend
-    npx expo start --tunnel -c
-    ```
+3. Instalujemy zależności:
+   ```bash
+   npm i
+   ```
 
-4. Ostatecznie korzystając ze z konfigurowanego emulatora uruchamiamy go klawiszami `a` lub `i` w zależności od urządzenia lub skanujemy dołączony kod QR fizycznym urządzeniem.
+4. Uruchamiamy serwer deweloperski:
+   ```bash
+   npx expo start --tunnel
+   ```
+
+5. Instalujemy aplikację [Expo Go](https://expo.dev/go) na urządzeniu (fizycznym lub emulatorze), następnie skanujemy kod QR (lub wprowadzamy adres ręcznie) w celu połączenia się z aplikacją
+   > Ważnym jest, że to środowisko deweloperskie nie obsługuje części natywnych funkcjonalności, co w kontekście aplikacji przekłada się na brak możliwości zmiany daty transakcji podczas jej tworzenia lub edycji. W celu pełnego doświadczenia, należy [zbudować](https://docs.expo.dev/build/setup/) natywną wersję aplikacji:
+   > ```bash
+   > eas build --platform android --profile preview
+   > ```
+
 
 ## Dokumentacja
-### Struktura bazy danych
+### Relacje bazy danych
 
-![Untitled (1)](https://github.com/user-attachments/assets/d9edada6-5168-4eea-91ed-ed3e9d8d8d62)
+![Untitled (3)](https://github.com/user-attachments/assets/0c7e4938-3649-4a62-a2ab-b3f77f5af503)
 
