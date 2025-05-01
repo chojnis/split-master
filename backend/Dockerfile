@@ -56,12 +56,6 @@ HEALTHCHECK --start-period=60s CMD curl -f http://localhost:2019/metrics || exit
 # CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 CMD ["/usr/local/bin/docker-entrypoint", "frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
-# create env from env.example
-RUN set -eux; \
-	if [ ! -f .env ]; then \
-		cp .env.example .env; \
-	fi
-
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
 
@@ -98,6 +92,12 @@ RUN set -eux; \
 # copy sources
 COPY --link . ./
 RUN rm -Rf frankenphp/
+
+# create env from env.example
+RUN set -eux; \
+	if [ ! -f .env ]; then \
+		cp .env.example .env; \
+	fi
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
