@@ -32,8 +32,6 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWith204Handler: typeof baseQuery = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
 
-  console.log('Base query result:', result);
-
   if(result.meta?.response?.status === 204) {
     return { data: {} };
   }
