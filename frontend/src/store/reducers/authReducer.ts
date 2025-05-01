@@ -16,6 +16,14 @@ const initialState: AuthState = {
   user: undefined,
 };
 
+/**
+ * Redux slice for authentication state management.
+ * 
+ * This slice handles user authentication state, including:
+ * - Login functionality that stores user token, refresh token and user data
+ * - Logout functionality that clears authentication state
+ * 
+ */
 export const authSlice = createSlice({
   name: 'auth',
   initialState,

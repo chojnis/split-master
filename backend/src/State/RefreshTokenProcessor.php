@@ -12,6 +12,13 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use App\Repository\RefreshTokenRepository;
 
+/**
+ * 
+ * This class implements the ProcessorInterface and is responsible for handling
+ * refresh token processing logic, such as validating and generating new access tokens
+ * based on provided refresh tokens.
+ * 
+ */
 class RefreshTokenProcessor implements ProcessorInterface
 {
     public function __construct(

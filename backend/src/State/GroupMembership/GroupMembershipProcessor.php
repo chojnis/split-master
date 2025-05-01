@@ -21,6 +21,13 @@ use App\Dto\GroupMembership\GroupMembershipInviteDto;
 use App\Repository\UserRepository;
 use App\Entity\User;
 
+/**
+ * 
+ * A processor implementation that handles group membership operations.
+ * This class implements the ProcessorInterface and processes operations
+ * related to user memberships in groups.
+ * 
+ */
 final class GroupMembershipProcessor implements ProcessorInterface
 {
     public function __construct(

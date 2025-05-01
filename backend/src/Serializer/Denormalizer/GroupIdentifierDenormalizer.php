@@ -12,6 +12,14 @@ use App\Entity\Group;
 use App\Entity\Currency;
 use App\Entity\User;
 
+/**
+ *
+ * This class is responsible for denormalizing group identifier data
+ * from various formats (e.g., JSON, XML) into Group entities.
+ * Implements DenormalizerInterface to provide denormalization capabilities,
+ * and DenormalizerAwareInterface to utilize other denormalizers in the chain.
+ * 
+ */
 class GroupIdentifierDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;

@@ -25,6 +25,12 @@ use App\Repository\GroupRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
 
 
+/**
+ * 
+ * This class implements the ProviderInterface and serves as a transaction service provider,
+ * managing the transaction-related operations and resources.
+ * 
+ */
 class TransactionProvider implements ProviderInterface
 {
     public function __construct(

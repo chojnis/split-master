@@ -9,6 +9,12 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\GroupMembershipRepository;
 
+/**
+ *
+ * This class extends the Symfony Security Voter system to determine if the current user
+ * has permission to perform specific actions on User objects.
+ *
+ */
 class UserVoter extends Voter
 {
     const VIEW = 'VIEW';

@@ -9,6 +9,12 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Repository\GroupMembershipRepository;
 use App\Entity\Group;
 
+/**
+ * 
+ * Processes PATCH requests for Group resources by implementing the ProcessorInterface.
+ * This final class handles updating group data based on incoming patch operations.
+ * 
+ */
 final class GroupPatchProcessor implements ProcessorInterface
 {
     public function __construct(

@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import GroupsScreen from '~/screens/groups';
 import GroupDetailsScreen from '~/screens/groups/groupDetails';
 import GroupSettingsScreen from '~/screens/groups/groupSettings';
-// import UserDetailsScreen from '~/screens/user/userDetails';
 import AddGroupScreen from '~/screens/groups/addGroup';
 import AddTransactionScreen from '~/screens/groups/addTransaction';
 import EditTransactionScreen from '~/screens/groups/editTransaction';
@@ -16,12 +15,23 @@ export type GroupsStackParamList = {
     EditTransaction: { groupId: string, transactionId: string, defaultCurrency: Currency };
     TransactionDetails: { groupId: string, transactionId: string, defaultCurrency: Currency };
     AddGroup: undefined;
-    // UserDetails: { userId: string};
     GroupSettings: { groupId: string };
 };
 
 const GroupsStackNavigator = createNativeStackNavigator<GroupsStackParamList>();
 
+/**
+ * The GroupsStack component defines the navigation stack for the Groups section of the application.
+ * It manages navigation between various screens related to groups and transactions:
+ * - GroupsList: Displays all user groups
+ * - GroupDetails: Shows detailed information about a specific group
+ * - GroupSettings: Provides options to modify group settings
+ * - AddGroup: Interface for creating a new group
+ * - TransactionDetails: Displays detailed information about a specific transaction
+ * - AddTransaction: Modal for creating a new transaction
+ * - EditTransaction: Modal for modifying an existing transaction
+ * 
+ */
 const GroupsStack = () => {
     return (
         <GroupsStackNavigator.Navigator>
@@ -76,13 +86,6 @@ const GroupsStack = () => {
                 }}
                 component={EditTransactionScreen} 
             />
-            {/* <GroupsStackNavigator.Screen
-                name="UserDetails"
-                options={{
-                    title: 'Szczegóły użytkownika'
-                }}
-                component={UserDetailsScreen}
-            /> */}
         </GroupsStackNavigator.Navigator>
     );
 }

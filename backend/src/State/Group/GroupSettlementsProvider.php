@@ -12,6 +12,13 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Repository\GroupMembershipRepository;
 use App\Dto\Group\GroupSettlementResponse;
 
+/**
+ *
+ * This class implements the ProviderInterface and is responsible for providing
+ * access to settlement data within the context of a group. It handles fetching,
+ * processing, and possibly manipulating settlement information for groups.
+ *
+ */
 class GroupSettlementsProvider implements ProviderInterface
 {
     public function __construct(

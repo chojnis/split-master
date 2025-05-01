@@ -17,6 +17,13 @@ use App\Service\TransactionService;
 use App\Repository\GroupMembershipRepository;
 
 
+/**
+ *
+ * This class implements ProcessorInterface to handle the modification of Transaction entities
+ * through PATCH requests. It manages the validation and application of partial updates
+ * to Transaction resources.
+ *
+ */
 class TransactionPatchProcessor implements ProcessorInterface
 {
     public function __construct(

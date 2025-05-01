@@ -11,6 +11,12 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * 
+ * This class implements the ProcessorInterface and serves as the final handler
+ * for user update requests in the application's state management system.
+ * 
+ */
 final class UserUpdateProcessor implements ProcessorInterface
 {
     public function __construct(

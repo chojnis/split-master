@@ -9,6 +9,12 @@ use Exception;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\CurrencyExchange;
 
+/**
+ * 
+ * This class provides functionality for converting amounts between different currencies,
+ * fetching exchange rates, and performing related currency operations.
+ * 
+ */
 class CurrencyExchangeService
 {
     public function __construct(
@@ -27,7 +33,6 @@ class CurrencyExchangeService
      */
     public function getExchangeRateObject(string $sourceCurrency, string $targetCurrency, ?\DateTimeInterface $date = null): CurrencyExchange
     {
-        // If same currency, rate is 1.0
         if ($sourceCurrency === $targetCurrency) {
             return (new CurrencyExchange())
                 ->setFromCurrency($sourceCurrency)
@@ -39,7 +44,6 @@ class CurrencyExchangeService
         $date = $date ?? new \DateTime();
         $date->setTime(0, 0, 0);
         
-        // Check if we have the rate in database
         $exchangeRate = $this->currencyExchangeRepository->findOneBy([
             'fromCurrency' => $sourceCurrency,
             'toCurrency' => $targetCurrency,
@@ -67,7 +71,6 @@ class CurrencyExchangeService
                 ->setRate($rate)
                 ->setDate($date);
         } catch (Exception $e) {
-            // If API call fails, try to get the latest rate from the database
             $rate = $this->currencyExchangeRepository->findOneBy([
                 'fromCurrency' => $sourceCurrency,
                 'toCurrency' => $targetCurrency,

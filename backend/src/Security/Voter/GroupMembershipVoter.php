@@ -7,6 +7,12 @@ use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/**
+ * 
+ * This class extends Symfony's Voter component to determine if a user has permission
+ * to perform specific actions on group memberships based on defined attributes and subjects.
+ * 
+ */
 class GroupMembershipVoter extends Voter
 {
     const CREATE = 'CREATE';

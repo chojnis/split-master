@@ -68,12 +68,12 @@ use App\State\UserDeleteProcessor;
     denormalizationContext: ['groups' => ['user:update']],
     input: UserUpdateDto::class,
 )]
-#[Delete(
-    uriTemplate: '/user',
-    security: "is_granted('ROLE_USER')",
-    provider: UserProvider::class,
-    processor: UserDeleteProcessor::class,
-)]
+// #[Delete(
+//     uriTemplate: '/user',
+//     security: "is_granted('ROLE_USER')",
+//     provider: UserProvider::class,
+//     processor: UserDeleteProcessor::class,
+// )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity('email')]
@@ -115,12 +115,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(targetEntity: GroupMembership::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $groupMemberships;
-
-    // #[ORM\OneToMany(mappedBy: 'payer', targetEntity: Transaction::class)]
-    // private Collection $transactionsAsPayer;
-
-    // #[ORM\ManyToMany(mappedBy: 'payees', targetEntity: Transaction::class)]
-    // private Collection $transactionsAsPayee;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deletedAt = null;

@@ -21,6 +21,12 @@ use App\Entity\TransactionHistory;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\GroupMembershipRepository;
 
+/**
+ *
+ * This service provides functionality for managing transactions within the application,
+ * including creating, retrieving, updating, and processing transactions between users.
+ * 
+ */
 class TransactionService
 {
     public function __construct(

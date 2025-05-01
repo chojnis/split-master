@@ -20,6 +20,12 @@ import { AddTransactionRequest } from '~/api/types/request';
 type EditTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'EditTransaction'>;
 type EditTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'EditTransaction'>;
 
+/**
+ * A screen component that allows users to edit an existing transaction within a group.
+ * It fetches the transaction data, group members, and currency information, then displays a form
+ * pre-populated with the existing transaction details.
+ *
+ */
 const EditTransaction = () => {
     const navigation = useNavigation<EditTransactionScreenNavigationProps>();
     const route = useRoute<EditTransactionScreenRouteProps>();

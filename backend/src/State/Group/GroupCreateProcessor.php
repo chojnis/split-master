@@ -9,6 +9,12 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use ApiPlatform\Exception\AccessDeniedException;
 
+/**
+ *
+ * This processor handles the logic for creating new groups in the system. It implements
+ * the ProcessorInterface to standardize the processing flow.
+ *
+ */
 final class GroupCreateProcessor implements ProcessorInterface
 {
     public function __construct(

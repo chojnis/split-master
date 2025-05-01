@@ -10,6 +10,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use App\Repository\GroupMembershipRepository;
 
+/**
+ * 
+ * This class implements the ProviderInterface to provide functionality
+ * for fetching group data from the system.
+ */
 class GroupGetProvider implements ProviderInterface
 {
     public function __construct(

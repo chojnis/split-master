@@ -1,3 +1,19 @@
+/**
+ * 
+ * This API service handles all the communication between the frontend and backend,
+ * providing endpoints for authentication, group management, transactions, invites,
+ * currency exchange, and settlements.
+ * 
+ * Each endpoint is defined with appropriate request types and response interfaces.
+ * Most endpoints support standard REST operations (GET, POST, PATCH, DELETE).
+ * 
+ * @example
+ * // Example usage with Redux hooks:
+ * const { data: groups } = useGetGroupsQuery(1);
+ * const [login, { isLoading }] = useLoginMutation();
+ * 
+ */
+
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { 
   LoginResponse, 

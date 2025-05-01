@@ -20,8 +20,6 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use App\Entity\Currency;
 use Symfony\Component\Serializer\Annotation\Groups;
-use App\State\GroupDebtProvider;
-use App\Dto\Group\GroupDebtResponse;
 use ApiPlatform\Metadata\Link;
 use App\Dto\Group\CreateGroupRequest;
 use App\State\Group\GroupCreateProcessor;
@@ -43,13 +41,6 @@ use App\Dto\Group\GroupSettlementResponse;
     processor: GroupPatchProcessor::class
 )]
 #[Delete(security: "is_granted('ROLE_USER') and object.getOwner() == user")]
-
-// #[Get(
-//     uriTemplate: '/groups/{id}/debts',
-//     provider: GroupDebtProvider::class,
-//     output: GroupDebtResponse::class,
-//     normalizationContext: ['groups' => ['debt:read']],
-// )]
 
 #[Get(
     uriTemplate: '/groups/{id}/settlements',

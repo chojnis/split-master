@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use App\Exception\InvalidStatusChangeException;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Repository\GroupMembershipRepository;
 use App\State\GroupMembership\GroupMembershipProcessor;

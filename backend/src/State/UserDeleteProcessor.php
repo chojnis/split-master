@@ -7,6 +7,13 @@ use App\Entity\User;
 use App\Service\UserService;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ *
+ * This class is responsible for implementing the business logic required to delete
+ * a user from the system. It follows the ProcessorInterface contract to standardize
+ * processing operations within the application.
+ *
+ */
 final class UserDeleteProcessor implements ProcessorInterface
 {
     public function __construct(

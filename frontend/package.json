@@ -37,7 +37,6 @@
     "date-fns": "^4.1.0",
     "expo": "^52.0.39",
     "expo-checkbox": "~4.0.1",
-    "expo-constants": "^17.1.4",
     "expo-status-bar": "~2.0.1",
     "lucide-react-native": "^0.484.0",
     "nativewind": "^4.1.23",

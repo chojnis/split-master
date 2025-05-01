@@ -13,6 +13,14 @@ import { Container } from '~/components/Container';
 
 type LoginScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Login'>;
 
+/**
+ * Login screen component for user authentication.
+ * 
+ * Renders a login form with email and password fields.
+ * Handles user login via API call and stores authentication data in Redux store upon successful login.
+ * Provides navigation to the registration screen.
+ * 
+ */
 const Login = () => {
   const navigation = useNavigation<LoginScreenNavigationProps>();
   const [fetchLogin, {isLoading, error}] = useLoginMutation();

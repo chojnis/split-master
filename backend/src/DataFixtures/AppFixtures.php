@@ -15,6 +15,11 @@ use App\Service\GroupService;
 use App\Dto\Transaction\TransactionRequest;
 use App\Service\TransactionService;
 
+/**
+ * 
+ * AppFixtures class for loading initial data fixtures.
+ * 
+ */
 class AppFixtures extends Fixture
 {
     public function __construct(

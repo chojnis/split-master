@@ -12,6 +12,13 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Group;
 use App\Repository\GroupMembershipRepository;
 
+/**
+ * Event subscriber for handling group membership related events.
+ *
+ * This subscriber listens to various events related to group memberships
+ * and performs necessary actions in response to these events.
+ *
+ */
 class GroupMembershipSubscriber implements EventSubscriberInterface
 {
     public function __construct(

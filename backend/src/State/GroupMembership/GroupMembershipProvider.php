@@ -10,6 +10,12 @@ use App\Repository\GroupMembershipRepository;
 use App\Repository\GroupRepository;
 use ApiPlatform\Metadata\GetCollection;
 
+/**
+ * 
+ * Provider for managing group membership data and operations.
+ * Implements the ProviderInterface to ensure standardized data access methods.
+ * 
+ */
 class GroupMembershipProvider implements ProviderInterface
 {
     public function __construct(

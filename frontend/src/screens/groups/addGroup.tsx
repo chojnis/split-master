@@ -12,6 +12,18 @@ import { showMessage } from 'react-native-flash-message';
 
 type AddGroupScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddGroup'>;
 
+/**
+ * Screen component for adding a new group in the application.
+ * 
+ * The component performs the following:
+ * - Fetches available currencies when the screen is focused
+ * - Validates that currencies are successfully loaded before displaying the form
+ * - Dynamically creates form fields based on available currencies
+ * - Handles form submission to create a new group
+ * - Shows appropriate loading and error states
+ * - Navigates back to the previous screen upon successful group creation
+ * 
+ */
 const AddGroup = () => {
     const navigation = useNavigation<AddGroupScreenNavigationProps>();
     const [fetchAddGroup, {isLoading, error}] = useAddGroupMutation();

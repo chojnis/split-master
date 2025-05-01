@@ -20,6 +20,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 type GroupDetailsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupDetails'>;
 type GroupDetailsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupDetails'>;
 
+/**
+ * Screen component that displays detailed information about a specific group
+ * including its name, description, and allows navigation between transactions and settlements.
+ * 
+ * The component:
+ * - Fetches and displays group information using the groupId from route parameters
+ * - Provides tab navigation between transactions and settlements sections
+ * - Includes a refresh functionality to reload group data
+ * - Allows navigation to group settings via a header button
+ * - Shows appropriate loading and error states
+ * - Contains a floating action button to add new transactions
+ * 
+ */
 export default function GroupDetails() {
     const router = useRoute<GroupDetailsScreenRouteProp>();
     const groupId = router.params.groupId;

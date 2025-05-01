@@ -12,6 +12,12 @@ use App\Repository\UserRepository;
 use App\Repository\GroupRepository;
 use App\Entity\User;
 
+/**
+ *
+ * This processor implements the ProcessorInterface and 
+ * processes requests to remove users from groups.
+ * 
+ */
 final class GroupMembershipDeleteProcessor implements ProcessorInterface
 {
     public function __construct(

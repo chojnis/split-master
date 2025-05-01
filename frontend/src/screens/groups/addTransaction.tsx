@@ -14,6 +14,16 @@ import { showMessage } from 'react-native-flash-message';
 type AddTransactionScreenNavigationProps = StackNavigationProp<GroupsStackParamList, 'AddTransaction'>;
 type AddTransactionScreenRouteProps = RouteProp<GroupsStackParamList, 'AddTransaction'>;
 
+/**
+ * Screen component for creating a new transaction within a group.
+ * 
+ * This component allows users to:
+ * - Create a transaction by filling out a form
+ * - Specify transaction details like name, amount, currency, and date
+ * - Select who paid and who the recipients are
+ * - Handle currency conversion with automatic or manual exchange rates
+ * 
+ */
 const AddTransaction = () => {
     const navigation = useNavigation<AddTransactionScreenNavigationProps>();
     const route = useRoute<AddTransactionScreenRouteProps>();

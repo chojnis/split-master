@@ -10,6 +10,14 @@ import RootTab from './root';
 import { PortalHost } from '@rn-primitives/portal';
 import FlashMessage from "react-native-flash-message";
 
+/**
+ * Main navigation component for the application.
+ * 
+ * This component manages the navigation state and renders different navigation stacks
+ * based on the authentication status. It also sets up the NavigationContainer with the
+ * appropriate theme based on the device's color scheme.
+ * 
+ */
 const Navigation = () => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const hasMounted = useRef(false);

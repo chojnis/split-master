@@ -19,6 +19,12 @@ use App\Repository\GroupMembershipRepository;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 
+/**
+ * 
+ * This class implements the ProviderInterface and is responsible for
+ * managing the process of removing users from groups in the system.
+ * 
+ */
 class GroupMembershipDeleteProvider implements ProviderInterface
 {
     public function __construct(

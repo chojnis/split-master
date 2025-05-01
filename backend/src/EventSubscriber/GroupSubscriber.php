@@ -10,13 +10,17 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use Symfony\Component\HttpFoundation\Request;
 
-use Psr\Log\LoggerInterface;
-
+/**
+ * Subscriber for group-related events.
+ * 
+ * This class implements EventSubscriberInterface to handle various
+ * group-related events within the application.
+ * 
+ */
 final class GroupSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private GroupService $groupService,
-        private LoggerInterface $logger
+        private GroupService $groupService
     ) {}
 
     public static function getSubscribedEvents(): array

@@ -15,6 +15,12 @@ use App\Repository\UserRepository;
 use App\Dto\Group\GroupSettlementResponse;
 
 
+/**
+ *
+ * This class manages business logic for group functionalities such as creation,
+ * modification, deletion, and querying groups within the application.
+ *
+ */
 class GroupService
 {
     public function __construct(

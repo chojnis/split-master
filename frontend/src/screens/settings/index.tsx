@@ -12,6 +12,14 @@ import { Separator } from '~/components/Separator';
 
 
 
+/**
+ * A user profile settings screen component.
+ * 
+ * This component displays user settings options including:
+ * - A dark mode toggle with label
+ * - A logout button
+ * 
+ */
 export default function Profile() {
     const dispatch = useDispatch();
     const handleLogout = () => {

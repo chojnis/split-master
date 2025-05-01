@@ -10,6 +10,12 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\Doctrine\Orm\Paginator;
 
+/**
+ * 
+ * This class implements the ProviderInterface and handles the logic
+ * for fetching multiple Group records from the data source.
+ * 
+ */
 class GroupGetCollectionProvider implements ProviderInterface
 {
     public function __construct(

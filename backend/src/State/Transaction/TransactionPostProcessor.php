@@ -17,6 +17,13 @@ use App\Service\TransactionService;
 use App\Repository\GroupMembershipRepository;
 
 
+/**
+ * 
+ * Implements ProcessorInterface to process transactions post their creation or modification.
+ * This processor is responsible for handling any follow-up actions that need to occur
+ * after a transaction has been processed by the primary handlers.
+ * 
+ */
 class TransactionPostProcessor implements ProcessorInterface
 {
     public function __construct(

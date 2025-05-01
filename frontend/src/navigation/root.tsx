@@ -11,6 +11,14 @@ export type RootTabParamList = {
 
 const RootTabNavigator = createBottomTabNavigator<RootTabParamList>();
 
+/**
+ * Root Tab Navigation component.
+ * 
+ * Defines the main tab navigation structure of the application with two tabs:
+ * 1. Groups - Displays the GroupsStack component with a house icon
+ * 2. Settings - Displays the ProfileScreen component with a settings icon
+ * 
+ */
 const RootTab = () => {
     return (
       <RootTabNavigator.Navigator>

@@ -18,6 +18,16 @@ const rootReducer = combineReducers({
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+/**
+ * Redux store configuration using Redux Toolkit's configureStore.
+ * 
+ * This store is configured with:
+ * - A persisted reducer
+ * - Middleware for handling serializable check exceptions for Redux Persist actions
+ * - API middleware for handling API calls
+ * - Custom storage middleware
+ * 
+ */
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>

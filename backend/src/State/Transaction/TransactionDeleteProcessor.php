@@ -9,6 +9,13 @@ use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\GroupMembershipRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+/**
+ * 
+ * This class is responsible for processing the deletion of transactions.
+ * It implements the ProcessorInterface, which requires the implementation of processing methods
+ * to handle transaction deletion operations.
+ * 
+ */
 class TransactionDeleteProcessor implements ProcessorInterface
 {
     public function __construct(

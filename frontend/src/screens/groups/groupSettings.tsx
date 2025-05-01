@@ -53,6 +53,15 @@ import Error from '~/components/Error';
 type GroupSettingsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupSettings'>;
 type GroupSettingsScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupSettings'>;
 
+/**
+ * 
+ * This screen component provides functionality for managing group settings including:
+ * - Viewing and editing group information (name, description)
+ * - Managing group memberships (invite, kick members)
+ * - Transferring group ownership
+ * - Leaving the group
+ * 
+ */
 export default function GroupSettings() {
 
     const router = useRoute<GroupSettingsScreenRouteProp>();

@@ -7,6 +7,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use App\Service\RefreshTokenService;
 
+/**
+ * 
+ * Listener for JWT authentication success events.
+ * 
+ */
 class JWTAuthenticationSuccessListener
 {
     public function __construct(

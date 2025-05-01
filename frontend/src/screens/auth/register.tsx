@@ -9,6 +9,17 @@ import { showMessage } from 'react-native-flash-message';
 
 type RegisterScreenNavigationProps = StackNavigationProp<AuthStackParamList, 'Register'>;
 
+/**
+ * Register screen component for user registration.
+ * 
+ * This component handles the registration process by:
+ * - Providing a form with email and password fields
+ * - Submitting the registration data to the API
+ * - Showing success message on successful registration
+ * - Handling and displaying errors
+ * - Navigating back to the previous screen after successful registration
+ * 
+ */
 const Register = () => {
   const navigation = useNavigation<RegisterScreenNavigationProps>();
   const [fetchRegister, {isLoading, error}] = useRegisterMutation();

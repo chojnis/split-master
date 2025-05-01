@@ -17,6 +17,14 @@ import InviteItem from '~/components/group/InviteItem';
 
 type GroupsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'GroupsList'>;
 
+/**
+ * Screen component for displaying user's groups and invites.
+ * 
+ * This component manages the state for displaying groups that a user belongs to and pending invites.
+ * It implements pagination for groups, with infinite scrolling capabilities, and provides functionality
+ * to refresh the data and navigate to group details or add new groups.
+ * 
+ */
 export default function Groups() {
   const [groups, setGroups ] = useState<Group[]>([]);
   const [page, setPage ] = useState(1);

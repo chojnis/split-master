@@ -31,6 +31,11 @@ import { showMessage } from 'react-native-flash-message';
 type TransactionDetailsStackNavigationProp = StackNavigationProp<GroupsStackParamList, 'TransactionDetails'>;
 type TransactionDetailsScreenRouteProp = RouteProp<GroupsStackParamList, 'TransactionDetails'>;
 
+/**
+ * 
+ * Screen component that displays detailed information about a transaction within a group.
+ * 
+ */
 export default function TransactionDetails() {
     const router = useRoute<TransactionDetailsScreenRouteProp>();
     const {groupId, transactionId, defaultCurrency } = router.params;

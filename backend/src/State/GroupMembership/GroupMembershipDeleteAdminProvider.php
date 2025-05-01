@@ -14,6 +14,12 @@ use App\Repository\GroupMembershipRepository;
 use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
 
+/**
+ *
+ * This class is responsible for providing the necessary logic to 
+ * delete a group member by group admin.
+ * 
+ */
 class GroupMembershipDeleteAdminProvider implements ProviderInterface
 {
     public function __construct(

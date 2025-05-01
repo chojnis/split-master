@@ -7,6 +7,12 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\RefreshTokenRepository;
 
+/**
+ * 
+ * This class handles operations related to refresh tokens including generation,
+ * validation, and revocation of refresh tokens for authentication purposes.
+ * 
+ */
 class RefreshTokenService
 {
     public function __construct(

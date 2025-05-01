@@ -12,6 +12,15 @@ export type AuthStackParamList = {
 
 const AuthStackNavigator = createNativeStackNavigator<AuthStackParamList>();
 
+/**
+ * Authentication navigation stack component.
+ * 
+ * Handles the navigation between authentication-related screens:
+ * - Welcome screen: Initial screen
+ * - Login screen: Modal screen for user login
+ * - Register screen: Modal screen for user registration
+ * 
+ */
 const AuthStack = () => {
     return (
       <AuthStackNavigator.Navigator>

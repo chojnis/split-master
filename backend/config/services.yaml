@@ -44,12 +44,6 @@ services:
         tags:
             - { name: kernel.event_subscriber }
             - { name: api_platform.event_subscriber }
-    
-    App\EventListener\RequestLoggerListener:
-        arguments:
-            $logger: '@logger'
-        tags:
-            - { name: kernel.event_listener, event: kernel.request, priority: 100 }
 
     App\Serializer\Denormalizer\GroupIdentifierDenormalizer:
         arguments:

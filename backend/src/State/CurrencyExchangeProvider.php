@@ -12,6 +12,12 @@ use App\Repository\CurrencyExchangeRepository;
 use App\Repository\CurrencyRepository;
 use App\Entity\CurrencyExchange;
 
+/**
+ * 
+ * This class implements the ProviderInterface to provide currency exchange functionality.
+ * It is responsible for handling currency conversion operations and exchange rate retrieval.
+ * 
+ */
 class CurrencyExchangeProvider implements ProviderInterface
 {
     public function __construct(

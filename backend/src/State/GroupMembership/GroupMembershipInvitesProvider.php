@@ -10,6 +10,12 @@ use App\Repository\GroupMembershipRepository;
 use App\Repository\GroupRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ * 
+ * This class implements the ProviderInterface and is responsible for
+ * handling operations related to providing group membership invitations within the system.
+ * 
+ */
 class GroupMembershipInvitesProvider implements ProviderInterface
 {
     public function __construct(

@@ -6,6 +6,10 @@ import { ErrorBaseQueryFn, ApiError, Violation } from '~/api/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+/**
+ * Base query configuration for API requests using fetchBaseQuery.
+ * 
+ */
 const baseQuery = fetchBaseQuery({
     baseUrl: API_URL,
     prepareHeaders: (headers, { getState }) => {
@@ -18,6 +22,13 @@ const baseQuery = fetchBaseQuery({
     timeout: 10000
 });
 
+/**
+ * 
+ * Wraps the base query function to handle HTTP 204 No Content responses.
+ * When a 204 status is detected, it transforms the response to return an empty object as data.
+ * This is useful for APIs that return 204 status without a body when operations succeed but there's no data to return.
+ * 
+ */
 const baseQueryWith204Handler: typeof baseQuery = async (args, api, extraOptions) => {
   const result = await baseQuery(args, api, extraOptions);
 
@@ -30,6 +41,11 @@ const baseQueryWith204Handler: typeof baseQuery = async (args, api, extraOptions
   return result;
 }
 
+/**
+ * 
+ * A wrapper for baseQueryWith204Handler that handles error responses from the API.
+ * 
+ */
 const baseQueryWithErrorHandling: ErrorBaseQueryFn = async (args, api, extraOptions) => {
   const result = await baseQueryWith204Handler(args, api, extraOptions);
 
@@ -66,6 +82,17 @@ function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
 }
 
+/**
+ * 
+ * This function wraps the standard base query for automatic token refresh capability.
+ * 1. Makes the initial API request
+ * 2. If a 401 Unauthorized error occurs (except for login endpoints):
+ *    - Attempts to refresh the authentication token
+ *    - Updates authentication state with new tokens if successful
+ *    - Retries the original request with the new token
+ *    - Logs out the user if token refresh fails
+ * 
+ */
 const baseQueryWithReauth: ErrorBaseQueryFn = async (args, api, extraOptions) => {
   const { getState, dispatch } = api as {
     getState: () => RootState;

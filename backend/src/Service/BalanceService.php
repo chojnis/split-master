@@ -4,6 +4,14 @@ namespace App\Service;
 
 use App\Repository\TransactionRepository;
 
+/**
+ * 
+ * The BalanceService handles operations related to user balances,
+ * including calculations, updates, and balance-related business logic.
+ * This may involve tracking debts, credits, and financial transactions
+ * between users or within groups.
+ * 
+ */
 class BalanceService
 {
     public function __construct(

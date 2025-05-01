@@ -18,6 +18,13 @@ use App\Repository\GroupMembershipRepository;
 use App\Repository\UserRepository;
 
 
+/**
+ *
+ * Implements the ProviderInterface to handle user-related operations.
+ * This provider is responsible for managing user authentication, retrieval,
+ * and other user-specific functionality within the application.
+ * 
+ */
 class UserProvider implements ProviderInterface
 {
     public function __construct(
