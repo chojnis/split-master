@@ -5,12 +5,12 @@ Aplikacja do dzielenia kosztów (np. podróży) z klientem w React Native i back
 ## Wymagania
 
 Do uruchomienia potrzebne są zainstalowane następujące narzędzia:
-- **Node.js** w wersji 22.x
+- **Node.js** w wersji 22.x [instalacja](https://nodejs.org/en/download)
 - **npm** w wersji 10.x (dołączony do Node.js)
-- **Docker** w wersji 24.x
-- **Docker Compose** w wersji 2.x
+- **Docker** w wersji 24.x [instalacja](https://docs.docker.com/get-started/get-docker/)
+- **Docker Compose** w wersji 2.x [instalacja](https://docs.docker.com/compose/)
 - **Expo CLI** (dostępne bez instalacji za pomocą: `npx expo`, weryfikacja `npx expo --version`)
-- **Urządzenie mobilne iOS/Android z zainstalowaną aplikacją Expo lub emulator** na przykład Android Studio [instalacja](https://docs.expo.dev/workflow/android-studio-emulator/)
+- **Urządzenie mobilne iOS/Android z zainstalowaną aplikacją [Expo Go](https://expo.dev/go) lub emulator** na przykład [Android Studio](https://docs.expo.dev/workflow/android-studio-emulator/)
 
 > Wszystkie przedstawione w dalszej części polecenia będą wykonywane w systemie Linux, natomiast aplikacja jest możliwa do zainstalowania i uruchomienia także na systemach Windows i MacOS przy użyciu tych samych narzędzi.
 
@@ -111,7 +111,7 @@ cd frontend
    npx expo start --tunnel
    ```
 
-5. Instalujemy aplikację [Expo Go](https://expo.dev/go) na urządzeniu (fizycznym lub emulatorze), następnie skanujemy kod QR (lub wprowadzamy adres ręcznie) w celu połączenia się z aplikacją
+5. Skanujemy kod QR (lub wprowadzamy adres ręcznie w aplikacji Expo Go) w celu połączenia się z aplikacją
    > Ważnym jest, że to środowisko deweloperskie nie obsługuje części natywnych funkcjonalności, co w kontekście aplikacji przekłada się na brak możliwości zmiany daty transakcji podczas jej tworzenia lub edycji. W celu pełnego doświadczenia, należy [zbudować](https://docs.expo.dev/build/setup/) natywną wersję aplikacji:
    > ```bash
    > eas build --platform android --profile preview
