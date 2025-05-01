@@ -1,11 +1,8 @@
 services:
   php:
-    build:
-      context: .
-      target: frankenphp_prod
+    container_name: php
+    image: ${IMAGES_PREFIX:-}app-php
     environment:
-      APP_SECRET: ${APP_SECRET:-!ChangeMe!}
-      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-example\.com|localhost}|php$$}
       DATABASE_URL: mysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-!ChangeMe!}@database:3306/${MYSQL_DB:-app}?serverVersion=mariadb-10.6.4&charset=utf8mb4
@@ -15,16 +12,6 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       CORS_ALLOW_ORIGIN: "^https?://(localhost|127.0.0.1)(:[0-9]+)?$"
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-      - target: 443
-        published: 443
-        protocol: tcp
-      - target: 443
-        published: 443
-        protocol: udp
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -32,7 +19,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-
+  
   database:
     image: mariadb:${MARIADB_VERSION:-10.6.4}
     environment:
@@ -64,8 +51,6 @@ services:
     environment:
       PMA_HOST: database
       PMA_PORT: 3306
-      PMA_USER: ${MYSQL_USER:-app}
-      PMA_PASSWORD: ${MYSQL_PASSWORD:-!ChangeMe!}
     ports:
       - target: 80
         published: ${PMA_PORT:-8080}
